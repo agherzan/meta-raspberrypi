@@ -1,7 +1,7 @@
 require linux.inc
 
-DESCRIPTION = "Linux kernel for the OpenPandora handheld"
-KERNEL_IMAGETYPE = "uImage"
+DESCRIPTION = "Linux kernel for the RaspberryPi board"
+KERNEL_IMAGETYPE = "zImage"
 
 COMPATIBLE_MACHINE = "raspberrypi"
 

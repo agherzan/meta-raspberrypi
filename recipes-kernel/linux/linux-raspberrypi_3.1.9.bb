@@ -5,8 +5,8 @@ KERNEL_IMAGETYPE = "uImage"
 
 COMPATIBLE_MACHINE = "raspberrypi"
 
-# This is on the pandora-3.2 branch
-SRCREV = "d348f1694041b0310e42c6a471e97214eb301e91"
+# This is on the rpi-patches branch
+SRCREV = "2fb814968753d0d4a5fdf056a3a8c9eee3c41aa6"
 
 SRC_URI = " \
            git://github.com/raspberrypi/linux.git;protocol=git;branch=rpi-patches \

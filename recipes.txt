@@ -1,0 +1,6 @@
+recipes-binary       - Binary only firmware recipes.
+recipes-bsp          - Anything with links to the RaspberryPi hardware configuration information.
+recipes-core         - Extensions to existing upstream core recipes.
+recipes-devices      - Device drivers/Init scripts.
+recipes-graphics     - XOrg Config and such.
+recipes-kernel       - The RaspberryPi kernel recipes and anything with strong kernel dependencies.

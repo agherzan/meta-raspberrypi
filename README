@@ -1,0 +1,35 @@
+ OpenEmbedded BSP Layer - RaspberryPi
+--------------------------------------
+
+This is the general hardware specific BSP overlay for the RaspberryPi device.
+It should be used with openembedded-core (not old-style org.openembedded.dev).
+
+More information can be found at:
+
+                   http://www.raspberrypi.org/ (Official Site)
+                   http://www.distant-earth.com/ (My Site)
+
+Build scripts to support making a firmware image for the RaspberryPi can be found at:
+
+                   TODO: Fork Angstrom setup-scripts with layer added.
+
+This layer depends on:
+
+URI: git://git.openembedded.org/openembedded-core
+branch: master
+revision: HEAD
+
+URI: git://git.openembedded.org/meta-openembedded
+branch: master
+revision: HEAD
+
+URI: git://git.angstrom-distribution.org/meta-angstrom
+branch: master
+revision: HEAD
+
+It is preferred that people raise pull requests using GIThub by forking the appropriate tree:
+
+                   https://github.com/djwillis/
+                   (More info on achieving this can be found at http://help.github.com/send-pull-requests/)
+
+Layer maintainer: John Willis <John.Willis at distant-earth.com>

@@ -1,11 +1,11 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 # Don't forget to bump PRINC if you update the extra files.
-PRINC = "3"
+PRINC = "4"
 
 THISDIR := "${@os.path.dirname(bb.data.getVar('FILE', d, True))}"
 FILESPATH =. "${@base_set_filespath(["${THISDIR}/${PN}"], d)}:"
 
-SRC_URI_append = " file://xorg.conf.d/*"
+SRC_URI_append_raspberrypi = " file://xorg.conf.d/*"
 
 CONFFILES_${PN} += "${sysconfdir}/X11/xorg.conf.d/*"
 

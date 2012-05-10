@@ -1,6 +1,8 @@
 DESCRIPTION = "Tools to append 32KB binary header to kernel image."
 LICENSE = "proprietary-binary"
-PR = "${MACHINE_KERNEL_PR}.2"
+
+COMPATIBLE_MACHINE = "raspberrypi"
+PR = "${MACHINE_KERNEL_PR}.3"
 
 SECTION = "bootloader"
 

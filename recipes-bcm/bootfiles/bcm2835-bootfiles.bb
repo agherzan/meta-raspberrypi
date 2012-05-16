@@ -1,29 +1,27 @@
 DESCRIPTION = "Closed source binary files to help boot the ARM on the BCM2835."
 LICENSE = "proprietary-binary"
 
-LIC_FILES_CHKSUM = "file://LICENCE;md5=d2defdc6f09addccc73d83b74f2dda58"
+LIC_FILES_CHKSUM = "file://LICENCE.broadcom;md5=e86e693d19572ee64cc8b17fb062faa9"
 
 # This is on the master branch
-SRCREV = "78d00079176a2751be9dd226f8463cbcc9c55073"         
+SRCREV = "56cd7ffb3f7244017c8eb3b492ea37592c678506"
 
 SRC_URI = " \
-        file://LICENCE \
         git://github.com/raspberrypi/firmware.git;protocol=git;branch=master  \    
 "
 
-S = "${WORKDIR}"
-BOOT_FILES = "${S}/git/boot"
+S = "${WORKDIR}/git/boot"
 
-PR = "r0"
+PR = "r1"
 
 addtask deploy before do_package after do_install
 
 do_deploy() {
 	install -d ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles
-	for i in ${BOOT_FILES}/*.elf ; do
+	for i in *.elf ; do
 		cp $i ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles
 	done
-	for i in ${BOOT_FILES}/*.bin ; do
+	for i in *.bin ; do
 		cp $i ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles
 	done	
 }

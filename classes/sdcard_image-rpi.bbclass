@@ -1,131 +1,99 @@
-inherit image
+#
+# Create an image that can by written onto a SD card using dd.
+#
+# The disk layout used is:
+#
+#    0  - 1M                  - reserved for other data
+#    1M - BOOT_SPACE          - bootloader and kernel
+#    BOOT_SPACE - SDIMG_SIZE  - rootfs
+#
 
-# Add the fstypes we need
-IMAGE_FSTYPES_append = " tar.bz2 rpi-sdimg"
+inherit image_types
 
-# Ensure required utilities are present
-IMAGE_DEPENDS_rpi-sdimg = "genext2fs-native e2fsprogs-native bcm2835-bootfiles bcm2835-kernel-image"
+# Set kernel and boot loader
+IMAGE_BOOTLOADER ?= "bcm2835-bootfiles"
 
-# Register this as an avalable type of image.
-IMAGE_TYPES_append = " rpi-sdimg"
+# Default to 1.4GiB images
+SDIMG_SIZE ?= "4000"
 
-# Change this to match your host distro
-LOSETUP ?= "/sbin/losetup"
+# Boot partition volume id
+BOOTDD_VOLUME_ID ?= "${MACHINE}"
 
-# Since these need to go in /etc/fstab we can hardcode them
-# Since the vars are weakly assigned, you can override them from your local.conf
-LOOPDEV ?= "/dev/loop1"
-LOOPDEV_BOOT ?= "/dev/loop2"
-LOOPDEV_FS ?= "/dev/loop3"
+# Addional space for boot partition
+BOOT_SPACE ?= "20MiB"
 
-# Default to 4GiB images
-SDIMG_SIZE ?= "444" 
+# Use an ext3 by default as rootfs
+SDIMG_ROOTFS_TYPE ?= "ext3"
+SDIMG_ROOTFS = "${IMAGE_NAME}.rootfs.${SDIMG_ROOTFS_TYPE}"
 
-# FS type for rootfs
-ROOTFSTYPE ?= "ext4"
+# Set GPU firmware image to be used
+# arm128 : 128M ARM, 128M GPU split
+# arm192 : 192M ARM, 64M GPU split
+# arm224 : 224M ARM, 32M GPU split
+RPI_GPU_FIRMWARE ?= "arm192"
 
-BOOTPARTNAME ?= "${MACHINE}"
+IMAGE_DEPENDS_rpi-sdimg = " \
+			parted-native \
+			mtools-native \
+			dosfstools-native \
+			virtual/kernel \
+			${IMAGE_BOOTLOADER} \
+			"
 
-IMAGEDATESTAMP = "${@time.strftime('%Y.%m.%d',time.gmtime())}"
+# SD card image name
+SDIMG = "${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.rootfs.rpi-sdimg"
 
 # Additional files and/or directories to be copied into the vfat partition from the IMAGE_ROOTFS.
 FATPAYLOAD ?= ""
 
+IMAGEDATESTAMP = "${@time.strftime('%Y.%m.%d',time.gmtime())}"
+
 IMAGE_CMD_rpi-sdimg () {
-	SDIMG=${WORKDIR}/sd.img
-
-	# sanity check fstab entry for boot partition mounting
-	if [ "x$(cat /etc/fstab | grep ${LOOPDEV_BOOT} | grep ${WORKDIR}/tmp-mnt-boot | grep user || true)" = "x" ]; then
-		echo "/etc/fstab entries need to be created with the user flag for the loop devices like:"
-		echo "${LOOPDEV_BOOT} ${WORKDIR}/tmp-mnt-boot vfat user 0 0"
-        false
-	fi
-
-	# cleanup loops
-	for loop in ${LOOPDEV} ${LOOPDEV_BOOT} ${LOOPDEV_FS} ; do
-		${LOSETUP} -d $loop || true
-	done
-
-	# If an SD image is already present, reuse and reformat it
-	if [ ! -e ${SDIMG} ] ; then
-		dd if=/dev/zero of=${SDIMG} bs=$(echo '255 * 63 * 512' | bc) count=${SDIMG_SIZE}
-	fi
-
-	${LOSETUP} ${LOOPDEV} ${SDIMG}
+	# Initialize sdcard image file
+	dd if=/dev/zero of=${SDIMG} bs=1 count=0 seek=$(expr 1000 \* 1000 \* ${SDIMG_SIZE})
 
 	# Create partition table
-	dd if=/dev/zero of=${LOOPDEV} bs=1024 count=1024
-	SIZE=$(/sbin/fdisk -l ${LOOPDEV} | grep Disk | grep bytes | awk '{print $5}')
-	CYLINDERS=$(echo $SIZE/255/63/512 | bc)
-	{
-	echo ,9,0x0C,*
-	echo ,,,-
-	} | /sbin/sfdisk -D -H 255 -S 63 -C ${CYLINDERS} ${LOOPDEV}
+	parted -s ${SDIMG} mklabel msdos
+	# Create boot partition and mark it as bootable
+	parted -s ${SDIMG} mkpart primary fat32 1MiB ${BOOT_SPACE}
+	parted -s ${SDIMG} set 1 boot on
+	# Create rootfs partition
+	parted -s ${SDIMG} mkpart primary ext2 ${BOOT_SPACE} 100%
+	parted ${SDIMG} print
 
-	# Prepare loop devices for boot and filesystem partitions
-	BOOT_OFFSET=32256
-	FS_OFFSET_SECT=$(/sbin/fdisk -l -u ${LOOPDEV} 2>&1 | grep Linux | perl -p -i -e "s/\s+/ /"|cut -d " " -f 2)
-	FS_OFFSET=$(echo "$FS_OFFSET_SECT * 512" | bc)
-	FS_SIZE_BLOCKS=$(/sbin/fdisk -l -u ${LOOPDEV} 2>&1 | grep Linux | perl -p -i -e "s/\s+/ /g" \ 
-	|cut -d " " -f 4 | cut -d "+" -f 1)
- 
-	LOOPDEV_BLOCKS=$(/sbin/fdisk -l -u ${LOOPDEV} 2>&1 | grep FAT | perl -p -i -e "s/\s+/ /g"|cut -d " " -f 5)
-	LOOPDEV_BYTES=$(echo "$LOOPDEV_BLOCKS * 1024" | bc)
+	# Create a vfat image with boot files
+	BOOT_BLOCKS=$(LC_ALL=C parted -s ${SDIMG} unit b print | awk '/ 1 / { print substr($4, 1, length($4 -1)) / 512 /2 }')
+	mkfs.vfat -n "${BOOTDD_VOLUME_ID}" -S 512 -C ${WORKDIR}/boot.img $BOOT_BLOCKS
+	case "${RPI_GPU_FIRMWARE}" in
+		"arm128" | "arm192" | "arm224")
+			mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/${RPI_GPU_FIRMWARE}_start.elf ::start.elf
+			;;
+		*)
+			bberror "RPI_GPU_FIRMWARE is undefined or value not recongnised. Possible values: arm128, arm192 or arm224."
+			exit 1
+			;;
+	esac
 
-	${LOSETUP} -d ${LOOPDEV}
-
-	${LOSETUP} ${LOOPDEV_BOOT} ${SDIMG} -o ${BOOT_OFFSET} 
-
-	/sbin/mkfs.vfat ${LOOPDEV_BOOT} -n ${BOOTPARTNAME} $LOOPDEV_BLOCKS
-
-	# Prepare boot partion. First mount the boot partition, and copy the bootloader and supporting files.
-
-	mkdir -p ${WORKDIR}/tmp-mnt-boot
-	mount $LOOPDEV_BOOT ${WORKDIR}/tmp-mnt-boot
-
-	echo "Copying bootloader and prepended kernel.img into the boot partition"
-	cp -v ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/* ${WORKDIR}/tmp-mnt-boot || true
+	# To do
+	# Copy here a cmdline.txt file generated taking into consideration the partition type
+	# of the rootfs
+	mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/bootcode.bin ::
+	mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/loader.bin ::
+	mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/kernel.img ::
 
 	if [ -n ${FATPAYLOAD} ] ; then
 		echo "Copying payload into VFAT"
 		for entry in ${FATPAYLOAD} ; do
 				# add the || true to stop aborting on vfat issues like not supporting .~lock files
-				cp -av ${IMAGE_ROOTFS}$entry ${WORKDIR}/tmp-mnt-boot || true
+				mcopy -i ${WORKDIR}/boot.img -s -v ${IMAGE_ROOTFS}$entry :: || true
 		done
 	fi
 
-	echo "${IMAGE_NAME}-${IMAGEDATESTAMP}" > ${IMAGE_ROOTFS}/etc/image-version-info
-	
-	cp -v ${IMAGE_ROOTFS}/etc/image-version-info ${WORKDIR}/tmp-mnt-boot || true
+	# Add stamp file
+	echo "${IMAGE_NAME}-${IMAGEDATESTAMP}" > ${WORKDIR}/image-version-info
+	mcopy -i ${WORKDIR}/boot.img -v ${WORKDIR}//image-version-info ::
 
-	# Cleanup VFAT mount
-	echo "Cleaning up VFAT mount"
-	umount ${WORKDIR}/tmp-mnt-boot
-	${LOSETUP} -d ${LOOPDEV_BOOT} || true
-
-	# Prepare rootfs parition
-	echo "Creating rootfs loopback"
-	${LOSETUP} ${LOOPDEV_FS} ${SDIMG} -o ${FS_OFFSET}
-
-	FS_NUM_INODES=$(echo $FS_SIZE_BLOCKS / 4 | bc)
-
-	case "${ROOTFSTYPE}" in
-		ext3)
-				genext2fs -z -N $FS_NUM_INODES -b $FS_SIZE_BLOCKS -d ${IMAGE_ROOTFS} ${LOOPDEV_FS}
-				tune2fs -L ${IMAGE_NAME} -j ${LOOPDEV_FS}
-				;;
-		ext4)
-				genext2fs -z -N $FS_NUM_INODES -b $FS_SIZE_BLOCKS -d ${IMAGE_ROOTFS} ${LOOPDEV_FS}
-				tune2fs -L ${IMAGE_NAME} -j -O extents,uninit_bg,dir_index ${LOOPDEV_FS}
-				;;
-		*)
-				echo "Please set ROOTFSTYPE to something supported"
-				exit 1
-				;;
-	esac
-
-	${LOSETUP} -d ${LOOPDEV_FS} || true
-
-	gzip -c ${WORKDIR}/sd.img > ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}-${IMAGEDATESTAMP}.img.gz
-	rm -f ${WORKDIR}/sd.img
+	# Burn Partitions
+	dd if=${WORKDIR}/boot.img of=${SDIMG} conv=notrunc seek=1 bs=1M && sync && sync
+	dd if=${SDIMG_ROOTFS} of=${SDIMG} conv=notrunc seek=1 bs=${BOOT_SPACE} && sync && sync
 }

@@ -9,11 +9,31 @@ More information can be found at:
                    http://www.raspberrypi.org/ (Official Site)
                    http://www.distant-earth.com/ (My Site)
 
-Build scripts to support making a firmware image for the RaspberryPi can be found at:
+Build scripts patched to support making a firmware image for the RaspberryPi with Angstrom can be found at:
 
-                   TODO: Fork Angstrom setup-scripts with layer added.
+                   https://github.com/djwillis/setup-scripts
 
-This layer depends on:
+Mainline Angstrom build scripts can be found at:
+
+                   https://github.com/Angstrom-distribution/setup-scripts
+
+When not depending on meta-openembedded and not using systemd, you may need to
+mask few recipes requiring systemd or other recipes not included in your distribution of choice.
+
+You can achieve this by adding something like the following to local.conf:
+
+BBMASK = "meta-raspberrypi/recipes-multimedia/libav meta-raspberrypi/recipes-core/systemd"
+
+You can adjust the BBMASK for any .bbappends that your distribution does not contain recipes for.
+
+The core BSP part of meta-raspberrypi should work with different OpenEmbedded/Yocto
+distributions and layer stacks, such as:
+
+* Distro-less (only with OE-Core).
+* Angstrom (main focus of testing).
+* Yocto/Poky.
+
+This layer in its entirety depends on:
 
 URI: git://git.openembedded.org/openembedded-core
 branch: master

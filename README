@@ -22,7 +22,7 @@ mask few recipes requiring systemd or other recipes not included in your distrib
 
 You can achieve this by adding something like the following to local.conf:
 
-BBMASK = "meta-raspberrypi/recipes-multimedia/libav meta-raspberrypi/recipes-core/systemd"
+BBMASK = "meta-raspberrypi/recipes-multimedia/libav|meta-raspberrypi/recipes-core/systemd"
 
 You can adjust the BBMASK for any .bbappends that your distribution does not contain recipes for.
 

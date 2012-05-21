@@ -27,3 +27,7 @@ PARALLEL_MAKEINST = ""
 do_configure_prepend() {
 	install -m 0644 ${S}/arch/${ARCH}/configs/${KERNEL_DEFCONFIG} ${WORKDIR}/defconfig || die "No default configuration for ${MACHINE} / ${KERNEL_DEFCONFIG} available."
 }
+
+do_install_prepend() {
+	install -d ${D}/lib/firmware
+}

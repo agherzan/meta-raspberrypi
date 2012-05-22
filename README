@@ -11,11 +11,7 @@ More information can be found at:
 
 Build scripts patched to support making a firmware image for the RaspberryPi with Angstrom can be found at:
 
-                   https://github.com/djwillis/setup-scripts
-
-Mainline Angstrom build scripts can be found at:
-
-                   https://github.com/Angstrom-distribution/setup-scripts
+                   http://github.com/Angstrom-distribution/setup-scripts
 
 When not depending on meta-openembedded and not using systemd, you may need to
 mask few recipes requiring systemd or other recipes not included in your distribution of choice.

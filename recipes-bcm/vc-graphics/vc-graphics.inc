@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://LICENCE;md5=86e53f5f5909ee66900418028de11780"
 
 PROVIDES += "virtual/egl"
 
-SRCREV = "1178c4db57e8676f331fdacfb37ff1662430ea5f"
+include ../common/firmware.inc
 
 SRC_URI = "git://github.com/raspberrypi/firmware.git;protocol=git;branch=master\
            file://egl.pc"

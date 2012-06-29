@@ -3,11 +3,10 @@ LICENSE = "proprietary-binary"
 
 LIC_FILES_CHKSUM = "file://LICENCE.broadcom;md5=e86e693d19572ee64cc8b17fb062faa9"
 
-# This is on the master branch
-SRCREV = "56cd7ffb3f7244017c8eb3b492ea37592c678506"
+include ../common/firmware.inc
 
 SRC_URI = " \
-        git://github.com/raspberrypi/firmware.git;protocol=git;branch=master  \    
+        git://github.com/raspberrypi/firmware.git;protocol=git;branch=master  \
 "
 
 S = "${WORKDIR}/git/boot"
@@ -23,7 +22,7 @@ do_deploy() {
 	done
 	for i in *.bin ; do
 		cp $i ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles
-	done	
+	done
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"

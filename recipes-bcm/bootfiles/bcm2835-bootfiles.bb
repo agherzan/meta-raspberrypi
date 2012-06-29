@@ -1,5 +1,5 @@
 DESCRIPTION = "Closed source binary files to help boot the ARM on the BCM2835."
-LICENSE = "proprietary-binary"
+LICENSE = "Proprietary"
 
 LIC_FILES_CHKSUM = "file://LICENCE.broadcom;md5=e86e693d19572ee64cc8b17fb062faa9"
 

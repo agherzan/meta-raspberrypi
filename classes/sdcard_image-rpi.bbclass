@@ -8,8 +8,6 @@
 #    BOOT_SPACE - SDIMG_SIZE  - rootfs
 #
 
-inherit image_types
-
 # Set kernel and boot loader
 IMAGE_BOOTLOADER ?= "bcm2835-bootfiles"
 

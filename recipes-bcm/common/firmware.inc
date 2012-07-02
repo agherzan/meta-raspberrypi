@@ -1,7 +1,7 @@
 
-# 21/06/2012 firmware; this can be overridden from distro config
-RPIFW_SRCREV ?= "fc0232ac463f0618914bab9314e8e2ae27466d8c"
-RPIFW_DATE ?= "20120621"
+# 01/07/2012 firmware; this can be overridden from distro config
+RPIFW_SRCREV ?= "0671d60180c8d10978b442de5ec9d083596a5f3f"
+RPIFW_DATE ?= "20120701"
 
 
 SRCREV = "${RPIFW_SRCREV}"

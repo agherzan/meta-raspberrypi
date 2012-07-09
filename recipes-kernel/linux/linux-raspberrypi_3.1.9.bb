@@ -4,11 +4,11 @@ require linux.inc
 
 DESCRIPTION = "Linux kernel for the RaspberryPi board"
 
-PR = "r1"
+PR = "r3"
 
 # Bump MACHINE_KERNEL_PR in the machine config if you update the kernel.
 # This is on the rpi-patches branch
-SRCREV = "0ec4154d64ebba48ca2446cde60a90546311defc"
+SRCREV = "14ad68cf4afc7acf14076f895b539d81cd9f32ab"
 
 SRC_URI = "git://github.com/raspberrypi/linux.git;protocol=git;branch=rpi-patches \
 "          
@@ -21,6 +21,9 @@ S = "${WORKDIR}/git"
 # NOTE: For now we pull in the default config from the RPi kernel GIT tree.
 
 KERNEL_DEFCONFIG = "bcmrpi_defconfig"
+
+# CMDLINE fro raspberypi
+CMDLINE_raspberrypi = "dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait"
 
 PARALLEL_MAKEINST = ""
 

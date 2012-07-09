@@ -217,6 +217,12 @@ do_configure_prepend() {
                 echo "CONFIG_CMDLINE=\"${CMDLINE_NFSROOT_USB}\"" >> ${S}/.config
         fi
 		yes '' | oe_runmake oldconfig
+
+		#
+		# Activate CONFIG_LEGACY_PTYS
+		#
+		sed -e '/CONFIG_LEGACY_PTYS/d' -i ${S}/.config
+		echo "CONFIG_LEGACY_PTYS=y" >> ${S}/.config
 }
 
 do_configure_append() {

@@ -22,7 +22,7 @@ S = "${WORKDIR}/git"
 
 KERNEL_DEFCONFIG = "bcmrpi_defconfig"
 
-# CMDLINE fro raspberypi
+# CMDLINE for raspberrypi
 CMDLINE_raspberrypi = "dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait"
 
 PARALLEL_MAKEINST = ""

@@ -33,6 +33,8 @@ do_install () {
   install -m 0644 ${WORKDIR}/egl.pc ${D}${libdir}/pkgconfig/
 }
 
-
-FILES_${PN} = "${bindir}/* ${sbindir}/* ${libdir}/lib*.so*"
-FILES_${PN}-dev += "${libdir}/pkgconfig"
+FILES_${PN} = "${bindir}/* \
+               ${sbindir}/* \
+               ${libdir}/lib*.so"
+FILES_${PN}-dev = "${libdir}/pkgconfig \
+                   ${includedir}"

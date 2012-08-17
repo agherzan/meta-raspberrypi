@@ -33,6 +33,9 @@ do_install () {
   install -m 0644 ${WORKDIR}/egl.pc ${D}${libdir}/pkgconfig/
 }
 
+# These are proprietary binaries generated elsewhere so don't check ldflags
+INSANE_SKIP_${PN} = "ldflags"
+
 FILES_${PN} = "${bindir}/* \
                ${sbindir}/* \
                ${libdir}/lib*.so"

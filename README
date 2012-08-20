@@ -60,8 +60,16 @@ How to use it:
 3  Set MACHINE to raspberrypi in local.conf
 4. Modify distro to DISTRO ?= "poky-raspberrypi" in local.conf
 5. bitbake rpi-hwup-image
-6. dd to a SD card the generated sdimg file
+6. dd to a SD card the generated sdimg file (use xzcat if rpi-sdimg.xz is used)
 7. Boot your RPI.
+
+Optional - compressed deployed files:
+
+1. Overwrite IMAGE_FSTYPES in local.conf
+	IMAGE_FSTYPES = "tar.bz2 ext3.xz rpi-sdimg.xz
+2. Overwrite SDIMG_ROOTFS_TYPE in local.conf
+	SDIMG_ROOTFS_TYPE = "ext3.xz"
+*Accommodate the values above to your own needs (ex: ext3 / ext4).
 
 Layer maintainer: John Willis <John.Willis at distant-earth.com>
                   Andrei Gherzan <andrei at gherzan.ro>

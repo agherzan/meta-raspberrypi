@@ -1,0 +1,16 @@
+We already have setuptools python module so we will use that and not the
+one provided in this package.
+
+Upstream-Status: Inappropriate [embedded specific]
+Signed-off-by: Andrei Gherzan <andrei@gherzan.ro>
+
+Index: RPi.GPIO-0.2.0/setup.py
+===================================================================
+--- RPi.GPIO-0.2.0.orig/setup.py	2012-05-24 13:17:31.000000000 +0300
++++ RPi.GPIO-0.2.0/setup.py	2012-08-22 00:56:59.049001018 +0300
+@@ -1,6 +1,4 @@
+ #!/usr/bin/env python
+-import distribute_setup
+-distribute_setup.use_setuptools()
+ from setuptools import setup, find_packages
+ import platform

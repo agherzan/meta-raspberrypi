@@ -20,7 +20,7 @@ BOOTDD_VOLUME_ID ?= "${MACHINE}"
 # Addional space for boot partition
 BOOT_SPACE ?= "20MiB"
 
-# Use an ext3 by default as rootfs
+# Use an uncompressed ext3 by default as rootfs
 SDIMG_ROOTFS_TYPE ?= "ext3"
 SDIMG_ROOTFS = "${IMAGE_NAME}.rootfs.${SDIMG_ROOTFS_TYPE}"
 
@@ -93,5 +93,11 @@ IMAGE_CMD_rpi-sdimg () {
 
 	# Burn Partitions
 	dd if=${WORKDIR}/boot.img of=${SDIMG} conv=notrunc seek=1 bs=1M && sync && sync
-	dd if=${SDIMG_ROOTFS} of=${SDIMG} conv=notrunc seek=1 bs=${BOOT_SPACE} && sync && sync
+	# If SDIMG_ROOTFS_TYPE is a .xz file use xzcat
+	if [[ "$SDIMG_ROOTFS_TYPE" == *.xz ]]
+	then
+		xzcat ${SDIMG_ROOTFS} | dd of=${SDIMG} conv=notrunc seek=1 bs=${BOOT_SPACE} && sync && sync
+	else
+		dd if=${SDIMG_ROOTFS} of=${SDIMG} conv=notrunc seek=1 bs=${BOOT_SPACE} && sync && sync
+	fi
 }

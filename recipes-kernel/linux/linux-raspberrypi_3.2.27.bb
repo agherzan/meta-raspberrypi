@@ -4,16 +4,16 @@ require linux.inc
 
 DESCRIPTION = "Linux kernel for the RaspberryPi board"
 
-PR = "r3"
+PR = "r0"
 
 # Bump MACHINE_KERNEL_PR in the machine config if you update the kernel.
 # This is on the rpi-patches branch
-SRCREV = "14ad68cf4afc7acf14076f895b539d81cd9f32ab"
+SRCREV = "091073bcab483b976ee33dfe914c28df87914a3b"
 
-SRC_URI = "git://github.com/raspberrypi/linux.git;protocol=git;branch=rpi-patches \
-"          
+SRC_URI = "git://github.com/raspberrypi/linux.git;protocol=git;branch=rpi-3.2.27 \
+          "
 
-LINUX_VERSION ?= "3.1.9-rpi"
+LINUX_VERSION ?= "3.2.27-rpi"
 PV = "${LINUX_VERSION}+${PR}+git${SRCREV}"
 
 S = "${WORKDIR}/git"

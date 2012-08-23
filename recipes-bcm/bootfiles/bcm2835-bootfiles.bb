@@ -23,6 +23,8 @@ do_deploy() {
 	for i in *.bin ; do
 		cp $i ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles
 	done
+	# Add stamp in deploy directory
+	touch ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/${PN}-${PV}.stamp
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"

@@ -28,6 +28,7 @@ SDIMG_ROOTFS = "${IMAGE_NAME}.rootfs.${SDIMG_ROOTFS_TYPE}"
 # arm128 : 128M ARM, 128M GPU split
 # arm192 : 192M ARM, 64M GPU split
 # arm224 : 224M ARM, 32M GPU split
+# arm240 : 240M ARM, 16M GPU split
 RPI_GPU_FIRMWARE ?= "arm192"
 
 IMAGE_DEPENDS_rpi-sdimg = " \
@@ -63,11 +64,11 @@ IMAGE_CMD_rpi-sdimg () {
 	BOOT_BLOCKS=$(LC_ALL=C parted -s ${SDIMG} unit b print | awk '/ 1 / { print substr($4, 1, length($4 -1)) / 512 /2 }')
 	mkfs.vfat -n "${BOOTDD_VOLUME_ID}" -S 512 -C ${WORKDIR}/boot.img $BOOT_BLOCKS
 	case "${RPI_GPU_FIRMWARE}" in
-		"arm128" | "arm192" | "arm224")
+		"arm128" | "arm192" | "arm224" | "arm240")
 			mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/${RPI_GPU_FIRMWARE}_start.elf ::start.elf
 			;;
 		*)
-			bberror "RPI_GPU_FIRMWARE is undefined or value not recongnised. Possible values: arm128, arm192 or arm224."
+			bberror "RPI_GPU_FIRMWARE is undefined or value not recognised. Possible values: arm128, arm192, arm224 or arm240."
 			exit 1
 			;;
 	esac

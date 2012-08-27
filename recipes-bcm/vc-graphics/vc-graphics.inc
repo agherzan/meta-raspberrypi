@@ -3,18 +3,20 @@ LICENSE = "Proprietary"
 
 LIC_FILES_CHKSUM = "file://LICENCE;md5=86e53f5f5909ee66900418028de11780"
 
-PROVIDES += "virtual/egl"
+PROVIDES = "virtual/libgl virtual/libgles2 virtual/egl"
+COMPATIBLE_MACHINE = "raspberrypi"
 
 include ../common/firmware.inc
 
 SRC_URI = "git://github.com/raspberrypi/firmware.git;protocol=git;branch=master\
-           file://egl.pc"
+           file://egl.pc \
+           file://vchiq.sh"
 
 S = "${WORKDIR}/git/${VCDIR}"
 
 INCPR = "r0"
 
-inherit pkgconfig
+inherit pkgconfig update-rc.d
 
 do_install () {
   install -d ${D}${bindir}
@@ -31,13 +33,20 @@ do_install () {
 
   install -d ${D}${libdir}/pkgconfig
   install -m 0644 ${WORKDIR}/egl.pc ${D}${libdir}/pkgconfig/
+
+  install -d ${D}/${sysconfdir}/init.d
+  install -m 0755 ${WORKDIR}/vchiq.sh ${D}${sysconfdir}/init.d/
 }
 
 # These are proprietary binaries generated elsewhere so don't check ldflags
 INSANE_SKIP_${PN} = "ldflags"
 
+INITSCRIPT_NAME = "vchiq.sh"
+INITSCRIPT_PARAMS = "start 03 S ."
+
 FILES_${PN} = "${bindir}/* \
                ${sbindir}/* \
-               ${libdir}/lib*.so"
+               ${libdir}/lib*.so \
+               ${sysconfdir}/init.d"
 FILES_${PN}-dev = "${libdir}/pkgconfig \
                    ${includedir}"

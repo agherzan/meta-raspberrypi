@@ -1,0 +1,32 @@
+Modify install rule to use /usr/bin path and not /usr/usr/bin for
+installing omxplayer binary and script.
+As well, add a variable to let the user specify where to install
+the files.
+
+Upstream-Status: Pending
+Signed-off-by: Andrei Gherzan <andrei@gherzan.ro>
+
+Index: git/Makefile
+===================================================================
+--- git.orig/Makefile	2012-08-26 05:03:31.710678243 +0300
++++ git/Makefile	2012-08-26 05:03:11.000000000 +0300
+@@ -59,11 +57,11 @@
+ 	make -f Makefile.ffmpeg install
+ 
+ dist: omxplayer.bin
+-	mkdir -p omxplayer-dist/usr/lib/omxplayer
+-	mkdir -p omxplayer-dist/usr/usr/bin
+-	mkdir -p omxplayer-dist/usr/share/doc
+-	cp omxplayer omxplayer.bin omxplayer-dist/usr/usr/bin
+-	cp COPYING omxplayer-dist/usr/share/doc/
+-	cp README.md omxplayer-dist/usr/share/doc/README
+-	cp -a ffmpeg_compiled/usr/lib/*.so* omxplayer-dist/usr/lib/omxplayer/
+-	tar -czf omxplayer-dist.tar.gz omxplayer-dist
++	mkdir -p $(DEST)/usr/lib/omxplayer
++	mkdir -p $(DEST)/usr/bin
++	mkdir -p $(DEST)/usr/share/doc
++	cp omxplayer omxplayer.bin $(DEST)/usr/bin
++	cp COPYING $(DEST)/usr/share/doc/
++	cp README.md $(DEST)/usr/share/doc/README
++	cp -a ffmpeg_compiled/usr/lib/*.so* $(DEST)/usr/lib/omxplayer/
++	tar -czf omxplayer-dist.tar.gz $(DEST)

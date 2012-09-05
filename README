@@ -64,7 +64,8 @@ How to use it:
     - meta-raspberrypi
     - meta-openembedded/meta-oe
 3  Set MACHINE to raspberrypi in local.conf
-4. Modify distro to DISTRO ?= "poky-raspberrypi" in local.conf
+4. Add to local.conf:
+    BBMASK = "rpi-zram-service"
 5. bitbake rpi-hwup-image
 6. dd to a SD card the generated sdimg file (use xzcat if rpi-sdimg.xz is used)
 7. Boot your RPI.

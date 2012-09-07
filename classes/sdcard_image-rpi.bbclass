@@ -3,22 +3,35 @@
 #
 # The disk layout used is:
 #
-#    0  - 1M                  - reserved for other data
-#    1M - BOOT_SPACE          - bootloader and kernel
-#    BOOT_SPACE - SDIMG_SIZE  - rootfs
+#    0                      -> IMAGE_ROOTFS_ALIGNMENT         - reserved for other data
+#    IMAGE_ROOTFS_ALIGNMENT -> BOOT_SPACE                     - bootloader and kernel
+#    BOOT_SPACE             -> SDIMG_SIZE                     - rootfs
 #
+
+#                                                     Default Free space = 1.3x
+#                                                     Use IMAGE_OVERHEAD_FACTOR to add more space
+#                                                     <--------->
+#            4KiB              20MiB           SDIMG_ROOTFS
+# <-----------------------> <----------> <---------------------->
+#  ------------------------ ------------ ------------------------ -------------------------------
+# | IMAGE_ROOTFS_ALIGNMENT | BOOT_SPACE | ROOTFS_SIZE            |     IMAGE_ROOTFS_ALIGNMENT    |
+#  ------------------------ ------------ ------------------------ -------------------------------
+# ^                        ^            ^                        ^                               ^
+# |                        |            |                        |                               |
+# 0                      4096     4KiB + 20MiB       4KiB + 20Mib + SDIMG_ROOTFS   4KiB + 20MiB + SDIMG_ROOTFS + 4KiB
+
 
 # Set kernel and boot loader
 IMAGE_BOOTLOADER ?= "bcm2835-bootfiles"
 
-# Default to 1.4GiB images
-SDIMG_SIZE ?= "4000"
-
 # Boot partition volume id
 BOOTDD_VOLUME_ID ?= "${MACHINE}"
 
-# Addional space for boot partition
-BOOT_SPACE ?= "20MiB"
+# Boot partition size [in KiB]
+BOOT_SPACE ?= "20480"
+
+# Set alignment to 4MB [in KiB]
+IMAGE_ROOTFS_ALIGNMENT = "4096"
 
 # Use an uncompressed ext3 by default as rootfs
 SDIMG_ROOTFS_TYPE ?= "ext3"
@@ -48,16 +61,22 @@ FATPAYLOAD ?= ""
 IMAGEDATESTAMP = "${@time.strftime('%Y.%m.%d',time.gmtime())}"
 
 IMAGE_CMD_rpi-sdimg () {
+
+	# Align partitions
+	BOOT_SPACE_ALIGNED=$(expr ${BOOT_SPACE} + ${IMAGE_ROOTFS_ALIGNMENT} - 1)
+	BOOT_SPACE_ALIGNED=$(expr ${BOOT_SPACE_ALIGNED} - ${BOOT_SPACE_ALIGNED} % ${IMAGE_ROOTFS_ALIGNMENT})
+	SDIMG_SIZE=$(expr ${BOOT_SPACE_ALIGNED} + $ROOTFS_SIZE + ${IMAGE_ROOTFS_ALIGNMENT})
+
 	# Initialize sdcard image file
-	dd if=/dev/zero of=${SDIMG} bs=1 count=0 seek=$(expr 1000 \* 1000 \* ${SDIMG_SIZE})
+	dd if=/dev/zero of=${SDIMG} bs=1 count=0 seek=$(expr 1024 \* ${SDIMG_SIZE})
 
 	# Create partition table
 	parted -s ${SDIMG} mklabel msdos
 	# Create boot partition and mark it as bootable
-	parted -s ${SDIMG} mkpart primary fat32 1MiB ${BOOT_SPACE}
+	parted -s ${SDIMG} unit KiB mkpart primary fat32 ${IMAGE_ROOTFS_ALIGNMENT} $(expr ${BOOT_SPACE_ALIGNED} \+ ${IMAGE_ROOTFS_ALIGNMENT})
 	parted -s ${SDIMG} set 1 boot on
 	# Create rootfs partition
-	parted -s ${SDIMG} mkpart primary ext2 ${BOOT_SPACE} 100%
+	parted -s ${SDIMG} unit KiB mkpart primary ext2 $(expr ${BOOT_SPACE_ALIGNED} \+ ${IMAGE_ROOTFS_ALIGNMENT}) 100%
 	parted ${SDIMG} print
 
 	# Create a vfat image with boot files
@@ -93,13 +112,13 @@ IMAGE_CMD_rpi-sdimg () {
 	mcopy -i ${WORKDIR}/boot.img -v ${WORKDIR}//image-version-info ::
 
 	# Burn Partitions
-	dd if=${WORKDIR}/boot.img of=${SDIMG} conv=notrunc seek=1 bs=1M && sync && sync
+	dd if=${WORKDIR}/boot.img of=${SDIMG} conv=notrunc seek=1 bs=$(expr ${IMAGE_ROOTFS_ALIGNMENT} \* 1024) && sync && sync
 	# If SDIMG_ROOTFS_TYPE is a .xz file use xzcat
 	if [[ "$SDIMG_ROOTFS_TYPE" == *.xz ]]
 	then
-		xzcat ${SDIMG_ROOTFS} | dd of=${SDIMG} conv=notrunc seek=1 bs=${BOOT_SPACE} && sync && sync
+		xzcat ${SDIMG_ROOTFS} | dd of=${SDIMG} conv=notrunc seek=1 bs=$(expr 1024 \* ${BOOT_SPACE_ALIGNED}) && sync && sync
 	else
-		dd if=${SDIMG_ROOTFS} of=${SDIMG} conv=notrunc seek=1 bs=${BOOT_SPACE} && sync && sync
+		dd if=${SDIMG_ROOTFS} of=${SDIMG} conv=notrunc seek=1 bs=$(expr 1024 \* ${BOOT_SPACE_ALIGNED} + ${IMAGE_ROOTFS_ALIGNMENT} \* 1024) && sync && sync
 	fi
 }
 

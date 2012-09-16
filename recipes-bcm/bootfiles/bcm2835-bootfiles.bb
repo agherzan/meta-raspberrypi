@@ -5,6 +5,8 @@ LIC_FILES_CHKSUM = "file://LICENCE.broadcom;md5=e86e693d19572ee64cc8b17fb062faa9
 
 include ../common/firmware.inc
 
+RDEPENDS_${PN} = "RPi-config"
+
 COMPATIBLE_MACHINE = "raspberrypi"
 
 SRC_URI = " \
@@ -13,7 +15,7 @@ SRC_URI = " \
 
 S = "${WORKDIR}/git/boot"
 
-PR = "r1"
+PR = "r2"
 
 addtask deploy before do_package after do_install
 

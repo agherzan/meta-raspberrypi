@@ -1,7 +1,9 @@
 recipes-bcm          - Broadcom specific recipes and tweaks (including binary only bootloader).
 recipes-bsp          - Anything with links to the RaspberryPi hardware configuration information.
 recipes-core         - Extensions to existing upstream core recipes.
+recipes-devtools     - Extensions to existing upstream devtools recipes and other RaspberryPi specific devtools recipes.
 recipes-devices      - Device drivers/Init scripts.
 recipes-graphics     - XOrg Config and such.
 recipes-kernel       - The RaspberryPi kernel recipes and anything with strong kernel dependencies.
+recipes-multimedia   - Extensions to existing upstream multimedia recipes and other RaspberryPi specific multimedia recipes.
 

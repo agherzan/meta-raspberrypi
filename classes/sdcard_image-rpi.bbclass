@@ -37,11 +37,6 @@ IMAGE_ROOTFS_ALIGNMENT = "4096"
 SDIMG_ROOTFS_TYPE ?= "ext3"
 SDIMG_ROOTFS = "${IMAGE_NAME}.rootfs.${SDIMG_ROOTFS_TYPE}"
 
-# Set GPU firmware image to be used
-# arm128 : 128M ARM, 128M GPU split
-# arm192 : 192M ARM, 64M GPU split
-# arm224 : 224M ARM, 32M GPU split
-# arm240 : 240M ARM, 16M GPU split
 RPI_GPU_FIRMWARE ?= "arm192"
 
 IMAGE_DEPENDS_rpi-sdimg = " \

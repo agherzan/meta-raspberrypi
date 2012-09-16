@@ -78,5 +78,14 @@ Optional - compressed deployed files:
 	SDIMG_ROOTFS_TYPE = "ext3.xz"
 *Accommodate the values above to your own needs (ex: ext3 / ext4).
 
+Optional - GPU firmware:
+
+By default the GPU firmware shipped is arm192. You can overwrite this using the
+variable RPI_GPU_FIRMWARE with one of the values below.
+# arm128 : 128M ARM, 128M GPU split
+# arm192 : 192M ARM, 64M GPU split
+# arm224 : 224M ARM, 32M GPU split
+# arm240 : 240M ARM, 16M GPU split
+
 Layer maintainer: John Willis <John.Willis at distant-earth.com>
                   Andrei Gherzan <andrei at gherzan.ro>

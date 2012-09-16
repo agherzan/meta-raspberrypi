@@ -1,3 +1,5 @@
+inherit image_types
+
 #
 # Create an image that can by written onto a SD card using dd.
 #

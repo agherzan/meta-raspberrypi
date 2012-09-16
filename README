@@ -87,5 +87,13 @@ variable RPI_GPU_FIRMWARE with one of the values below.
 # arm224 : 224M ARM, 32M GPU split
 # arm240 : 240M ARM, 16M GPU split
 
+Optional - Add purchased license codecs:
+
+To add you own licenses use variables KEY_DECODE_MPG2 and KEY_DECODE_WVC1 in local.conf. Example:
+KEY_DECODE_MPG2 = "12345678"
+KEY_DECODE_WVC1 = "12345678"
+You can supply more licenses separated by comma. Example:
+KEY_DECODE_WVC1 = "0x12345678,0xabcdabcd,0x87654321"
+
 Layer maintainer: John Willis <John.Willis at distant-earth.com>
                   Andrei Gherzan <andrei at gherzan.ro>

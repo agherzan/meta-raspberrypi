@@ -4,7 +4,7 @@ require linux.inc
 
 DESCRIPTION = "Linux kernel for the RaspberryPi board"
 
-PR = "r1"
+PR = "r2"
 
 # Bump MACHINE_KERNEL_PR in the machine config if you update the kernel.
 # This is on the rpi-patches branch
@@ -35,4 +35,10 @@ do_configure_prepend() {
 
 do_install_prepend() {
 	install -d ${D}/lib/firmware
+}
+
+do_deploy_append() {
+	# Deploy cmdline.txt
+	install -d ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles
+	echo "${CMDLINE}" > ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/cmdline.txt
 }

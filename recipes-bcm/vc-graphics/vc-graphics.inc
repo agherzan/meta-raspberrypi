@@ -26,7 +26,8 @@ do_install () {
   cp -R sbin/* ${D}${sbindir}
 
   install -d ${D}${libdir}
-  cp -R lib/* ${D}${libdir}
+  # note: -H option to deref symlinked .so
+  cp -R -H lib/* ${D}${libdir}
 
   install -d ${D}${includedir}
   cp -R include/* ${D}${includedir}

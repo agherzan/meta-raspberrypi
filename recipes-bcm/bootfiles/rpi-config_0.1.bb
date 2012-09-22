@@ -7,13 +7,13 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384
 
 COMPATIBLE_MACHINE = "raspberrypi"
 
-SRCREV = "23e90347da3f1a6029984306e7eb5177adc34df8"
+SRCREV = "afeaed02ba5f01298dec3ac4e1bd98f27bcd876e"
 SRC_URI = "git://github.com/Evilpaul/RPi-config.git;protocol=git;branch=master \
           "
 
 S = "${WORKDIR}/git"
 
-PR = "r0"
+PR = "r1"
 
 addtask deploy before do_package after do_install
 

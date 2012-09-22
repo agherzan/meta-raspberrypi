@@ -26,6 +26,9 @@ do_deploy() {
 	if [ -n "${KEY_DECODE_WVC1}" ]; then
 		sed -i '/#decode_WVC1/ c\decode_MVC1=${KEY_DECODE_WVC1}' ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/config.txt
 	fi
+	if [ -n "${DISABLE_OVERSCAN}" ]; then
+		sed -i '/#disable_overscan/ c\disable_overscan=${DISABLE_OVERSCAN}' ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/config.txt
+	fi
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"

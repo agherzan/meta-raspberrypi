@@ -29,6 +29,18 @@ do_deploy() {
 	if [ -n "${DISABLE_OVERSCAN}" ]; then
 		sed -i '/#disable_overscan/ c\disable_overscan=${DISABLE_OVERSCAN}' ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/config.txt
 	fi
+	if [ -n "${ARM_FREQ}" ]; then
+		sed -i '/#arm_freq/ c\arm_freq=${ARM_FREQ}' ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/config.txt
+	fi
+	if [ -n "${CORE_FREQ}" ]; then
+		sed -i '/#core_freq/ c\core_freq=${CORE_FREQ}' ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/config.txt
+	fi
+	if [ -n "${SDRAM_FREQ}" ]; then
+		sed -i '/#sdram_freq/ c\sdram_freq=${SDRAM_FREQ}' ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/config.txt
+	fi
+	if [ -n "${OVER_VOLTAGE}" ]; then
+		sed -i '/#over_voltage/ c\over_voltage=${OVER_VOLTAGE}' ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/config.txt
+	fi
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"

@@ -126,5 +126,16 @@ which cut off part of the image. To disable this set this variable in
 local.conf:
 DISALE_OVERSCAN = "0"
 
+Optional - Set overclocking options:
+
+The raspberry pi can be overclocked. As of now overclocking up to the "Turbo
+Mode" is officially supported by the raspbery and does not void warranty.
+Check the config.txt for a detailed description of options and modes. Example:
+# Turbo mode
+ARM_FREQ = "1000"
+CORE_FREQ = "500"
+SDRAM_FREQ = "500"
+OVER_VOLTAGE = "6"
+
 Layer maintainer: John Willis <John.Willis at distant-earth.com>
                   Andrei Gherzan <andrei at gherzan.ro>

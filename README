@@ -119,5 +119,12 @@ KEY_DECODE_WVC1 = "12345678"
 You can supply more licenses separated by comma. Example:
 KEY_DECODE_WVC1 = "0x12345678,0xabcdabcd,0x87654321"
 
+Optional - Disable overscan:
+
+By default the GPU adds a black border around the video output to compensate for TVs
+which cut off part of the image. To disable this set this variable in
+local.conf:
+DISALE_OVERSCAN = "0"
+
 Layer maintainer: John Willis <John.Willis at distant-earth.com>
                   Andrei Gherzan <andrei at gherzan.ro>

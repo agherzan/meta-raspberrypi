@@ -95,7 +95,7 @@ How to use it:
 6. Boot your RPI.
 
 Optional - compressed deployed files:
-
+=====================================
 1. Overwrite IMAGE_FSTYPES in local.conf
 	IMAGE_FSTYPES = "tar.bz2 ext3.xz rpi-sdimg.xz
 2. Overwrite SDIMG_ROOTFS_TYPE in local.conf
@@ -103,7 +103,7 @@ Optional - compressed deployed files:
 *Accommodate the values above to your own needs (ex: ext3 / ext4).
 
 Optional - GPU firmware:
-
+========================
 By default the GPU firmware shipped is arm192. You can overwrite this using the
 variable RPI_GPU_FIRMWARE with one of the values below.
 # arm128 : 128M ARM, 128M GPU split
@@ -112,7 +112,7 @@ variable RPI_GPU_FIRMWARE with one of the values below.
 # arm240 : 240M ARM, 16M GPU split
 
 Optional - Add purchased license codecs:
-
+========================================
 To add you own licenses use variables KEY_DECODE_MPG2 and KEY_DECODE_WVC1 in local.conf. Example:
 KEY_DECODE_MPG2 = "12345678"
 KEY_DECODE_WVC1 = "12345678"
@@ -120,15 +120,15 @@ You can supply more licenses separated by comma. Example:
 KEY_DECODE_WVC1 = "0x12345678,0xabcdabcd,0x87654321"
 
 Optional - Disable overscan:
-
+============================
 By default the GPU adds a black border around the video output to compensate for TVs
 which cut off part of the image. To disable this set this variable in
 local.conf:
 DISALE_OVERSCAN = "0"
 
 Optional - Set overclocking options:
-
-The raspberry pi can be overclocked. As of now overclocking up to the "Turbo
+====================================
+The Raspberry PI can be overclocked. As of now overclocking up to the "Turbo
 Mode" is officially supported by the raspbery and does not void warranty.
 Check the config.txt for a detailed description of options and modes. Example:
 # Turbo mode
@@ -136,6 +136,7 @@ ARM_FREQ = "1000"
 CORE_FREQ = "500"
 SDRAM_FREQ = "500"
 OVER_VOLTAGE = "6"
+
 
 Layer maintainer: John Willis <John.Willis at distant-earth.com>
                   Andrei Gherzan <andrei at gherzan.ro>

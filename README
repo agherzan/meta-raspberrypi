@@ -76,12 +76,12 @@ It is preferred that people raise pull requests using GIThub by forking the appr
 This layer depends on:
 
 URI: git://git.yoctoproject.org/poky
-branch: master
+branch: danny
 revision: HEAD
 
 URI: git://git.openembedded.org/meta-openembedded
 branch: master
-revision: HEAD
+revision: 1571c2c566c51799eceea2aabe13d1c3116f36b3
 
 How to use it:
 

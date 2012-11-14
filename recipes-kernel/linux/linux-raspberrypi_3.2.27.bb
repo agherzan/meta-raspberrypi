@@ -3,10 +3,10 @@ require linux.inc
 DESCRIPTION = "Linux kernel for the RaspberryPi board"
 COMPATIBLE_MACHINE = "raspberrypi"
 
-PR = "r5"
+PR = "r6"
 PV_append = "+git${SRCREV}"
 
-SRCREV = "e33263e7eab2d05349b438f6a4a8d1924686a824"
+SRCREV = "10182a3bc434b27740f81c2b836a1af943060241"
 SRC_URI = "git://github.com/raspberrypi/linux.git;protocol=git;branch=rpi-3.2.27 \
           "
 S = "${WORKDIR}/git"

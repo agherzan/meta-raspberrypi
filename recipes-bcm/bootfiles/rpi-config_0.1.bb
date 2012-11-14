@@ -13,7 +13,7 @@ SRC_URI = "git://github.com/Evilpaul/RPi-config.git;protocol=git;branch=master \
 
 S = "${WORKDIR}/git"
 
-PR = "r2"
+PR = "r3"
 
 addtask deploy before do_package after do_install
 
@@ -40,6 +40,17 @@ do_deploy() {
 	fi
 	if [ -n "${OVER_VOLTAGE}" ]; then
 		sed -i '/#over_voltage/ c\over_voltage=${OVER_VOLTAGE}' ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/config.txt
+	fi
+
+	# GPU memory
+	if [ -n "${GPU_MEM}" ]; then
+		sed -i '/#gpu_mem=/ c\gpu_mem=${GPU_MEM}' ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/config.txt
+	fi
+	if [ -n "${GPU_MEM_256}" ]; then
+		sed -i '/#gpu_mem_256/ c\gpu_mem_256=${GPU_MEM_256}' ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/config.txt
+	fi
+	if [ -n "${GPU_MEM_512}" ]; then
+		sed -i '/#gpu_mem_512/ c\gpu_mem_512=${GPU_MEM_512}' ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/config.txt
 	fi
 }
 

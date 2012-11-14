@@ -15,13 +15,16 @@ SRC_URI = " \
 
 S = "${WORKDIR}/git/boot"
 
-PR = "r2"
+PR = "r3"
 
 addtask deploy before do_package after do_install
 
 do_deploy() {
 	install -d ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles
 	for i in *.elf ; do
+		cp $i ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles
+	done
+	for i in *.dat ; do
 		cp $i ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles
 	done
 	for i in *.bin ; do

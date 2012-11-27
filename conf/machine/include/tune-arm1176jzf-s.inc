@@ -1,4 +1,4 @@
-DEFAULTTUNE ?= "arm1176jzfs"
+DEFAULTTUNE ?= "armv6"
 
 require conf/machine/include/arm/arch-armv6.inc
 

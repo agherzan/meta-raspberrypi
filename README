@@ -24,8 +24,22 @@
                            ....
 
 
- OpenEmbedded BSP Layer - RaspberryPi
---------------------------------------
+
+Contents:
+=========
+1. OpenEmbedded BSP Layer - RaspberryPi
+2. Yocto BSP Layer - RaspberryPi
+    2.A. Compressed deployed files
+    2.B. GPU memory
+    2.C. Add purchased license codecs
+    2.D. Disable overscan
+    2.E. Set overclocking options
+3. Contribution
+
+
+
+1. OpenEmbedded BSP Layer - RaspberryPi
+=======================================
 
 This is the general hardware specific BSP overlay for the RaspberryPi device.
 It should be used with openembedded-core (not old-style org.openembedded.dev).
@@ -35,21 +49,25 @@ More information can be found at:
                    http://www.raspberrypi.org/ (Official Site)
                    http://www.distant-earth.com/ (My Site)
 
-Build scripts patched to support making a firmware image for the RaspberryPi with Angstrom can be found at:
+Build scripts patched to support making a firmware image for the RaspberryPi
+with Angstrom can be found at:
 
                    http://github.com/Angstrom-distribution/setup-scripts
 
 When not depending on meta-openembedded and not using systemd, you may need to
-mask few recipes requiring systemd or other recipes not included in your distribution of choice.
+mask few recipes requiring systemd or other recipes not included in your
+distribution of choice.
 
 You can achieve this by adding something like the following to local.conf:
 
-BBMASK = "meta-raspberrypi/recipes-multimedia/libav|meta-raspberrypi/recipes-core/systemd"
+BBMASK = "meta-raspberrypi/recipes-multimedia/libav|\
+meta-raspberrypi/recipes-core/systemd"
 
-You can adjust the BBMASK for any .bbappends that your distribution does not contain recipes for.
+You can adjust the BBMASK for any .bbappends that your distribution does not
+contain recipes for.
 
-The core BSP part of meta-raspberrypi should work with different OpenEmbedded/Yocto
-distributions and layer stacks, such as:
+The core BSP part of meta-raspberrypi should work with different
+OpenEmbedded/Yocto distributions and layer stacks, such as:
 
 * Distro-less (only with OE-Core).
 * Angstrom (main focus of testing).
@@ -65,13 +83,10 @@ URI: git://git.openembedded.org/meta-openembedded
 branch: master
 revision: HEAD
 
-It is preferred that people raise pull requests using GIThub by forking the appropriate tree:
 
-                   https://github.com/djwillis/
-                   (More info on achieving this can be found at http://help.github.com/send-pull-requests/)
 
- Yocto BSP Layer - RaspberryPi
--------------------------------
+2. Yocto BSP Layer - RaspberryPi
+================================
 
 This layer depends on:
 
@@ -94,38 +109,42 @@ How to use it:
 5. dd to a SD card the generated sdimg file (use xzcat if rpi-sdimg.xz is used)
 6. Boot your RPI.
 
-Optional - compressed deployed files:
-=====================================
+2.A. Optional - compressed deployed files:
+==========================================
 1. Overwrite IMAGE_FSTYPES in local.conf
 	IMAGE_FSTYPES = "tar.bz2 ext3.xz rpi-sdimg.xz
 2. Overwrite SDIMG_ROOTFS_TYPE in local.conf
 	SDIMG_ROOTFS_TYPE = "ext3.xz"
 *Accommodate the values above to your own needs (ex: ext3 / ext4).
 
-Optional - GPU memory:
-========================
+2.B. Optional - GPU memory:
+===========================
 Variable    : Details
-GPU_MEM     : GPU memory in megabyte. Sets the memory split between the ARM and GPU. ARM gets the remaining memory. Min 16. Default 64.
-GPU_MEM_256 : GPU memory in megabyte for the 256MB Raspberry Pi. Ignored by the 512MB RP. Overrides gpu_mem. Max 192. Default not set.
-GPU_MEM_512 : GPU memory in megabyte for the 512MB Raspberry Pi. Ignored by the 256MB RP. Overrides gpu_mem. Max 448. Default not set.
+GPU_MEM     : GPU memory in megabyte. Sets the memory split between the ARM and
+              GPU. ARM gets the remaining memory. Min 16. Default 64.
+GPU_MEM_256 : GPU memory in megabyte for the 256MB Raspberry Pi. Ignored by the
+              512MB RP. Overrides gpu_mem. Max 192. Default not set.
+GPU_MEM_512 : GPU memory in megabyte for the 512MB Raspberry Pi. Ignored by the
+              256MB RP. Overrides gpu_mem. Max 448. Default not set.
 
-Optional - Add purchased license codecs:
-========================================
-To add you own licenses use variables KEY_DECODE_MPG2 and KEY_DECODE_WVC1 in local.conf. Example:
+2.C.Optional - Add purchased license codecs:
+============================================
+To add you own licenses use variables KEY_DECODE_MPG2 and KEY_DECODE_WVC1 in
+local.conf. Example:
 KEY_DECODE_MPG2 = "12345678"
 KEY_DECODE_WVC1 = "12345678"
 You can supply more licenses separated by comma. Example:
 KEY_DECODE_WVC1 = "0x12345678,0xabcdabcd,0x87654321"
 
-Optional - Disable overscan:
-============================
-By default the GPU adds a black border around the video output to compensate for TVs
-which cut off part of the image. To disable this set this variable in
+2.D. Optional - Disable overscan:
+=================================
+By default the GPU adds a black border around the video output to compensate for
+TVs which cut off part of the image. To disable this set this variable in
 local.conf:
 DISALE_OVERSCAN = "0"
 
-Optional - Set overclocking options:
-====================================
+2.E. Optional - Set overclocking options:
+=========================================
 The Raspberry PI can be overclocked. As of now overclocking up to the "Turbo
 Mode" is officially supported by the raspbery and does not void warranty.
 Check the config.txt for a detailed description of options and modes. Example:
@@ -136,5 +155,28 @@ SDRAM_FREQ = "500"
 OVER_VOLTAGE = "6"
 
 
-Layer maintainer: John Willis <John.Willis at distant-earth.com>
-                  Andrei Gherzan <andrei at gherzan.ro>
+
+3. Contributing
+===============
+
+To contribute to this layer you should send the patches for review to the
+mailing list.
+
+Mailing list:
+
+    https://lists.yoctoproject.org/listinfo/yocto
+
+Source code:
+
+    git://git.yoctoproject.org/meta-raspberrypi
+    http://git.yoctoproject.org/git/meta-raspberrypi
+    https://github.com/djwillis/meta-raspberrypi
+
+When sending patches, please use something like:
+
+git send-email --to yocto@yoctoproject.org \
+--subject-prefix='meta-raspberrypi][PATCH'
+
+
+Layer maintainers: John Willis <John.Willis at distant-earth.com>
+                   Andrei Gherzan <andrei at gherzan.ro>

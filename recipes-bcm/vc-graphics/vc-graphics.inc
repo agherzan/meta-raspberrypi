@@ -3,7 +3,7 @@ LICENSE = "Proprietary"
 
 LIC_FILES_CHKSUM = "file://LICENCE;md5=86e53f5f5909ee66900418028de11780"
 
-PROVIDES = "virtual/libgl virtual/libgles2 virtual/egl"
+PROVIDES = "virtual/libgles2 virtual/egl"
 COMPATIBLE_MACHINE = "raspberrypi"
 
 include ../common/firmware.inc
@@ -14,7 +14,7 @@ SRC_URI = "git://github.com/raspberrypi/firmware.git;protocol=git;branch=master\
 
 S = "${WORKDIR}/git/${VCDIR}"
 
-INCPR = "r0"
+INCPR = "r1"
 
 inherit pkgconfig update-rc.d
 

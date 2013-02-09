@@ -5,15 +5,14 @@ vcos, openmaxil, vchiq_arm, bcm_host, WFC, OpenVG."
 LICENSE = "Broadcom"
 LIC_FILES_CHKSUM = "file://LICENCE;md5=957f6640d5e2d2acfce73a36a56cb32f"
 
-PR = "r0"
+PR = "r1"
 
 PROVIDES = "virtual/libgles2 \
             virtual/egl"
 COMPATIBLE_MACHINE = "raspberrypi"
 
-SRCREV = "ef62d33406ee01864d58b80f6d0c0355ed86aaa1"
+SRCREV = "8700279495e266378d36092ccf86424f0ee2539f"
 SRC_URI = "git://github.com/raspberrypi/userland.git;protocol=git;branch=master \
-           file://install_vmcs \
           "
 S = "${WORKDIR}/git"
 
@@ -22,22 +21,19 @@ inherit cmake
 EXTRA_OECMAKE = " \
                  -DCMAKE_BUILD_TYPE=Release \
                 "
+# The compiled binaries don't provide sonames.
+SOLIBS = "${SOLIBSDEV}"
 
-do_configure_prepend () {
-    sed -i "/10-vchiq.rules/d" ${S}/interface/vchiq_arm/CMakeLists.txt
-    mkdir -p makefiles/cmake/scripts
-    cp ${WORKDIR}/install_vmcs ${S}/makefiles/cmake/scripts
+do_install_append() {
+    mkdir -p ${D}/${prefix}
+    mv ${D}/opt/vc/* ${D}/${prefix}
+    rm -rf ${D}/opt
 }
 
-FILES_${PN} = "/opt/vc/lib/*.so \
-               /opt/vc/sbin \
-               /opt/vc/bin \
-               /etc \
-              "
-FILES_${PN}-dbg += "/opt/vc/lib/.debug \
-                   /opt/vc/sbin/.debug \
-                   /opt/vc/bin/.debug \
-                  "
-FILES_${PN}-dev = "/opt/vc/include/"
-FILES_${PN}-staticdev = "/opt/vc/lib/*.a"
-FILES_${PN}-doc = "/opt/vc/share/"
+FILES_${PN} += "${libdir}/*${SOLIBS}"
+FILES_${PN}-dev = "${includedir} \
+                   ${prefix}/src"
+FILES_${PN}-doc += "${datadir}/install"
+
+PACKAGE_ARCH = "${MACHINE_ARCH}"
+

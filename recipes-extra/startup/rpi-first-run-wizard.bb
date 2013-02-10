@@ -3,11 +3,11 @@ LICENSE = "GPLV2"
 LIC_FILES_CHKSUM = "file://${WORKDIR}/LICENSE;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 
 DEPENDS = "zenity dbus"
-RDEPENDS = "slim sudo zenity dbus"
+RDEPENDS_${PN} = "slim sudo zenity dbus"
 
 COMPATIBLE_MACHINE = "raspberrypi"
 
-PR = "r1"
+PR = "r2"
 
 SRC_URI = " \
           file://LICENSE \

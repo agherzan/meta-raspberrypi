@@ -1,0 +1,32 @@
+Fix i2c timing errors.
+
+When Transmitting: Make SDA valid quarter of a cycle after the falling edge of SCL.
+When Receiving: Sample SDA Quarter of a cycle after the rising edge of SCL.
+
+Upstream-Status: Pending
+
+RP 2013/04/21
+
+Index: git/drivers/i2c/busses/i2c-bcm2708.c
+===================================================================
+--- git.orig/drivers/i2c/busses/i2c-bcm2708.c	2013-01-06 17:15:00.754954587 +0000
++++ git/drivers/i2c/busses/i2c-bcm2708.c	2013-01-06 17:50:09.794905741 +0000
+@@ -150,6 +150,7 @@
+ 	unsigned long bus_hz;
+ 	u32 cdiv;
+ 	u32 c = BSC_C_I2CEN | BSC_C_INTD | BSC_C_ST | BSC_C_CLEAR_1;
++	u32 cdel;
+ 
+ 	bus_hz = clk_get_rate(bi->clk);
+ 	cdiv = bus_hz / baudrate;
+@@ -163,6 +164,10 @@
+ 	bcm2708_wr(bi, BSC_A, bi->msg->addr);
+ 	bcm2708_wr(bi, BSC_DLEN, bi->msg->len);
+ 	bcm2708_wr(bi, BSC_C, c);
++
++	cdel = (cdiv / 4) & 0xffff;
++	cdel = cdel << 16 | cdel;
++	bcm2708_wr(bi, BSC_DEL, cdel);
+ }
+ 
+ static irqreturn_t bcm2708_i2c_interrupt(int irq, void *dev_id)

@@ -8,6 +8,7 @@ PV_append = "+git${SRCREV}"
 
 SRCREV = "10182a3bc434b27740f81c2b836a1af943060241"
 SRC_URI = "git://github.com/raspberrypi/linux.git;protocol=git;branch=rpi-3.2.27 \
+	   file://sl030raspberrypii2ckernel.patch \
           "
 S = "${WORKDIR}/git"
 

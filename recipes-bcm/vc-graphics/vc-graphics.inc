@@ -8,11 +8,12 @@ COMPATIBLE_MACHINE = "raspberrypi"
 
 include ../common/firmware.inc
 
-SRC_URI = "git://github.com/raspberrypi/firmware.git;protocol=git;branch=master\
-           file://egl.pc \
-           file://vchiq.sh"
+SRC_URI += " \
+    file://egl.pc \
+    file://vchiq.sh \
+"
 
-S = "${WORKDIR}/git/${VCDIR}"
+S = "${RPIFW_S}/${VCDIR}"
 
 INCPR = "r1"
 

@@ -9,11 +9,7 @@ RDEPENDS_${PN} = "rpi-config"
 
 COMPATIBLE_MACHINE = "raspberrypi"
 
-SRC_URI = " \
-        git://github.com/raspberrypi/firmware.git;protocol=git;branch=master  \
-"
-
-S = "${WORKDIR}/git/boot"
+S = "${RPIFW_S}/boot"
 
 PR = "r3"
 

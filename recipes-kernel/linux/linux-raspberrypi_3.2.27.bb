@@ -3,10 +3,10 @@ require linux.inc
 DESCRIPTION = "Linux kernel for the RaspberryPi board"
 COMPATIBLE_MACHINE = "raspberrypi"
 
-PR = "r6"
+PR = "r7"
 PV_append = "+git${SRCREV}"
 
-SRCREV = "10182a3bc434b27740f81c2b836a1af943060241"
+SRCREV = "ada8b4415ff44d535d63e4291a0eca733bc2ad0f"
 SRC_URI = "git://github.com/raspberrypi/linux.git;protocol=git;branch=rpi-3.2.27 \
 	   file://sl030raspberrypii2ckernel.patch \
           "

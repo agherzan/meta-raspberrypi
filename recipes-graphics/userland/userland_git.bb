@@ -5,22 +5,21 @@ vcos, openmaxil, vchiq_arm, bcm_host, WFC, OpenVG."
 LICENSE = "Broadcom"
 LIC_FILES_CHKSUM = "file://LICENCE;md5=957f6640d5e2d2acfce73a36a56cb32f"
 
-PR = "r1"
+PR = "r2"
 
 PROVIDES = "virtual/libgles2 \
             virtual/egl"
 COMPATIBLE_MACHINE = "raspberrypi"
 
-SRCREV = "8700279495e266378d36092ccf86424f0ee2539f"
+SRCREV = "23baee63495aa685e7693467b7a5469ff5ca4481"
 SRC_URI = "git://github.com/raspberrypi/userland.git;protocol=git;branch=master \
           "
 S = "${WORKDIR}/git"
 
 inherit cmake
 
-EXTRA_OECMAKE = " \
-                 -DCMAKE_BUILD_TYPE=Release \
-                "
+EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=Release"
+
 # The compiled binaries don't provide sonames.
 SOLIBS = "${SOLIBSDEV}"
 

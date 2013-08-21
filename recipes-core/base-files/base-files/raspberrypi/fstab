@@ -1,9 +1,0 @@
-# stock fstab for the RaspberryPi - you may want to tweak this to suit.
-
-rootfs               /                    auto       defaults,noatime      1  1
-proc                 /proc                proc       defaults              0  0
-devpts               /dev/pts             devpts     mode=0620,gid=5       0  0
-usbfs                /proc/bus/usb        usbfs      defaults              0  0
-tmpfs                /var/volatile        tmpfs      defaults              0  0
-tmpfs                /dev/shm             tmpfs      mode=0777             0  0
-tmpfs                /media/ram           tmpfs      defaults              0  0

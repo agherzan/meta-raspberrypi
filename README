@@ -109,7 +109,7 @@ How to use it:
 2.A. Optional - compressed deployed files:
 ==========================================
 1. Overwrite IMAGE_FSTYPES in local.conf
-	IMAGE_FSTYPES = "tar.bz2 ext3.xz rpi-sdimg.xz
+	IMAGE_FSTYPES = "tar.bz2 ext3.xz"
 2. Overwrite SDIMG_ROOTFS_TYPE in local.conf
 	SDIMG_ROOTFS_TYPE = "ext3.xz"
 3. Overwrite SDIMG_COMPRESSION in local.conf

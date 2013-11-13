@@ -8,14 +8,13 @@ AUTHOR = "Mike McCauley (mikem@open.com.au)"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 
-PR = "r0"
 
 COMPATIBLE_MACHINE = "raspberrypi"
 
-SRC_URI = "http://www.open.com.au/mikem/bcm2835/bcm2835-1.9.tar.gz"
+SRC_URI = "http://www.open.com.au/mikem/bcm2835/bcm2835-${PV}.tar.gz"
 
-SRC_URI[md5sum] = "c102938afe9f0cfa930a0255c422f792"
-SRC_URI[sha256sum] = "0dc6ee5a261e76b103a04534c1b8ebc20dce8921dec2452785100812f978c883"
+SRC_URI[md5sum] = "085239569554de5ee6649fe8bb123379"
+SRC_URI[sha256sum] = "97e8aece4ff45b1779212473aa3b1d3f43cc9a8427afa3be718f690949e0ec20"
 
 
 PACKAGES += "${PN}-tests"

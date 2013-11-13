@@ -1,4 +1,4 @@
-SRCREV = "cbd6672e7e1b2dc5026f5dc7929a13a9a68f2a62"
+SRCREV = "10bc58289a7ebf6b1ab724636e0a16116278e339"
 SRC_URI = "git://github.com/raspberrypi/linux.git;protocol=git;branch=rpi-3.6.y \
            file://sl030raspberrypii2ckernel.patch \
           "

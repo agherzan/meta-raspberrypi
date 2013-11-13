@@ -36,7 +36,12 @@ Contents:
     2.E. Set overclocking options
 3. Extra apps
     3.A. omxplayer
-4. Contribution
+4. Source code and mirrors
+5. Contribution
+    5.A. Mailing List
+    5.B. Gerrit Review Server
+    5.C. Trello Board
+6. Maintainers
 
 
 
@@ -165,27 +170,64 @@ adding to you local.conf:
 LICENSE_FLAGS_WHITELIST = "commercial"
 
 
-4. Contributing
+4. Source code and mirrors
+==========================
+
+Main repo:
+    git://git.yoctoproject.org/meta-raspberrypi
+    http://git.yoctoproject.org/git/meta-raspberrypi
+
+Github mirror:
+    https://github.com/djwillis/meta-raspberrypi
+
+Gerrit review repo:
+    https://review.gherzan.ro:8443/meta-raspberrypi
+
+
+5. Contributing
 ===============
 
+5.A. Mailing list
+=================
 To contribute to this layer you should send the patches for review to the
 mailing list.
 
 Mailing list:
-
     https://lists.yoctoproject.org/listinfo/yocto
 
-Source code:
+To send changes to mailing list use something like:
+    git send-email --to yocto@yoctoproject.org \
+    --subject-prefix='meta-raspberrypi][PATCH'
 
-    git://git.yoctoproject.org/meta-raspberrypi
-    http://git.yoctoproject.org/git/meta-raspberrypi
-    https://github.com/djwillis/meta-raspberrypi
+OPTIONALLY push changes to gerrit (help maintainers merge and review patches
+easier in this way).
+    git push ssh://<username>@review.gherzan.ro:29418/meta-raspberrypi
+    <local-branch>:refs/for/master
+    See 5.B. Gerrit Review Server.
 
-When sending patches, please use something like:
+5.B. Gerrit Review Server
+=========================
+We have a gerrit server configured at review.gherzan.ro. Changes made in gerrit
+are merged in git.yoctoproject.org/meta-raspberrypi.
 
-git send-email --to yocto@yoctoproject.org \
---subject-prefix='meta-raspberrypi][PATCH'
+You can setup a gerrit account in less than 2 minutes:
+A) Login / Register on https://review.gherzan.ro:8443.
+B) Add your PUBLIC key in Settings/SSH Public Keys.
+C) Add remote in your local repo:
+    git remote add gherzan ssh://<username>@review.gherzan.ro:29418/meta-raspberrypi
+D) Push changes to gerrit using:
+    git push gherzan <local-branch>:refs/for/master
+
+Please check your spam folder for gerrit messages. Sometimes they end up there.
+
+5.C. Trello Board
+=================
+A public Trello board is set to manage tasks and bugs. Join us there:
+    https://trello.com/b/QsYeVjVe/meta-raspberrypi
 
 
-Layer maintainers: John Willis <John.Willis at distant-earth.com>
-                   Andrei Gherzan <andrei at gherzan.ro>
+6. Maintainers
+==============
+
+    John Willis <John.Willis at distant-earth.com>
+    Andrei Gherzan <andrei at gherzan.ro>

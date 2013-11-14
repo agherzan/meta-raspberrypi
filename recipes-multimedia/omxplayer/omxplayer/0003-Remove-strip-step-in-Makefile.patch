@@ -10,30 +10,26 @@ omxplayer was already stripped, this will prevent future debugging!
 
 Upstream-Status: Inappropriate [embedded specific]
 Signed-off-by: Andrei Gherzan <andrei@gherzan.ro>
----
- Makefile.ffmpeg |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+
+Updated patch to apply to 0dd9502ed2c43c487674939195c69680f3d98b0 revision
 
 diff --git a/Makefile.ffmpeg b/Makefile.ffmpeg
-index 13e6c09..51c9514 100644
+index 5f30b51..e023927 100644
 --- a/Makefile.ffmpeg
 +++ b/Makefile.ffmpeg
-@@ -53,7 +53,8 @@ configure:
- 			--enable-hardcoded-tables \
- 			--disable-runtime-cpudetect \
- 			--disable-debug \
+@@ -237,7 +237,8 @@ configure:
+ 			--disable-decoder=bintext \
+ 			--disable-decoder=xbin \
+ 			--disable-decoder=idf \
 -			--cross-prefix=$(HOST)-
 +			--cross-prefix=$(HOST)- \
 +			--disable-stripping
  
  clean:
  	@rm -rf ffmpeg
-@@ -64,5 +65,4 @@ checkout:
+@@ -248,5 +249,4 @@ checkout:
  
  install:
  	cd ffmpeg; make -j9 DESTDIR="$(WORK)/ffmpeg_compiled" install
 -	$(HOST)-strip ffmpeg_compiled/usr/lib/*.so
  
--- 
-1.7.9.5
-

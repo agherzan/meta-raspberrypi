@@ -1,16 +1,17 @@
 DESCRIPTION = "OMXPlayer is a commandline OMX player for the Raspberry Pi"
-HOMEPAGE = "https://github.com/huceke/omxplayer"
+HOMEPAGE = "https://github.com/popcornmix/omxplayer"
 SECTION = "console/utils"
 LICENSE = "GPLv2"
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=94d55d512a9ba36caa9b7df079bae19f"
 
-DEPENDS = "libpcre libav virtual/egl boost freetype"
+DEPENDS = "libpcre libav virtual/egl boost freetype dbus"
 
 PR = "r1"
 
-SRCREV = "dae98a8bba9dc7410b0621134f6ebdb406adb1bd"
-SRC_URI = "git://github.com/huceke/omxplayer.git;protocol=git;branch=master \
+SRCREV = "c0dd9502ed2c43c487674939195c69680f3d98b0"
+
+SRC_URI = "git://github.com/popcornmix/omxplayer.git;protocol=git;branch=master \
            file://0001-Remove-Makefile.include-which-includes-hardcoded.patch \
            file://0002-Libraries-and-headers-from-ffmpeg-are-installed-in-u.patch \
            file://0003-Remove-strip-step-in-Makefile.patch"
@@ -37,6 +38,8 @@ export INCLUDES = "-isystem${STAGING_DIR_HOST}/usr/include \
                    -isystem${STAGING_DIR_HOST}/usr/include/interface/vcos/pthreads \
                    -isystem${STAGING_DIR_HOST}/usr/include/freetype2 \
                    -isystem${STAGING_DIR_HOST}/usr/include/interface/vmcs_host/linux \
+                   -isystem${STAGING_DIR_HOST}/usr/include/dbus-1.0 \
+                   -isystem${STAGING_DIR_HOST}/usr/lib/dbus-1.0/include \
                   "
 
 # Install in ${D}
@@ -52,9 +55,12 @@ do_compile() {
 
 do_install() {
 	oe_runmake dist
+	mkdir -p ${D}/usr/share/fonts/truetype/freefont/
+	install ${S}/fonts/* ${D}/usr/share/fonts/truetype/freefont/
 }
 
 FILES_${PN} = "${bindir}/omxplayer* \
-               ${libdir}/omxplayer/lib*${SOLIBS}"
+               ${libdir}/omxplayer/lib*${SOLIBS} \
+               /usr/share/fonts"
 
 FILES_${PN}-dev += "${libdir}/omxplayer/*.so"

@@ -52,6 +52,12 @@ do_deploy() {
 	if [ -n "${GPU_MEM_512}" ]; then
 		sed -i '/#gpu_mem_512/ c\gpu_mem_512=${GPU_MEM_512}' ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/config.txt
 	fi
+
+	# Video camera support
+	if [ -n "${VIDEO_CAMERA}" ]; then
+		echo "# Enable video camera" >>${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/config.txt
+		echo "start_x=1" >>${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/config.txt
+	fi
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"

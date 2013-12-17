@@ -11,7 +11,7 @@ PROVIDES = "virtual/libgles2 \
             virtual/egl"
 COMPATIBLE_MACHINE = "raspberrypi"
 
-SRCREV = "628498eb6cf501554c98a5e6c7ea3855574fa43e"
+SRCREV = "d2c9f912da389c23ed27e81e940be3540f64fc59"
 SRC_URI = "git://github.com/raspberrypi/userland.git;protocol=git;branch=master \
           "
 S = "${WORKDIR}/git"

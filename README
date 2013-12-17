@@ -158,6 +158,10 @@ CORE_FREQ = "500"
 SDRAM_FREQ = "500"
 OVER_VOLTAGE = "6"
 
+2.F. Optional - Video camera support with V4L2 drivers
+Set this variable to enable support for the video camera (Linux 3.12.4+ required)
+VIDEO_CAMERA = "1"
+
 
 3. Extra apps
 =============

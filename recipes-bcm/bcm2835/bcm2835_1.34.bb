@@ -13,9 +13,8 @@ COMPATIBLE_MACHINE = "raspberrypi"
 
 SRC_URI = "http://www.open.com.au/mikem/bcm2835/bcm2835-${PV}.tar.gz"
 
-SRC_URI[md5sum] = "085239569554de5ee6649fe8bb123379"
-SRC_URI[sha256sum] = "97e8aece4ff45b1779212473aa3b1d3f43cc9a8427afa3be718f690949e0ec20"
-
+SRC_URI[md5sum] = "35df4a6188e36796a07985f1561fb8a2"
+SRC_URI[sha256sum] = "ea99538ea17ebed38973743d84b1358e8c0fd311e8828c4ef91694f65a1073ff"
 
 PACKAGES += "${PN}-tests"
 

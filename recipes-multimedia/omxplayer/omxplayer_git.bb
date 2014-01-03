@@ -1,20 +1,21 @@
-DESCRIPTION = "OMXPlayer is a commandline OMX player for the Raspberry Pi"
+SUMMARY = "A commandline OMX player for the Raspberry Pi"
+DESCRIPTION = "This player was developed as a testbed for the XBMC \
+Raspberry PI implementation and is quite handy to use standalone"
 HOMEPAGE = "https://github.com/popcornmix/omxplayer"
 SECTION = "console/utils"
-LICENSE = "GPLv2"
 
+LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=94d55d512a9ba36caa9b7df079bae19f"
 
 DEPENDS = "libpcre libav virtual/egl boost freetype dbus"
+PR = "r2"
 
-PR = "r1"
-
-SRCREV = "c0dd9502ed2c43c487674939195c69680f3d98b0"
-
+SRCREV = "74f4be222be05d3ea50be9f5a70846f7c0e9df6e"
 SRC_URI = "git://github.com/popcornmix/omxplayer.git;protocol=git;branch=master \
            file://0001-Remove-Makefile.include-which-includes-hardcoded.patch \
            file://0002-Libraries-and-headers-from-ffmpeg-are-installed-in-u.patch \
-           file://0003-Remove-strip-step-in-Makefile.patch"
+           file://0003-Remove-strip-step-in-Makefile.patch \
+           file://mktemp-compatible-with-busybox.patch"
 S = "${WORKDIR}/git"
 
 COMPATIBLE_MACHINE = "raspberrypi"
@@ -46,17 +47,17 @@ export INCLUDES = "-isystem${STAGING_DIR_HOST}/usr/include \
 export DIST = "${D}"
 
 do_compile() {
-	# Needed for compiler test in ffmpeg's configure
-	mkdir -p tmp
+    # Needed for compiler test in ffmpeg's configure
+    mkdir -p tmp
 
-	oe_runmake ffmpeg
-	oe_runmake
+    oe_runmake ffmpeg
+    oe_runmake
 }
 
 do_install() {
-	oe_runmake dist
-	mkdir -p ${D}/usr/share/fonts/truetype/freefont/
-	install ${S}/fonts/* ${D}/usr/share/fonts/truetype/freefont/
+    oe_runmake dist
+    mkdir -p ${D}/usr/share/fonts/truetype/freefont/
+    install ${S}/fonts/* ${D}/usr/share/fonts/truetype/freefont/
 }
 
 FILES_${PN} = "${bindir}/omxplayer* \
@@ -64,3 +65,5 @@ FILES_${PN} = "${bindir}/omxplayer* \
                /usr/share/fonts"
 
 FILES_${PN}-dev += "${libdir}/omxplayer/*.so"
+
+RDEPENDS_${PN} += "bash"

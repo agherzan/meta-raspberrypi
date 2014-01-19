@@ -5,7 +5,6 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENCE.txt;md5=35af90ff2a10e8bdc967653b9dfcb22a"
 
 SRCNAME = "RPi.GPIO"
-PR = "r0"
 
 SRC_URI = "\
           http://pypi.python.org/packages/source/R/RPi.GPIO/${SRCNAME}-${PV}.tar.gz \
@@ -16,5 +15,5 @@ inherit distutils
 
 COMPATIBLE_MACHINE = "raspberrypi"
 
-SRC_URI[md5sum] = "9cb086d2d2186062c5ae190a40902bb0"
-SRC_URI[sha256sum] = "f3342113d39901e5af1460374ff167590c427cb55460d2bda86c72bc64efc526"
+SRC_URI[md5sum] = "add6554ed8331d515fccb5e052c7d1ff"
+SRC_URI[sha256sum] = "5fae8e59a9a1cdb68208d40239d7ad788d22aa9d58c54c482fa5d89ccc4c0f37"

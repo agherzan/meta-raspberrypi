@@ -8,14 +8,16 @@ LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=94d55d512a9ba36caa9b7df079bae19f"
 
 DEPENDS = "libpcre libav virtual/egl boost freetype dbus"
-PR = "r2"
+PR = "r3"
 
-SRCREV = "74f4be222be05d3ea50be9f5a70846f7c0e9df6e"
+SRCREV = "f666a5dfbec36e2af7cd965558ac8643c86277a6"
 SRC_URI = "git://github.com/popcornmix/omxplayer.git;protocol=git;branch=master \
            file://0001-Remove-Makefile.include-which-includes-hardcoded.patch \
            file://0002-Libraries-and-headers-from-ffmpeg-are-installed-in-u.patch \
            file://0003-Remove-strip-step-in-Makefile.patch \
-           file://mktemp-compatible-with-busybox.patch"
+           file://mktemp-compatible-with-busybox.patch \
+           file://fix-tar-command-with-DIST.patch \
+           "
 S = "${WORKDIR}/git"
 
 COMPATIBLE_MACHINE = "raspberrypi"
@@ -55,7 +57,7 @@ do_compile() {
 }
 
 do_install() {
-    oe_runmake dist
+    oe_runmake STRIP='echo skipping strip' dist
     mkdir -p ${D}/usr/share/fonts/truetype/freefont/
     install ${S}/fonts/* ${D}/usr/share/fonts/truetype/freefont/
 }

@@ -6,8 +6,10 @@ inherit packagegroup
 
 RDEPENDS_${PN} = "\
     omxplayer \
-    bcm2835 \
+    bcm2835-tests \
     wiringpi \
+    rpio \
+    rpi-gpio \
 "
 
 RRECOMMENDS_${PN} = "\

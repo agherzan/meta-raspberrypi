@@ -37,6 +37,7 @@ Contents:
     2.F. Optional - Video camera support with V4L2 drivers
     2.G. Images
     2.H. Boot to U-Boot
+    2.I. Image with Initramfs
 3. Extra apps
     3.A. omxplayer
 4. Source code and mirrors
@@ -155,6 +156,18 @@ KERNEL_IMAGETYPE = "uImage"
 This will make kernel.img be u-boot image which will load uImage.
 By default, kernel.img is the actual kernel image (ex. Image).
 
+2.I. Image with Initramfs
+=========================
+To build an initramfs image :
+    * Set this 3 kernel variables (in linux-raspberrypi.inc for example)
+        - kernel_configure_variable BLK_DEV_INITRD y
+        - kernel_configure_variable INITRAMFS_SOURCE ""
+        - kernel_configure_variable RD_GZIP y
+    * Set the yocto variables (in linux-raspberrypi.inc for example)
+        - INITRAMFS_IMAGE = "<a name for your initramfs image>"
+        - INITRAMFS_IMAGE_BUNDLE = "1"
+    * Set the meta-rasberrypi variable (in raspberrypi.conf for example)
+        - KERNEL_INITRAMFS = "-initramfs"
 
 3. Extra apps
 =============

@@ -6,7 +6,7 @@ PRINC := "${@int(PRINC) + 5}"
 THISDIR := "${@os.path.dirname(bb.data.getVar('FILE', d, True))}"
 FILESPATH =. "${@base_set_filespath(["${THISDIR}/${PN}"], d)}:"
 
-SRC_URI_append_raspberrypi = " file://xorg.conf.d/* "
+SRC_URI_append_raspberrypi = " file://xorg.conf.d/10-evdev.conf "
 
 do_install_append_raspberrypi () {
 	install -d ${D}/${sysconfdir}/X11/xorg.conf.d/

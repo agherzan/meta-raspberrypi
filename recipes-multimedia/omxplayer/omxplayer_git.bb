@@ -10,12 +10,11 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=94d55d512a9ba36caa9b7df079bae19f"
 DEPENDS = "libpcre libav virtual/egl boost freetype dbus"
 PR = "r3"
 
-SRCREV = "f666a5dfbec36e2af7cd965558ac8643c86277a6"
+SRCREV = "7af21f596378e5efeceebedff9c4a298e2d06d98"
 SRC_URI = "git://github.com/popcornmix/omxplayer.git;protocol=git;branch=master \
            file://0001-Remove-Makefile.include-which-includes-hardcoded.patch \
            file://0002-Libraries-and-headers-from-ffmpeg-are-installed-in-u.patch \
            file://0003-Remove-strip-step-in-Makefile.patch \
-           file://mktemp-compatible-with-busybox.patch \
            file://fix-tar-command-with-DIST.patch \
            "
 S = "${WORKDIR}/git"
@@ -68,4 +67,4 @@ FILES_${PN} = "${bindir}/omxplayer* \
 
 FILES_${PN}-dev += "${libdir}/omxplayer/*.so"
 
-RDEPENDS_${PN} += "bash"
+RDEPENDS_${PN} += "bash procps"

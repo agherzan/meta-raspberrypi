@@ -22,6 +22,8 @@ inherit image_types
 # |                        |            |                        |
 # 0                      4MiB     4MiB + 20MiB       4MiB + 20Mib + SDIMG_ROOTFS
 
+# This image depends on ext3 image
+IMAGE_TYPEDEP_rpi-sdimg = "ext3"
 
 # Set kernel and boot loader
 IMAGE_BOOTLOADER ?= "bcm2835-bootfiles"

@@ -57,13 +57,13 @@ do_compile() {
 
 do_install() {
     oe_runmake STRIP='echo skipping strip' dist
-    mkdir -p ${D}/usr/share/fonts/truetype/freefont/
-    install ${S}/fonts/* ${D}/usr/share/fonts/truetype/freefont/
+    mkdir -p ${D}${datadir}/fonts/truetype/freefont/
+    install ${S}/fonts/* ${D}${datadir}/fonts/truetype/freefont/
 }
 
 FILES_${PN} = "${bindir}/omxplayer* \
                ${libdir}/omxplayer/lib*${SOLIBS} \
-               /usr/share/fonts"
+               ${datadir}/fonts"
 
 FILES_${PN}-dev += "${libdir}/omxplayer/*.so"
 

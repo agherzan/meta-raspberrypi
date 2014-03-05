@@ -52,9 +52,12 @@ do_compile() {
 
 do_install() {
 	oe_runmake dist
+	mkdir -p ${D}${datadir}/fonts/truetype/freefont/
+	install ${S}/fonts/* ${D}${datadir}/fonts/truetype/freefont/
 }
 
 FILES_${PN} = "${bindir}/omxplayer* \
-               ${libdir}/omxplayer/lib*${SOLIBS}"
+               ${libdir}/omxplayer/lib*${SOLIBS} \
+               ${datadir}/fonts"
 
 FILES_${PN}-dev += "${libdir}/omxplayer/*.so"

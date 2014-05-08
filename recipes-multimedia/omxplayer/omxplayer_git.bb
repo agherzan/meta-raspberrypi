@@ -21,7 +21,7 @@ S = "${WORKDIR}/git"
 
 COMPATIBLE_MACHINE = "raspberrypi"
 
-inherit autotools
+inherit autotools-brokensep
 
 # Needed in ffmpeg configure
 export TEMPDIR = "${S}/tmp"

@@ -1,0 +1,77 @@
+Add autotools configuration files to simplify cross-compilation
+
+Upstream-Status: Submitted [https://github.com/sarfata/pi-blaster/pull/25]
+
+Signed-off-by: Alex Lennon <ajlennon@dynamicdevices.co.uk>
+
+diff -Nur git.org/Makefile git.new/Makefile
+--- git.org/Makefile	2014-06-11 15:42:26.490930706 +0100
++++ git.new/Makefile	1970-01-01 01:00:00.000000000 +0100
+@@ -1,23 +0,0 @@
+-.PHONY: all
+-all:	pi-blaster
+-
+-REVISION=$(shell egrep -q '000f$$' /proc/cpuinfo && echo 2 || echo 1)
+-
+-pi-blaster:	pi-blaster.c
+-	gcc -Wall -g -O2 -o $@ $< -DREVISION=$(REVISION)
+-
+-clean:
+-	rm -f pi-blaster
+-
+-install: pi-blaster
+-	cp -f pi-blaster.boot.sh /etc/init.d/pi-blaster
+-	chmod +x /etc/init.d/pi-blaster
+-	cp -f pi-blaster /usr/sbin/pi-blaster
+-	update-rc.d pi-blaster defaults
+-	/etc/init.d/pi-blaster start
+-	
+-uninstall:
+-	-/etc/init.d/pi-blaster stop
+-	rm /usr/sbin/pi-blaster
+-	rm /etc/init.d/pi-blaster
+-	update-rc.d pi-blaster remove
+diff -Nur git.org/Makefile.am git.new/Makefile.am
+--- git.org/Makefile.am	1970-01-01 01:00:00.000000000 +0100
++++ git.new/Makefile.am	2014-06-11 15:40:16.562930372 +0100
+@@ -0,0 +1,9 @@
++AUTOMAKE_OPTIONS = foreign
++
++CFLAGS = -Wall -pedantic
++
++sbin_PROGRAMS = pi-blaster
++pi_blaster_SOURCES = pi-blaster.c
++
++init_ddir = $(sysconfdir)/init.d
++init_d_SCRIPTS = pi-blaster.boot.sh
+diff -Nur git.org/autogen.sh git.new/autogen.sh
+--- git.org/autogen.sh	1970-01-01 01:00:00.000000000 +0100
++++ git.new/autogen.sh	2014-06-11 15:35:57.798929684 +0100
+@@ -0,0 +1,9 @@
++#!/bin/sh
++
++echo "Generating configure files... may take a while."
++
++autoreconf --install --force && \
++  echo "Preparing was successful if there was no error messages above." && \
++  echo "Now type:" && \
++  echo "  ./configure && make"  && \
++  echo "Run './configure --help' for more information"
+diff -Nur git.org/configure.ac git.new/configure.ac
+--- git.org/configure.ac	1970-01-01 01:00:00.000000000 +0100
++++ git.new/configure.ac	2014-06-11 15:35:53.154929717 +0100
+@@ -0,0 +1,14 @@
++#                                               -*- Autoconf -*-
++# Process this file with autoconf to produce a configure script.
++
++AC_PREREQ([2.69])
++AC_INIT(pi-blaster, 0.1.0)
++AC_CONFIG_SRCDIR([pi-blaster.c])
++AC_CONFIG_HEADERS([config.h])
++AM_INIT_AUTOMAKE
++
++# Checks for programs.
++AC_PROG_CC
++
++AC_CONFIG_FILES([Makefile])
++AC_OUTPUT

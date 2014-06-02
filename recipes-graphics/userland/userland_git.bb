@@ -11,8 +11,11 @@ PROVIDES = "virtual/libgles2 \
             virtual/egl"
 COMPATIBLE_MACHINE = "raspberrypi"
 
+SRCBRANCH = "master"
+SRCFORK = "raspberrypi"
 SRCREV = "eccb81050afd177da1923404b366c6226f29bfe0"
-SRC_URI = "git://github.com/raspberrypi/userland.git;protocol=git;branch=master \
+
+SRC_URI = "git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \
           "
 S = "${WORKDIR}/git"
 

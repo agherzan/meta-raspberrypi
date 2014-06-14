@@ -35,9 +35,10 @@ Contents:
     2.D. Disable overscan
     2.E. Set overclocking options
     2.F. Optional - Video camera support with V4L2 drivers
-    2.G. Images
-    2.H. Boot to U-Boot
-    2.I. Image with Initramfs
+    2.G. Optional - Enable offline compositing support
+    2.H. Images
+    2.I. Boot to U-Boot
+    2.J. Image with Initramfs
 3. Extra apps
     3.A. omxplayer
 4. Source code and mirrors
@@ -138,7 +139,23 @@ OVER_VOLTAGE = "6"
 Set this variable to enable support for the video camera (Linux 3.12.4+ required)
 VIDEO_CAMERA = "1"
 
-2.G. Images
+2.G. Optional - Enable offline compositing support
+==================================================
+
+Set this variable to enable support for dispmanx offline compositing
+DISMANX_OFFLINE = "1"
+
+This will enable the firmware to fall back to off-line compositing of
+Dispmanx elements. Normally the compositing is done on-line, during scanout,
+but cannot handle too many elements. With off-line enabled, an off-screen
+buffer is allocated for compositing. When scene complexity (number and sizes
+of elements) is high, compositing will happen off-line into the buffer.
+
+Heavily recommended for Wayland/Weston.
+
+See: http://wayland.freedesktop.org/raspberrypi.html
+
+2.H. Images
 ===========
 * rpi-hwup-image
     Hardware up image
@@ -148,7 +165,7 @@ VIDEO_CAMERA = "1"
     Image based on rpi-basic-image which includes most of the packages in this
     layer and some media samples.
 
-2.H. Boot to U-Boot
+2.I. Boot to U-Boot
 ===================
 To have u-boot load kernel image, set in your local.conf
 KERNEL_IMAGETYPE = "uImage"
@@ -156,7 +173,7 @@ KERNEL_IMAGETYPE = "uImage"
 This will make kernel.img be u-boot image which will load uImage.
 By default, kernel.img is the actual kernel image (ex. Image).
 
-2.I. Image with Initramfs
+2.J. Image with Initramfs
 =========================
 To build an initramfs image :
     * Set this 3 kernel variables (in linux-raspberrypi.inc for example)

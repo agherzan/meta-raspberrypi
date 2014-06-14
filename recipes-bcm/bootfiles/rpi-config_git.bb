@@ -60,6 +60,12 @@ do_deploy() {
         echo "# Enable video camera" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "start_x=1" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi
+
+    # Offline compositing support
+    if [ -n "${DISPMANX_OFFLINE}" ]; then
+        echo "# Enable offline compositing" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+        echo "dispmanx_offline=1" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
 }
 
 addtask deploy before do_package after do_install

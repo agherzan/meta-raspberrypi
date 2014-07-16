@@ -202,6 +202,9 @@ Gerrit review repo:
 To contribute to this layer you should send the patches for review to the
 mailing list.
 
+The patches should be compliant with the openembedded patch guidelines:
+http://www.openembedded.org/wiki/Commit_Patch_Message_Guidelines
+
 Mailing list:
     https://lists.yoctoproject.org/listinfo/yocto
 

@@ -59,8 +59,8 @@ More information can be found at:
 The core BSP part of meta-raspberrypi should work with different
 OpenEmbedded/Yocto distributions and layer stacks, such as:
 * Distro-less (only with OE-Core).
-* Angstrom (main focus of testing).
-* Yocto/Poky.
+* Angstrom.
+* Yocto/Poky (main focus of testing).
 
 2. Yocto BSP Layer - RaspberryPi
 ================================
@@ -71,7 +71,7 @@ URI: git://git.yoctoproject.org/poky
 branch: master
 revision: HEAD
 
-URI: git://github.com/openembedded/meta-oe.git
+URI: git://git.openembedded.org/meta-openembedded
 layers: meta-multimedia
 branch: master
 revision: HEAD

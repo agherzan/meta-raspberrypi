@@ -1,7 +1,7 @@
-From aa424d5bcbf40c69acb13de3cb6c67688f0c9046 Mon Sep 17 00:00:00 2001
+From b738724c6ca45ee5fecebed01c7ac91c92446123 Mon Sep 17 00:00:00 2001
 From: Andrei Gherzan <andrei@gherzan.ro>
-Date: Tue, 20 Aug 2013 16:17:06 +0300
-Subject: [PATCH 3/3] Remove strip step in Makefile
+Date: Sun, 24 Aug 2014 00:18:05 +0200
+Subject: [PATCH] Remove strip step in Makefile
 
 Build system will strip binaries so remove strip step in Makefile.
 Avoid warnings/errors like:
@@ -10,26 +10,30 @@ omxplayer was already stripped, this will prevent future debugging!
 
 Upstream-Status: Inappropriate [embedded specific]
 Signed-off-by: Andrei Gherzan <andrei@gherzan.ro>
-
-Updated patch to apply to 0dd9502ed2c43c487674939195c69680f3d98b0 revision
+---
+ Makefile.ffmpeg | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
 diff --git a/Makefile.ffmpeg b/Makefile.ffmpeg
-index 5f30b51..e023927 100644
+index 9d66a85..00df197 100644
 --- a/Makefile.ffmpeg
 +++ b/Makefile.ffmpeg
-@@ -237,7 +237,8 @@ configure:
- 			--disable-decoder=bintext \
+@@ -243,7 +243,8 @@ configure:
  			--disable-decoder=xbin \
  			--disable-decoder=idf \
+ 			--enable-decoder=opus \
 -			--cross-prefix=$(HOST)-
 +			--cross-prefix=$(HOST)- \
 +			--disable-stripping
  
+ .PHONY : clean
  clean:
- 	@rm -rf ffmpeg
-@@ -248,5 +249,4 @@ checkout:
- 
+@@ -256,5 +257,3 @@ checkout:
+ .PHONY : install
  install:
  	cd ffmpeg; make -j9 DESTDIR="$(WORK)/ffmpeg_compiled" install
 -	$(HOST)-strip ffmpeg_compiled/usr/lib/*.so
- 
+-
+-- 
+1.9.3
+

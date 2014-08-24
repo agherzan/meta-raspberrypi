@@ -15,5 +15,5 @@ inherit distutils
 
 COMPATIBLE_MACHINE = "raspberrypi"
 
-SRC_URI[md5sum] = "8cbc1cb0c0f1a4d93bf1efe1a745f1f0"
-SRC_URI[sha256sum] = "c8e1f0da6327103a3551a6e86055ef001113b94af683fcb08070db5f5ecea51f"
+SRC_URI[md5sum] = "cbdff15871230ceef29bb407d31da485"
+SRC_URI[sha256sum] = "36b64a9485d6a0dc8f24cfca6af45759ee367ce412b952ebcf0409364e05813a"

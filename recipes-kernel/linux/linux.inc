@@ -5,6 +5,7 @@ LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
 
 inherit kernel siteinfo
+require recipes-kernel/linux/linux-yocto.inc
 
 # Enable OABI compat for people stuck with obsolete userspace
 ARM_KEEP_OABI ?= "1"
@@ -25,15 +26,15 @@ kernel_configure_variable() {
     CONF_SED_SCRIPT="$CONF_SED_SCRIPT /CONFIG_$1[ =]/d;"
     if test "$2" = "n"
     then
-        echo "# CONFIG_$1 is not set" >> ${S}/.config
+        echo "# CONFIG_$1 is not set" >> ${B}/.config
     else
-        echo "CONFIG_$1=$2" >> ${S}/.config
+        echo "CONFIG_$1=$2" >> ${B}/.config
     fi
 }
 
 do_configure_prepend() {
     # Clean .config
-    echo "" > ${S}/.config
+    echo "" > ${B}/.config
     CONF_SED_SCRIPT=""
 
     # oabi / eabi support
@@ -108,7 +109,7 @@ do_configure_prepend() {
 
     # Keep this the last line
     # Remove all modified configs and add the rest to .config
-    sed -e "${CONF_SED_SCRIPT}" < '${WORKDIR}/defconfig' >> '${S}/.config'
+    sed -e "${CONF_SED_SCRIPT}" < '${WORKDIR}/defconfig' >> '${B}/.config'
 
     yes '' | oe_runmake oldconfig
 }

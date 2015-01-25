@@ -34,11 +34,11 @@ export FLOAT = "${@bb.utils.contains("TUNE_FEATURES", "callconvention-hard", "ha
 export FFMPEG_EXTRA_CFLAGS  = "--sysroot=${STAGING_DIR_TARGET}"
 export FFMPEG_EXTRA_LDFLAGS = "--sysroot=${STAGING_DIR_TARGET}"
 
+# Needed in top Makefile
 export LDFLAGS = "-L${S}/ffmpeg_compiled/usr/lib \
                   -L${STAGING_DIR_HOST}/lib \
                   -L${STAGING_DIR_HOST}/usr/lib \
                  "
-
 export INCLUDES = "-isystem${STAGING_DIR_HOST}/usr/include \
                    -isystem${STAGING_DIR_HOST}/usr/include/interface/vcos/pthreads \
                    -isystem${STAGING_DIR_HOST}/usr/include/freetype2 \
@@ -46,8 +46,6 @@ export INCLUDES = "-isystem${STAGING_DIR_HOST}/usr/include \
                    -isystem${STAGING_DIR_HOST}/usr/include/dbus-1.0 \
                    -isystem${STAGING_DIR_HOST}/usr/lib/dbus-1.0/include \
                   "
-
-# Install in ${D}
 export DIST = "${D}"
 
 do_compile() {

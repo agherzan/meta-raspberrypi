@@ -247,6 +247,11 @@ In order to manage and trace the meta-raspberrypi issues, we use redmine:
 Here we report, trace and develop bugs, features or support tickets for this
 yocto BSP later.
 
+If you push patches which have a remine issue associated, please provide the
+issue number in the commit log just before "Signed-off-by" line(s):
+    [ISSUE #13]
+
+
 6. Maintainers
 ==============
 

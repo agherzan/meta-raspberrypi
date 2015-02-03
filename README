@@ -1,34 +1,19 @@
-                .8MMMMMMMM       MMMMMMMM8.
-              MMM77$$$$$$7MM   MM$$$$$$$$$MMM
-              MM$$$$$$$$$$$$M M$$$$$$$$$$$$MM
-              MO7$$$$$8$$$$$MMM$$$$$N7$$$$7DM
-               M7$$$$$$$M7$$MMM$$7M$$$$$$$7M.
-                M7$$$$$$$$MMMMMMM$$$$$$$$7M.
-                 MM$$$$$$7MMMMMMM$$$$$$$MM
-                  .MM$7MMMMMMMMMMMMM7$MM.
-                 .MM8ZZZMMZZZZZZZMZZZ$MM.
-                .MOZZZZMMZZZZZZZZZM8ZZZZMM
-                MZZMMMZZZZ8MMMMM$ZZZ$MMZZMM
-              .MMMMMZZZZZZZZMMMZZZZZZZMMMMM:
-              M8ZZMMZZZZZZZZNMZZZZZZZZZMMZZMM
-             MZZZZMZZZZZZZZZMMMZZZZZZZZ8MZZZMM
-            .MZZZZMZZZZZZZZZMMMZZZZZZZZMMZZZ8M
-            .MZZZMMMZZZZZZZMMMMM$ZZZZZ$MMZZZMM
-             MMZZMMMMMM8MMNZZZZZ8MMMMMMMMMZZM
-              MMMMZMMMMMMZZZZZZZZZMMMM$ZZZMM.
-               MMZZZZZMMMZZZZZZZZZMMMZZZZZMM
-                MZZZZZZZMNZZZZZZZMMZZZZZZZM.
-                    MMMMMZZZZZZZZZMMMM.
-                      .MMDZZZZZZZMMD
-                        .MMMMMMMM,
-                           ....
-
+Quick links
+===========
+Git repository web frontend:
+    http://git.yoctoproject.org/cgit/cgit.cgi/meta-raspberrypi/
+Mailing list (yocto mailing list):
+    yocto@yoctoproject.org
+Issues management (redmine):
+    http://redmine.gherzan.ro/projects/meta-raspberrypi
+Change review (gerrit):
+    https://review.gherzan.ro:8443/#/q/project:meta-raspberrypi
 
 
 Contents:
 =========
 1. Description
-2. Yocto BSP Layer - RaspberryPi
+2. Yocto BSP Layer - Raspberry Pi
     2.A. Compressed deployed files
     2.B. GPU memory
     2.C. Add purchased license codecs
@@ -45,7 +30,7 @@ Contents:
 5. Contribution
     5.A. Mailing List
     5.B. Gerrit Review Server
-    5.C. Trello Board
+    5.C. Redmine
 6. Maintainers
 
 
@@ -90,11 +75,11 @@ How to use it:
 2.A. Optional - compressed deployed files:
 ==========================================
 1. Overwrite IMAGE_FSTYPES in local.conf
-	IMAGE_FSTYPES = "tar.bz2 ext3.xz"
+    IMAGE_FSTYPES = "tar.bz2 ext3.xz"
 2. Overwrite SDIMG_ROOTFS_TYPE in local.conf
-	SDIMG_ROOTFS_TYPE = "ext3.xz"
+    SDIMG_ROOTFS_TYPE = "ext3.xz"
 3. Overwrite SDIMG_COMPRESSION in local.conf
-	SDIMG_COMPRESSION = "xz"
+    SDIMG_COMPRESSION = "xz"
 *Accommodate the values above to your own needs (ex: ext3 / ext4).
 
 2.B. Optional - GPU memory:
@@ -216,14 +201,18 @@ Gerrit review repo:
 
 5.A. Mailing list
 =================
-To contribute to this layer you should send the patches for review to the
-mailing list.
+The main communication tool we use is a mailing list:
+    yocto@yoctoproject.org
+    https://lists.yoctoproject.org/listinfo/yocto
 
+Feel free to ask any kind of questions but always prepend your email subject
+with "[meta-raspberrypi]". This is because we use the 'yocto' mailing list and
+not a perticular 'meta-raspberrypi' mailing list.
+
+To contribute to this layer you should send the patches for review to the
+above specified mailing list.
 The patches should be compliant with the openembedded patch guidelines:
 http://www.openembedded.org/wiki/Commit_Patch_Message_Guidelines
-
-Mailing list:
-    https://lists.yoctoproject.org/listinfo/yocto
 
 To send changes to mailing list use something like:
     git send-email --to yocto@yoctoproject.org \
@@ -250,14 +239,15 @@ D) Push changes to gerrit using:
 
 Please check your spam folder for gerrit messages. Sometimes they end up there.
 
-5.C. Trello Board
-=================
-A public Trello board is set to manage tasks and bugs. Join us there:
-    https://trello.com/b/QsYeVjVe/meta-raspberrypi
+5.C. Redmine
+============
+In order to manage and trace the meta-raspberrypi issues, we use redmine:
+    http://redmine.gherzan.ro/projects/meta-raspberrypi
 
+Here we report, trace and develop bugs, features or support tickets for this
+yocto BSP later.
 
 6. Maintainers
 ==============
 
-    John Willis <John.Willis at distant-earth.com>
     Andrei Gherzan <andrei at gherzan.ro>

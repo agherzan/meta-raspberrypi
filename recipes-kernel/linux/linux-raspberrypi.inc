@@ -21,6 +21,20 @@ CMDLINE_raspberrypi = "dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA
 
 UDEV_GE_141 ?= "1"
 
+# Set programmatically some variables during recipe parsing
+# See http://www.yoctoproject.org/docs/current/bitbake-user-manual/bitbake-user-manual.html#anonymous-python-functions
+python __anonymous () {
+    kerneltype = d.getVar('KERNEL_IMAGETYPE', True)
+    kerneldt = d.getVar('KERNEL_DEVICETREE', True)
+
+    # Add dependency to 'rpi-mkimage-native' package only if RPi bootloader is used with DT-enable kernel
+    if kerneldt:
+        if kerneltype != 'uImage' and len(kerneldt.strip()) > 1:
+            depends = d.getVar("DEPENDS", True)
+            depends = "%s rpi-mkimage-native" % depends
+            d.setVar("DEPENDS", depends)
+}
+
 do_kernel_configme_prepend() {
     install -m 0644 ${S}/arch/${ARCH}/configs/${KERNEL_DEFCONFIG} ${WORKDIR}/defconfig || die "No default configuration for ${MACHINE} / ${KERNEL_DEFCONFIG} available."
 }
@@ -34,3 +48,13 @@ do_deploy_append() {
     install -d ${DEPLOYDIR}/bcm2835-bootfiles
     echo "${CMDLINE}" > ${DEPLOYDIR}/bcm2835-bootfiles/cmdline.txt
 }
+
+do_rpiboot_mkimage() {
+    if test "x${KERNEL_IMAGETYPE}" != "xuImage" ; then
+        if test -n "${KERNEL_DEVICETREE}"; then
+            # Add RPi bootloader trailer to kernel image to enable DeviceTree support
+            ${STAGING_DIR_NATIVE}/usr/lib/rpi-mkimage/mkknlimg --dtok ${KERNEL_OUTPUT} ${KERNEL_OUTPUT}
+        fi
+    fi
+}
+addtask rpiboot_mkimage before do_install after do_compile

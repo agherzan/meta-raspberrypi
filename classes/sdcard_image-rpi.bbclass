@@ -50,7 +50,7 @@ IMAGE_DEPENDS_rpi-sdimg = " \
 			dosfstools-native \
 			virtual/kernel \
 			${IMAGE_BOOTLOADER} \
-			${@base_contains("KERNEL_IMAGETYPE", "uImage", "u-boot", "",d)} \
+			${@bb.utils.contains('KERNEL_IMAGETYPE', 'uImage', 'u-boot', '',d)} \
 			"
 
 # SD card image name
@@ -99,12 +99,23 @@ IMAGE_CMD_rpi-sdimg () {
 	mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/* ::/
 	case "${KERNEL_IMAGETYPE}" in
 	"uImage")
-	    mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/u-boot.img ::kernel.img
-	    mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}${KERNEL_INITRAMFS}-${MACHINE}.bin ::uImage
-	    ;;
+		mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/u-boot.img ::kernel.img
+		mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}${KERNEL_INITRAMFS}-${MACHINE}.bin ::uImage
+		;;
 	*)
-	    mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}${KERNEL_INITRAMFS}-${MACHINE}.bin ::kernel.img
-	    ;;
+		if test -n "${KERNEL_DEVICETREE}"; then
+			for DTB in ${KERNEL_DEVICETREE}; do
+				if echo ${DTB} | grep -q '/dts/'; then
+					bbwarn "${DTB} contains the full path to the the dts file, but only the dtb name should be used."
+					DTB=`basename ${DTB} | sed 's,\.dts$,.dtb,g'`
+				fi
+				DTB_BASE_NAME=`basename ${DTB} .dtb`
+
+				mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${DTB_BASE_NAME}.dtb ::${DTB_BASE_NAME}.dtb
+			done
+		fi
+		mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}${KERNEL_INITRAMFS}-${MACHINE}.bin ::kernel.img
+		;;
 	esac
 
 	if [ -n ${FATPAYLOAD} ] ; then

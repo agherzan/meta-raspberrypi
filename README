@@ -24,6 +24,7 @@ Contents:
     2.H. Images
     2.I. Boot to U-Boot
     2.J. Image with Initramfs
+    2.K. Device tree support
 3. Extra apps
     3.A. omxplayer
 4. Source code and mirrors
@@ -171,6 +172,18 @@ To build an initramfs image :
     * Set the meta-rasberrypi variable (in raspberrypi.conf for example)
         - KERNEL_INITRAMFS = "-initramfs"
 
+2.K. Device tree support
+=========================
+Device tree for RPi is only supported when using linux-raspberrypi 3.18+
+kernels.
+
+    * Set KERNEL_DEVICETREE (in conf/machine/raspberrypi.conf)
+        - the trailer is added to the kernel image before kernel install task.
+          While creating the SDCard image, this modified kernel is put on
+          boot partition (as kernel.img) as well as DeviceTree blobs (.dtb files).
+
+NOTE: KERNEL_DEVICETREE is empty by default.
+
 3. Extra apps
 =============
 
@@ -247,7 +260,7 @@ In order to manage and trace the meta-raspberrypi issues, we use redmine:
 Here we report, trace and develop bugs, features or support tickets for this
 yocto BSP later.
 
-If you push patches which have a remine issue associated, please provide the
+If you push patches which have a redmine issue associated, please provide the
 issue number in the commit log just before "Signed-off-by" line(s). Example line
 for a bug:
     [Bug #13]

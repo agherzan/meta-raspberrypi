@@ -66,6 +66,11 @@ SDIMG = "${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.rootfs.rpi-sdimg"
 # Additional files and/or directories to be copied into the vfat partition from the IMAGE_ROOTFS.
 FATPAYLOAD ?= ""
 
+# Device Tree Overlays are assumed to be suffixed by '-overlay.dtb' string and will be put in a dedicated folder
+DT_ALL = "${@d.getVar('KERNEL_DEVICETREE', True) or ''}"
+DT_OVERLAYS = "${@oe.utils.str_filter('\S+\-overlay\.dtb$', '${DT_ALL}', d)}"
+DT_ROOT = "${@oe.utils.str_filter_out('\S+\-overlay\.dtb$', '${DT_ALL}', d)}"
+
 IMAGEDATESTAMP = "${@time.strftime('%Y.%m.%d',time.gmtime())}"
 
 IMAGE_CMD_rpi-sdimg () {
@@ -104,14 +109,19 @@ IMAGE_CMD_rpi-sdimg () {
 		;;
 	*)
 		if test -n "${KERNEL_DEVICETREE}"; then
-			for DTB in ${KERNEL_DEVICETREE}; do
-				if echo ${DTB} | grep -q '/dts/'; then
-					bbwarn "${DTB} contains the full path to the the dts file, but only the dtb name should be used."
-					DTB=`basename ${DTB} | sed 's,\.dts$,.dtb,g'`
-				fi
+			# Copy board device trees to root folder
+			for DTB in ${DT_ROOT}; do
 				DTB_BASE_NAME=`basename ${DTB} .dtb`
 
 				mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${DTB_BASE_NAME}.dtb ::${DTB_BASE_NAME}.dtb
+			done
+
+			# Copy device tree overlays to dedicated folder
+			mmd -i ${WORKDIR}/boot.img overlays
+			for DTB in ${DT_OVERLAYS}; do
+				DTB_BASE_NAME=`basename ${DTB} .dtb`
+
+				mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${DTB_BASE_NAME}.dtb ::overlays/${DTB_BASE_NAME}.dtb
 			done
 		fi
 		mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}${KERNEL_INITRAMFS}-${MACHINE}.bin ::kernel.img

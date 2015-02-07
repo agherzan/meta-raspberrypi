@@ -49,6 +49,8 @@ INITSCRIPT_PARAMS = "start 03 S ."
 FILES_${PN} = "${bindir}/* \
                ${sbindir}/* \
                ${libdir}/lib*.so \
-               ${sysconfdir}/init.d"
+               ${sysconfdir}/init.d \
+               ${libdir}/plugins"
 FILES_${PN}-dev = "${libdir}/pkgconfig \
                    ${includedir}"
+FILES_${PN}-dbg += "${libdir}/plugins/.debug"

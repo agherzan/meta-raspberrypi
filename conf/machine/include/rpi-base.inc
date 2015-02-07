@@ -2,6 +2,9 @@ include conf/machine/include/rpi-default-settings.inc
 include conf/machine/include/rpi-default-versions.inc
 include conf/machine/include/rpi-default-providers.inc
 
+SOC_FAMILY = "rpi"
+include conf/machine/include/soc-family.inc
+
 IMAGE_FSTYPES ?= "tar.bz2 ext3 rpi-sdimg"
 
 SERIAL_CONSOLE ?= "115200 ttyAMA0"

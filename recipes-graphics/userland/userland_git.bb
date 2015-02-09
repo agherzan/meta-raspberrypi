@@ -13,7 +13,7 @@ COMPATIBLE_MACHINE = "raspberrypi"
 
 SRCBRANCH = "master"
 SRCFORK = "raspberrypi"
-SRCREV = "85441185e653347e6b3c2bbc7494f5e29a6ca4a2"
+SRCREV = "3b81b91c18ff19f97033e146a9f3262ca631f0e9"
 
 SRC_URI = "git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \
           "
@@ -32,10 +32,13 @@ do_install_append() {
     rm -rf ${D}/opt
 }
 
-FILES_${PN} += "${libdir}/*${SOLIBS}"
+FILES_${PN} += " \
+    ${libdir}/*${SOLIBS} \
+    ${libdir}/plugins"
 FILES_${PN}-dev = "${includedir} \
                    ${prefix}/src"
 FILES_${PN}-doc += "${datadir}/install"
+FILES_${PN}-dbg += "${libdir}/plugins/.debug"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 

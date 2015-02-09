@@ -7,22 +7,23 @@ SECTION = "console/utils"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=94d55d512a9ba36caa9b7df079bae19f"
 
-DEPENDS = "libpcre libav virtual/egl boost freetype dbus openssl"
+DEPENDS = "libpcre libav virtual/egl boost freetype dbus openssl samba libssh"
 PR = "r3"
 
-SRCREV = "1817503430b8f195bef12bd7a3542bdd251f8389"
+SRCREV = "18f051d64d9c837edbf718bc4935204583cfa030"
 SRC_URI = "git://github.com/popcornmix/omxplayer.git;protocol=git;branch=master \
            file://0001-Remove-Makefile.include-which-includes-hardcoded.patch \
            file://0002-Libraries-and-headers-from-ffmpeg-are-installed-in-u.patch \
            file://0003-Remove-strip-step-in-Makefile.patch \
            file://0004-Add-FFMPEG_EXTRA_CFLAGS-and-FFMPEG_EXTRA_LDFLAGS.patch \
            file://fix-tar-command-with-DIST.patch \
+           file://use-native-pkg-config.patch \
            "
 S = "${WORKDIR}/git"
 
 COMPATIBLE_MACHINE = "raspberrypi"
 
-inherit autotools-brokensep
+inherit autotools-brokensep pkgconfig
 
 # Needed in ffmpeg configure
 export TEMPDIR = "${S}/tmp"

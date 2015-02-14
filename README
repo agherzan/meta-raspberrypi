@@ -203,7 +203,7 @@ Main repo:
     http://git.yoctoproject.org/git/meta-raspberrypi
 
 Github mirror:
-    https://github.com/djwillis/meta-raspberrypi
+    https://github.com/agherzan/meta-raspberrypi
 
 Bitbucket mirror:
     https://bitbucket.org/agherzan/meta-raspberrypi

@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://LICENCE;md5=86e53f5f5909ee66900418028de11780"
 PROVIDES = "virtual/libgles2 virtual/egl"
 COMPATIBLE_MACHINE = "raspberrypi"
 
-include ../common/firmware.inc
+include recipes-bsp/common/firmware.inc
 
 SRC_URI += " \
     file://egl.pc \

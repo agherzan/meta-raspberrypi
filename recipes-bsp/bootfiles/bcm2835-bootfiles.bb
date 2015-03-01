@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://LICENCE.broadcom;md5=e86e693d19572ee64cc8b17fb062faa9
 
 inherit deploy
 
-include ../common/firmware.inc
+include recipes-bsp/common/firmware.inc
 
 RDEPENDS_${PN} = "rpi-config"
 

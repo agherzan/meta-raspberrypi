@@ -6,8 +6,6 @@ Mailing list (yocto mailing list):
     yocto@yoctoproject.org
 Issues management (redmine):
     http://redmine.gherzan.ro/projects/meta-raspberrypi
-Change review (gerrit):
-    https://review.gherzan.ro:8443/#/q/project:meta-raspberrypi
 
 
 Contents:
@@ -30,8 +28,7 @@ Contents:
 4. Source code and mirrors
 5. Contribution
     5.A. Mailing List
-    5.B. Gerrit Review Server
-    5.C. Redmine
+    5.B. Redmine
 6. Maintainers
 
 
@@ -208,9 +205,6 @@ Github mirror:
 Bitbucket mirror:
     https://bitbucket.org/agherzan/meta-raspberrypi
 
-Gerrit review repo:
-    https://review.gherzan.ro:8443/meta-raspberrypi
-
 
 5. Contributing
 ===============
@@ -234,28 +228,7 @@ To send changes to mailing list use something like:
     git send-email --to yocto@yoctoproject.org \
     --subject-prefix='meta-raspberrypi][PATCH'
 
-OPTIONALLY push changes to gerrit (help maintainers merge and review patches
-easier in this way).
-    git push ssh://<username>@review.gherzan.ro:29418/meta-raspberrypi
-    <local-branch>:refs/for/master
-    See 5.B. Gerrit Review Server.
-
-5.B. Gerrit Review Server
-=========================
-We have a gerrit server configured at review.gherzan.ro. Changes made in gerrit
-are merged in git.yoctoproject.org/meta-raspberrypi.
-
-You can setup a gerrit account in less than 2 minutes:
-A) Login / Register on https://review.gherzan.ro:8443.
-B) Add your PUBLIC key in Settings/SSH Public Keys.
-C) Add remote in your local repo:
-    git remote add gherzan ssh://<username>@review.gherzan.ro:29418/meta-raspberrypi
-D) Push changes to gerrit using:
-    git push gherzan <local-branch>:refs/for/master
-
-Please check your spam folder for gerrit messages. Sometimes they end up there.
-
-5.C. Redmine
+5.B. Redmine
 ============
 In order to manage and trace the meta-raspberrypi issues, we use redmine:
     http://redmine.gherzan.ro/projects/meta-raspberrypi

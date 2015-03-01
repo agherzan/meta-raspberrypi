@@ -56,7 +56,7 @@ branch: master
 revision: HEAD
 
 URI: git://git.openembedded.org/meta-openembedded
-layers: meta-multimedia
+layers: meta-oe, meta-multimedia
 branch: master
 revision: HEAD
 

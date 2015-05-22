@@ -7,7 +7,7 @@ include conf/machine/include/soc-family.inc
 
 IMAGE_FSTYPES ?= "tar.bz2 ext3 rpi-sdimg"
 
-SERIAL_CONSOLE ?= "115200 ttyAMA0"
+SERIAL_CONSOLE = "115200 ttyAMA0"
 
 XSERVER = " \
     xserver-xorg \

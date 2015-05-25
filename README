@@ -179,7 +179,8 @@ kernels.
           While creating the SDCard image, this modified kernel is put on
           boot partition (as kernel.img) as well as DeviceTree blobs (.dtb files).
 
-NOTE: KERNEL_DEVICETREE is empty by default.
+NOTE: KERNEL_DEVICETREE is default enabled for kernel >= 3.18 and always disabled for
+      older kernel versions.
 
 3. Extra apps
 =============

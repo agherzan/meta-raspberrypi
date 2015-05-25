@@ -1,4 +1,5 @@
 require linux.inc
+inherit linux-raspberrypi-base
 
 DESCRIPTION = "Linux Kernel for Raspberry Pi"
 SECTION = "kernel"
@@ -26,7 +27,8 @@ UDEV_GE_141 ?= "1"
 # See http://www.yoctoproject.org/docs/current/bitbake-user-manual/bitbake-user-manual.html#anonymous-python-functions
 python __anonymous () {
     kerneltype = d.getVar('KERNEL_IMAGETYPE', True)
-    kerneldt = d.getVar('KERNEL_DEVICETREE', True)
+    kerneldt = get_dts(d, d.getVar('LINUX_VERSION', True))
+    d.setVar("KERNEL_DEVICETREE", kerneldt)
 
     # Add dependency to 'rpi-mkimage-native' package only if RPi bootloader is used with DT-enable kernel
     if kerneldt:

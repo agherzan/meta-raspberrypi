@@ -5,7 +5,7 @@ vcos, openmaxil, vchiq_arm, bcm_host, WFC, OpenVG."
 LICENSE = "Broadcom"
 LIC_FILES_CHKSUM = "file://LICENCE;md5=957f6640d5e2d2acfce73a36a56cb32f"
 
-PR = "r4"
+PR = "r5"
 
 PROVIDES = "virtual/libgles2 \
             virtual/egl"
@@ -13,7 +13,7 @@ COMPATIBLE_MACHINE = "raspberrypi"
 
 SRCBRANCH = "master"
 SRCFORK = "raspberrypi"
-SRCREV = "3b81b91c18ff19f97033e146a9f3262ca631f0e9"
+SRCREV = "c2f27fb8e581f8e5af83bf28422553ade8f7a7c8"
 
 SRC_URI = "git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \
           "

@@ -12,8 +12,8 @@ COMPATIBLE_MACHINE = "raspberrypi"
 
 SRC_URI = "http://www.airspayce.com/mikem/bcm2835/bcm2835-${PV}.tar.gz"
 
-SRC_URI[md5sum] = "22d431f7402b9c7f93baef348a459cb1"
-SRC_URI[sha256sum] = "90c993559ea273ae2e0587f6b815f7c80f19f47ee7f8aa7799b883f975196dbe"
+SRC_URI[md5sum] = "a974af22a2fa2c0b131becd55c4b31c0"
+SRC_URI[sha256sum] = "608b60bf95ff909a027155303090b71643f333116584d4a2c3b8f6edbf49c612"
 
 inherit autotools
 

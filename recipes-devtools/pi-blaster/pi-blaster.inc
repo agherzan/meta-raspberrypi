@@ -2,11 +2,11 @@ DESCRIPTION = "This project enables PWM on the GPIO pins you request of a Raspbe
 HOMEPAGE = "https://github.com/sarfata/pi-blaster/"
 SECTION = "devel/libs"
 LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://README.md;beginline=138;endline=151;md5=e0f0f92050a87a160939707c60940307"
+LIC_FILES_CHKSUM = "file://README.md;beginline=157;endline=170;md5=f20832f31126609af5a7bf2340014540"
 
 SRC_URI = "git://github.com/sarfata/pi-blaster \
-           file://enable-autotools-support.patch \
            file://remove-initscript-lsb-dependency.patch \
+           file://0001-handle-install-data-hook-when-cross-compile.patch \
 "
 
 S = "${WORKDIR}/git"

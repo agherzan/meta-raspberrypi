@@ -1,0 +1,429 @@
+From b0d82bc7cc90db41aa4f7012bbe3009f0b8ab11d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Petter=20Mab=C3=A4cker?= <petter@technux.se>
+Date: Sat, 18 Jul 2015 23:20:05 +0200
+Subject: [PATCH] Add initial cross compile support
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Upstream-Status: Pending
+
+Signed-off-by: Petter Mabäcker <petter@technux.se>
+---
+ devLib/Makefile             | 58 +++++++++++++++++++++++++--------------------
+ examples/Gertboard/Makefile | 22 ++++++++++-------
+ examples/Makefile           | 19 +++++++++------
+ examples/PiFace/Makefile    | 22 ++++++++++-------
+ examples/PiGlow/Makefile    |  4 ++--
+ examples/q2w/Makefile       |  5 ++--
+ gpio/Makefile               | 31 +++++++++++++-----------
+ wiringPi/Makefile           | 56 ++++++++++++++++++++++++-------------------
+ 8 files changed, 124 insertions(+), 93 deletions(-)
+
+diff --git a/devLib/Makefile b/devLib/Makefile
+index d62b532..c7c7884 100644
+--- a/devLib/Makefile
++++ b/devLib/Makefile
+@@ -22,18 +22,22 @@
+ #################################################################################
+ 
+ VERSION=$(shell cat ../VERSION)
+-DESTDIR=/usr
+-PREFIX=/local
++DESTDIR?=/usr
++PREFIX?=/local
+ 
+-STATIC=libwiringPiDev.a
+-DYNAMIC=libwiringPiDev.so.$(VERSION)
++INCLUDE_DIR?=$(DESTDIR)$(PREFIX)/include
++LIB_DIR?=$(DESTDIR)$(PREFIX)/lib
+ 
+-#DEBUG	= -g -O0
+-DEBUG	= -O2
+-CC	= gcc
+-INCLUDE	= -I.
+-DEFS	= -D_GNU_SOURCE
+-CFLAGS	= $(DEBUG) $(DEFS) -Wformat=2 -Wall -Winline $(INCLUDE) -pipe -fPIC
++BASE_NAME=libwiringPiDev
++STATIC=$(BASE_NAME).a
++DYNAMIC=$(BASE_NAME).so.$(VERSION)
++
++#DEBUG	?= -g -O0
++DEBUG	?= -O2
++CC	?= gcc
++INCLUDE	?= -I.
++DEFS	?= -D_GNU_SOURCE
++CFLAGS	?= $(DEBUG) $(DEFS) -Wformat=2 -Wall -Winline $(INCLUDE) -pipe -fPIC
+ 
+ LIBS    =
+ 
+@@ -60,16 +64,16 @@ $(STATIC):	$(OBJ)
+ 
+ $(DYNAMIC):	$(OBJ)
+ 	@echo "[Link (Dynamic)]"
+-	@$(CC) -shared -Wl,-soname,libwiringPiDev.so -o libwiringPiDev.so.$(VERSION) -lpthread $(OBJ)
++	@$(CC) -shared -Wl,-soname,$(BASE_NAME).so.$(DYN_VERS_MAJ) -o $(BASE_NAME).so -lpthread $(OBJ)
+ 
+ .c.o:
+ 	@echo [Compile] $<
+-	@$(CC) -c $(CFLAGS) $< -o $@
++	@$(CC) -c $(CFLAGS) -fPIC $< -o $@
+ 
+ .PHONY:	clean
+ clean:
+ 	@echo "[Clean]"
+-	@rm -f $(OBJ) $(OBJ_I2C) *~ core tags Makefile.bak libwiringPiDev.*
++	@rm -f $(OBJ) $(OBJ_I2C) *~ core tags Makefile.bak $(BASE_NAME).so* $(BASE_NAME).a
+ 
+ .PHONY:	tags
+ tags:	$(SRC)
+@@ -80,22 +84,22 @@ tags:	$(SRC)
+ .PHONY:	install
+ install:	$(DYNAMIC)
+ 	@echo "[Install Headers]"
+-	@install -m 0755 -d						$(DESTDIR)$(PREFIX)/include
+-	@install -m 0644 $(HEADERS)					$(DESTDIR)$(PREFIX)/include
++	@install -m 0755 -d						$(INCLUDE_DIR)
++	@install -m 0644 $(HEADERS)					$(INCLUDE_DIR)
+ 	@echo "[Install Dynamic Lib]"
+-	@install -m 0755 -d						$(DESTDIR)$(PREFIX)/lib
+-	@install -m 0755 libwiringPiDev.so.$(VERSION)			$(DESTDIR)$(PREFIX)/lib/libwiringPiDev.so.$(VERSION)
+-	@ln -sf $(DESTDIR)$(PREFIX)/lib/libwiringPiDev.so.$(VERSION)	$(DESTDIR)/lib/libwiringPiDev.so
+-	@ldconfig
++	@install -m 0755 -d						$(LIB_DIR)
++	@install -m 0755 $(BASE_NAME).so	$(LIB_DIR)/$(DYNAMIC)
++	@ln -sf $(DYNAMIC)			$(LIB_DIR)/$(BASE_NAME).so
++	@ln -sf $(DYNAMIC)			$(LIB_DIR)/$(BASE_NAME).so.$(DYN_VERS_MAJ)
+ 
+ .PHONY:	install-static
+ install-static:	$(STATIC)
+ 	@echo "[Install Headers]"
+-	@install -m 0755 -d						$(DESTDIR)$(PREFIX)/include
+-	@install -m 0644 $(HEADERS)					$(DESTDIR)$(PREFIX)/include
++	@install -m 0755 -d						$(INCLUDE_DIR)
++	@install -m 0644 $(HEADERS)					$(INCLUDE_DIR)
+ 	@echo "[Install Static Lib]"
+-	@install -m 0755 -d						$(DESTDIR)$(PREFIX)/lib
+-	@install -m 0755 libwiringPiDev.a				$(DESTDIR)$(PREFIX)/lib
++	@install -m 0755 -d						$(LIB_DIR)
++	@install -m 0644 $(STATIC)					$(LIB_DIR)
+ 
+ .PHONY:	install-deb
+ install-deb:	$(DYNAMIC)
+@@ -110,9 +114,11 @@ install-deb:	$(DYNAMIC)
+ .PHONY:	uninstall
+ uninstall:
+ 	@echo "[UnInstall]"
+-	@cd $(DESTDIR)$(PREFIX)/include/ && rm -f $(HEADERS)
+-	@cd $(DESTDIR)$(PREFIX)/lib/     && rm -f libwiringPiDev.*
+-	@ldconfig
++	@cd $(INCLUDE_DIR) && rm -f $(HEADERS)
++	@rm -f $(LIB_DIR)/$(STATIC)
++	@rm -f $(LIB_DIR)/$(DYNAMIC)
++	@rm -f $(LIB_DIR)/$(BASE_NAME).so
++	@rm -f $(LIB_DIR)/$(BASE_NAME).so.$(DYN_VERS_MAJ)
+ 
+ 
+ .PHONY:	depend
+diff --git a/examples/Gertboard/Makefile b/examples/Gertboard/Makefile
+index 7569261..b0c32e0 100644
+--- a/examples/Gertboard/Makefile
++++ b/examples/Gertboard/Makefile
+@@ -5,14 +5,20 @@
+ #	Copyright (c) 2013 Gordon Henderson
+ #################################################################################
+ 
+-#DEBUG	= -g -O0
+-DEBUG	= -O3
+-CC	= gcc
+-INCLUDE	= -I/usr/local/include
+-CFLAGS	= $(DEBUG) -Wall $(INCLUDE) -Winline -pipe
+-
+-LDFLAGS	= -L/usr/local/lib
+-LDLIBS    = -lwiringPi -lwiringPiDev -lpthread -lm
++DESTDIR?=/usr
++PREFIX?=/local
++
++INCLUDE_DIR?=$(DESTDIR)$(PREFIX)/include
++LIB_DIR?=$(DESTDIR)$(PREFIX)/lib
++
++#DEBUG	?= -g -O0
++DEBUG	?= -O3
++CC	?= gcc
++INCLUDE	?= -I$(INCLUDE_DIR)
++CFLAGS	?= $(DEBUG) -Wall $(INCLUDE) -Winline -pipe
++
++LDFLAGS	?= -L$(LIB_DIR)
++LDLIBS    ?= -lwiringPi -lwiringPiDev -lpthread -lm
+ 
+ # Should not alter anything below this line
+ ###############################################################################
+diff --git a/examples/Makefile b/examples/Makefile
+index c9967dc..c2f8b9d 100644
+--- a/examples/Makefile
++++ b/examples/Makefile
+@@ -22,15 +22,20 @@
+ #    along with wiringPi.  If not, see <http://www.gnu.org/licenses/>.
+ #################################################################################
+ 
++DESTDIR?=/usr
++PREFIX?=/local
+ 
+-#DEBUG	= -g -O0
+-DEBUG	= -O3
+-CC	= gcc
+-INCLUDE	= -I/usr/local/include
+-CFLAGS	= $(DEBUG) -Wall $(INCLUDE) -Winline -pipe
++INCLUDE_DIR?=$(DESTDIR)$(PREFIX)/include
++LIB_DIR?=$(DESTDIR)$(PREFIX)/lib
+ 
+-LDFLAGS	= -L/usr/local/lib
+-LDLIBS    = -lwiringPi -lwiringPiDev -lpthread -lm
++#DEBUG	?= -g -O0
++DEBUG	?= -O3
++CC	?= gcc
++INCLUDE	?= -I$(INCLUDE_DIR)
++CFLAGS	?= $(DEBUG) -Wall $(INCLUDE) -Winline -pipe
++
++LDFLAGS	?= -L$(LIB_DIR)
++LDLIBS    ?= -lwiringPi -lwiringPiDev -lpthread -lm
+ 
+ # Should not alter anything below this line
+ ###############################################################################
+diff --git a/examples/PiFace/Makefile b/examples/PiFace/Makefile
+index 0bde334..fc14c0c 100644
+--- a/examples/PiFace/Makefile
++++ b/examples/PiFace/Makefile
+@@ -23,14 +23,20 @@
+ #################################################################################
+ 
+ 
+-#DEBUG	= -g -O0
+-DEBUG	= -O3
+-CC	= gcc
+-INCLUDE	= -I/usr/local/include
+-CFLAGS	= $(DEBUG) -Wall $(INCLUDE) -Winline -pipe
+-
+-LDFLAGS	= -L/usr/local/lib
+-LDLIBS    = -lwiringPi -lwiringPiDev -lpthread -lm
++DESTDIR?=/usr
++PREFIX?=/local
++
++INCLUDE_DIR?=$(DESTDIR)$(PREFIX)/include
++LIB_DIR?=$(DESTDIR)$(PREFIX)/lib
++
++#DEBUG	?= -g -O0
++DEBUG	?= -O3
++CC	?= gcc
++INCLUDE	?= -I$(INCLUDE_DIR)
++CFLAGS	?= $(DEBUG) -Wall $(INCLUDE) -Winline -pipe
++
++LDFLAGS	?= -L$(LIB_DIR)
++LDLIBS    ?= -lwiringPi -lwiringPiDev -lpthread -lm
+ 
+ # Should not alter anything below this line
+ ###############################################################################
+diff --git a/examples/PiGlow/Makefile b/examples/PiGlow/Makefile
+index 8d31141..482c9e7 100644
+--- a/examples/PiGlow/Makefile
++++ b/examples/PiGlow/Makefile
+@@ -26,10 +26,10 @@
+ #DEBUG	= -g -O0
+ DEBUG	= -O3
+ CC	= gcc
+-INCLUDE	= -I/usr/local/include
++INCLUDE	= -I../wiringPi -I../wiringPiDev
+ CFLAGS	= $(DEBUG) -Wall $(INCLUDE) -Winline -pipe
+ 
+-LDFLAGS	= -L/usr/local/lib
++LDFLAGS	= -L../wiringPi -L../wiringPiDev
+ LDLIBS    = -lwiringPi -lwiringPiDev -lpthread -lm
+ 
+ # Should not alter anything below this line
+diff --git a/examples/q2w/Makefile b/examples/q2w/Makefile
+index 150c825..0544aa3 100644
+--- a/examples/q2w/Makefile
++++ b/examples/q2w/Makefile
+@@ -22,14 +22,13 @@
+ #    along with wiringPi.  If not, see <http://www.gnu.org/licenses/>.
+ #################################################################################
+ 
+-
+ #DEBUG	= -g -O0
+ DEBUG	= -O3
+ CC	= gcc
+-INCLUDE	= -I/usr/local/include
++INCLUDE	= -I../wiringPi -I../devLib
+ CFLAGS	= $(DEBUG) -Wall $(INCLUDE) -Winline -pipe
+ 
+-LDFLAGS	= -L/usr/local/lib
++LDFLAGS	= -L../wiringPi -L../devLib
+ LDLIBS    = -lwiringPi -lwiringPiDev -lpthread -lm
+ 
+ ###############################################################################
+diff --git a/gpio/Makefile b/gpio/Makefile
+index 449986e..95af1ad 100644
+--- a/gpio/Makefile
++++ b/gpio/Makefile
+@@ -23,16 +23,20 @@
+ #    along with wiringPi.  If not, see <http://www.gnu.org/licenses/>.
+ #################################################################################
+ 
+-DESTDIR=/usr
+-PREFIX=/local
++DESTDIR?=/usr
++PREFIX?=/local
+ 
+-#DEBUG	= -g -O0
+-DEBUG	= -O2
+-CC	= gcc
+-INCLUDE	= -I$(DESTDIR)$(PREFIX)/include
+-CFLAGS	= $(DEBUG) -Wall $(INCLUDE) -Winline -pipe
++INCLUDE_DIR?=$(DESTDIR)$(PREFIX)/include
++LIB_DIR?=$(DESTDIR)$(PREFIX)/lib
++BIN_DIR?=$(DESTDIR)$(PREFIX)/bin
+ 
+-LDFLAGS	= -L$(DESTDIR)$(PREFIX)/lib
++#DEBUG	?= -g -O0
++DEBUG	?= -O2
++CC	?= gcc
++INCLUDE	?= -I$(INCLUDE_DIR)
++CFLAGS	?= $(DEBUG) -Wall $(INCLUDE) -Winline -pipe
++
++LDFLAGS	= -L$(LIB_DIR)
+ LIBS    = -lwiringPi -lwiringPiDev -lpthread -lm
+ 
+ # May not need to  alter anything below this line
+@@ -68,11 +72,10 @@ tags:	$(SRC)
+ .PHONY:	install
+ install: gpio
+ 	@echo "[Install]"
+-	@cp gpio		$(DESTDIR)$(PREFIX)/bin
+-	@chown root.root	$(DESTDIR)$(PREFIX)/bin/gpio
+-	@chmod 4755		$(DESTDIR)$(PREFIX)/bin/gpio
+-	@mkdir -p		$(DESTDIR)$(PREFIX)/man/man1
+-	@cp gpio.1		$(DESTDIR)$(PREFIX)/man/man1
++	@install -d $(BIN_DIR)
++	@install -m 4755 -o root -g root gpio $(BIN_DIR)
++	@install -d $(DESTDIR)$(PREFIX)/share/man/man1
++	@install -m 644 -o root -g root gpio.1 $(DESTDIR)$(PREFIX)/share/man/man1
+ 
+ .PHONY:	install-deb
+ install-deb:	gpio
+@@ -83,7 +86,7 @@ install-deb:	gpio
+ .PHONY:	uninstall
+ uninstall:
+ 	@echo "[UnInstall]"
+-	@rm -f $(DESTDIR)$(PREFIX)/bin/gpio
++	@rm -f $(BIN_DIR)/gpio
+ 	@rm -f $(DESTDIR)$(PREFIX)/man/man1/gpio.1
+ 
+ .PHONY:	depend
+diff --git a/wiringPi/Makefile b/wiringPi/Makefile
+index 015a894..5fc0659 100644
+--- a/wiringPi/Makefile
++++ b/wiringPi/Makefile
+@@ -22,18 +22,22 @@
+ #################################################################################
+ 
+ VERSION=$(shell cat ../VERSION)
+-DESTDIR=/usr
+-PREFIX=/local
++DESTDIR?=/usr
++PREFIX?=/local
++INCLUDE_DIR?=$(DESTDIR)$(PREFIX)/include
++LIB_DIR?=$(DESTDIR)$(PREFIX)/lib
+ 
+-STATIC=libwiringPi.a
+-DYNAMIC=libwiringPi.so.$(VERSION)
++BASE_NAME=libwiringPi
++STATIC=$(BASE_NAME).a
++DYNAMIC=$(BASE_NAME).so.$(VERSION)
+ 
+-#DEBUG	= -g -O0
+-DEBUG	= -O2
+-CC	= gcc
+-INCLUDE	= -I.
+-DEFS	= -D_GNU_SOURCE
++#DEBUG	?= -g -O0
+ CFLAGS	= $(DEBUG) $(DEFS) -Wformat=2 -Wall -Winline $(INCLUDE) -pipe -fPIC
++DEBUG	?= -O2
++CC	?= gcc
++DEFS	= -D_GNU_SOURCE
++INCLUDE	?= -I.
++CFLAGS	?= $(DEBUG) $(DEFS) -Wformat=2 -Wall -Winline $(INCLUDE) -pipe -fPIC
+ 
+ LIBS    =
+ 
+@@ -83,17 +87,17 @@ $(STATIC):	$(OBJ)
+ 
+ $(DYNAMIC):	$(OBJ)
+ 	@echo "[Link (Dynamic)]"
+-	@$(CC) -shared -Wl,-soname,libwiringPi.so -o libwiringPi.so.$(VERSION) -lpthread $(OBJ)
++	@$(CC) -shared -Wl,-soname,$(BASE_NAME).so.$(DYN_VERS_MAJ) -o $(BASE_NAME).so -lpthread $(OBJ)
+ 
+ .c.o:
+ 	@echo [Compile] $<
+-	@$(CC) -c $(CFLAGS) $< -o $@
++	@$(CC) -c $(CFLAGS) -fPIC $< -o $@
+ 
+ 
+ .PHONY:	clean
+ clean:
+ 	@echo "[Clean]"
+-	@rm -f $(OBJ) $(OBJ_I2C) *~ core tags Makefile.bak libwiringPi.*
++	@rm -f $(OBJ) $(OBJ_I2C) *~ core tags Makefile.bak $(BASE_NAME).so* $(BASE_NAME).a
+ 
+ .PHONY:	tags
+ tags:	$(SRC)
+@@ -104,22 +108,22 @@ tags:	$(SRC)
+ .PHONY:	install
+ install:	$(DYNAMIC)
+ 	@echo "[Install Headers]"
+-	@install -m 0755 -d						$(DESTDIR)$(PREFIX)/include
+-	@install -m 0644 $(HEADERS)					$(DESTDIR)$(PREFIX)/include
++	@install -m 0755 -d						$(INCLUDE_DIR)
++	@install -m 0644 $(HEADERS)					$(INCLUDE_DIR)
+ 	@echo "[Install Dynamic Lib]"
+-	@install -m 0755 -d						$(DESTDIR)$(PREFIX)/lib
+-	@install -m 0755 libwiringPi.so.$(VERSION)			$(DESTDIR)$(PREFIX)/lib/libwiringPi.so.$(VERSION)
+-	@ln -sf $(DESTDIR)$(PREFIX)/lib/libwiringPi.so.$(VERSION)	$(DESTDIR)/lib/libwiringPi.so
+-	@ldconfig
++	@install -m 0755 -d						$(LIB_DIR)
++	@install -m 0755 $(BASE_NAME).so	$(LIB_DIR)/$(DYNAMIC)
++	@ln -sf $(DYNAMIC)			$(LIB_DIR)/$(BASE_NAME).so
++	@ln -sf $(DYNAMIC)			$(LIB_DIR)/$(BASE_NAME).so.$(DYN_VERS_MAJ)
+ 
+ .PHONY:	install-static
+ install-static:	$(STATIC)
+ 	@echo "[Install Headers]"
+-	@install -m 0755 -d						$(DESTDIR)$(PREFIX)/include
+-	@install -m 0644 $(HEADERS)					$(DESTDIR)$(PREFIX)/include
++	@install -m 0755 -d						$(INCLUDE_DIR)
++	@install -m 0644 $(HEADERS)					$(INCLUDE_DIR)
+ 	@echo "[Install Static Lib]"
+-	@install -m 0755 -d						$(DESTDIR)$(PREFIX)/lib
+-	@install -m 0755 libwiringPi.a					$(DESTDIR)$(PREFIX)/lib
++	@install -m 0755 -d						$(LIB_DIR)
++	@install -m 0644 $(STATIC)					$(LIB_DIR)
+ 
+ .PHONY:	install-deb
+ install-deb:	$(DYNAMIC)
+@@ -134,9 +138,11 @@ install-deb:	$(DYNAMIC)
+ .PHONY:	uninstall
+ uninstall:
+ 	@echo "[UnInstall]"
+-	@cd $(DESTDIR)$(PREFIX)/include/ && rm -f $(HEADERS)
+-	@cd $(DESTDIR)$(PREFIX)/lib/     && rm -f libwiringPi.*
+-	@ldconfig
++	@cd $(INCLUDE_DIR) && rm -f $(HEADERS)
++	@rm -f $(LIB_DIR)/$(STATIC)
++	@rm -f $(LIB_DIR)/$(DYNAMIC)
++	@rm -f $(LIB_DIR)/$(BASE_NAME).so
++	@rm -f $(LIB_DIR)/$(BASE_NAME).so.$(DYN_VERS_MAJ)
+ 
+ 
+ .PHONY:	depend
+-- 
+1.9.1
+

@@ -8,9 +8,9 @@ LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=94d55d512a9ba36caa9b7df079bae19f"
 
 DEPENDS = "libpcre libav virtual/egl boost freetype dbus openssl samba libssh"
-PR = "r3"
+PR = "r4"
 
-SRCREV = "18f051d64d9c837edbf718bc4935204583cfa030"
+SRCREV = "4d8ffd13153bfef2966671cb4fb484afeaf792a8"
 SRC_URI = "git://github.com/popcornmix/omxplayer.git;protocol=git;branch=master \
            file://0001-Remove-Makefile.include-which-includes-hardcoded.patch \
            file://0002-Libraries-and-headers-from-ffmpeg-are-installed-in-u.patch \

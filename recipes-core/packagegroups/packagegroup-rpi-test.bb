@@ -10,6 +10,7 @@ RDEPENDS_${PN} = "\
     wiringpi \
     rpio \
     rpi-gpio \
+    pi-blaster \
 "
 
 RRECOMMENDS_${PN} = "\

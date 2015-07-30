@@ -19,10 +19,11 @@ Contents:
     2.E. Set overclocking options
     2.F. Optional - Video camera support with V4L2 drivers
     2.G. Optional - Enable offline compositing support
-    2.H. Images
-    2.I. Boot to U-Boot
-    2.J. Image with Initramfs
-    2.K. Device tree support
+    2.H. Optional - Enable kgdb over console support
+    2.I. Images
+    2.J. Boot to U-Boot
+    2.K. Image with Initramfs
+    2.L. Device tree support
 3. Extra apps
     3.A. omxplayer
 4. Source code and mirrors
@@ -138,7 +139,13 @@ Heavily recommended for Wayland/Weston.
 
 See: http://wayland.freedesktop.org/raspberrypi.html
 
-2.H. Images
+2.H. Optional - Enable kgdb over console support
+================================================
+To add the kdbg over console (kgdboc) parameter to the kernel command line,
+set this variable in local.conf:
+ENABLE_KGDB = "1"
+
+2.I. Images
 ===========
 * rpi-hwup-image
     Hardware up image
@@ -148,7 +155,7 @@ See: http://wayland.freedesktop.org/raspberrypi.html
     Image based on rpi-basic-image which includes most of the packages in this
     layer and some media samples.
 
-2.I. Boot to U-Boot
+2.J. Boot to U-Boot
 ===================
 To have u-boot load kernel image, set in your local.conf
 KERNEL_IMAGETYPE = "uImage"
@@ -156,7 +163,7 @@ KERNEL_IMAGETYPE = "uImage"
 This will make kernel.img be u-boot image which will load uImage.
 By default, kernel.img is the actual kernel image (ex. Image).
 
-2.J. Image with Initramfs
+2.K. Image with Initramfs
 =========================
 To build an initramfs image :
     * Set this 3 kernel variables (in linux-raspberrypi.inc for example)
@@ -169,7 +176,7 @@ To build an initramfs image :
     * Set the meta-rasberrypi variable (in raspberrypi.conf for example)
         - KERNEL_INITRAMFS = "-initramfs"
 
-2.K. Device tree support
+2.L. Device tree support
 =========================
 Device tree for RPi is only supported when using linux-raspberrypi 3.18+
 kernels.

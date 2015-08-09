@@ -1,0 +1,35 @@
+From 12f7718bb0e08e2c06825c7ab7541b3c5bfe74c1 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Sun, 9 Aug 2015 08:55:05 -0700
+Subject: [PATCH] Use newer POSIX macro
+
+Define _POSIX_C_SOURCE such that it demands correct
+posix interfaces, netdb.h declares interfaces such as
+getaddrinfo if __USE_POSIX, i.e. POSIX.1:1990 or later.
+However, these interfaces were new in the 2001 edition of POSIX
+therefore ask for Extension from POSIX.1:2001 since we use addrinfo
+structure here.
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+Upstream-Status: Submitted
+
+ containers/CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/containers/CMakeLists.txt b/containers/CMakeLists.txt
+index a29a885..5570038 100644
+--- a/containers/CMakeLists.txt
++++ b/containers/CMakeLists.txt
+@@ -13,7 +13,7 @@ add_definitions(-DDL_PATH_PREFIX="${VMCS_PLUGIN_DIR}/")
+ 
+ SET( GCC_COMPILER_FLAGS -Wall -g -O2 -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wcast-qual -Wwrite-strings -Wundef )
+ SET( GCC_COMPILER_FLAGS ${GCC_COMPILER_FLAGS} -Wextra )#-Wno-missing-field-initializers )
+-SET( GCC_COMPILER_FLAGS ${GCC_COMPILER_FLAGS} -std=c99 -D_POSIX_C_SOURCE=199309L )
++SET( GCC_COMPILER_FLAGS ${GCC_COMPILER_FLAGS} -std=c99 -D_POSIX_C_SOURCE=200112L )
+ SET( GCC_COMPILER_FLAGS ${GCC_COMPILER_FLAGS} -Wno-missing-field-initializers )
+ SET( GCC_COMPILER_FLAGS ${GCC_COMPILER_FLAGS} -Wno-unused-value )
+ 
+-- 
+2.1.4
+

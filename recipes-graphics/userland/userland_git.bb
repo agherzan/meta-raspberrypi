@@ -16,6 +16,7 @@ SRCFORK = "raspberrypi"
 SRCREV = "c2f27fb8e581f8e5af83bf28422553ade8f7a7c8"
 
 SRC_URI = "git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \
+           file://0001-Use-newer-POSIX-macro.patch \
           "
 S = "${WORKDIR}/git"
 

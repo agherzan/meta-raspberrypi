@@ -232,9 +232,14 @@ above specified mailing list.
 The patches should be compliant with the openembedded patch guidelines:
 http://www.openembedded.org/wiki/Commit_Patch_Message_Guidelines
 
-To send changes to mailing list use something like:
-    git send-email --to yocto@yoctoproject.org \
-    --subject-prefix='meta-raspberrypi][PATCH'
+
+When creating patches, please use something like:
+
+    git format-patch -s --subject-prefix='meta-raspberrypi][PATCH' origin
+
+When sending patches to mailing list, please use something like:
+
+    git send-email --to yocto@yoctoproject.org <generated patch>
 
 5.B. Redmine
 ============

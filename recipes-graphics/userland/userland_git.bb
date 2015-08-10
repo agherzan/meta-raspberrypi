@@ -25,12 +25,25 @@ SRC_URI = "\
     file://0005-user-vcsm-Fix-build-with-clang.patch \
     file://0006-Fix-enum-type-conversion-warnings.patch \
     file://0007-vcos_platform_types-Dont-use-extern-inline-with-clan.patch \
+    file://0008-Allow-applications-to-set-next-resource-handle.patch \
+    file://0009-wayland-Add-support-for-the-Wayland-winsys.patch \
+    file://0010-wayland-Add-Wayland-example.patch \
+    file://0011-wayland-egl-Add-bcm_host-to-dependencies.patch \
+    file://0012-interface-remove-faulty-assert-to-make-weston-happy-.patch \
+    file://0013-zero-out-wl-buffers-in-egl_surface_free.patch \
+    file://0014-initialize-front-back-wayland-buffers.patch \
 "
 S = "${WORKDIR}/git"
 
 inherit cmake pkgconfig
 
-EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS='-Wl,--no-as-needed'"
+EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS='-Wl,--no-as-needed' \
+                "
+
+PACKAGECONFIG ?= "${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)}"
+
+PACKAGECONFIG[wayland] = "-DBUILD_WAYLAND=TRUE,,wayland,"
+
 CFLAGS_append = " -fPIC"
 
 do_install_append () {
@@ -45,6 +58,7 @@ do_install_append () {
 # to force the .so files into the runtime package (and keep them
 # out of -dev package).
 FILES_SOLIBSDEV = ""
+INSANE_SKIP_${PN} += "dev-so"
 
 FILES_${PN} += " \
     ${libdir}/*.so \

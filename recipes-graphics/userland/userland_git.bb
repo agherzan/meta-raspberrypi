@@ -22,8 +22,10 @@ SRC_URI = "\
     file://0002-musl-inspired-fixed.patch \
     file://0003-set-VMCS_INSTALL_PREFIX-to-usr.patch \
     file://0004-cmake-generate-and-install-pkgconfig-files.patch \
-    "
-
+    file://0005-user-vcsm-Fix-build-with-clang.patch \
+    file://0006-Fix-enum-type-conversion-warnings.patch \
+    file://0007-vcos_platform_types-Dont-use-extern-inline-with-clan.patch \
+"
 S = "${WORKDIR}/git"
 
 inherit cmake pkgconfig

@@ -1,0 +1,84 @@
+From e60f708bef880542fbe45df7dba982c886852dd4 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Sun, 23 Aug 2015 13:41:33 -0700
+Subject: [PATCH 07/16] vcos_platform_types: Dont use extern inline with clang
+
+Its very gcc specific implementation here in this code, we cant use
+it with clang as such, so we will use static inline instead which is
+common across gcc and clang starting c99 std onwards
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ interface/vcos/pthreads/vcos_platform_types.h | 4 ----
+ interface/vcos/vcos_timer.h                   | 5 -----
+ interface/vcos/vcos_types.h                   | 2 +-
+ 3 files changed, 1 insertion(+), 10 deletions(-)
+
+diff --git a/interface/vcos/pthreads/vcos_platform_types.h b/interface/vcos/pthreads/vcos_platform_types.h
+index 64fb381..6ebcaad 100644
+--- a/interface/vcos/pthreads/vcos_platform_types.h
++++ b/interface/vcos/pthreads/vcos_platform_types.h
+@@ -60,10 +60,6 @@ vcos_pthreads_logging_assert(const char *file, const char *func, unsigned int li
+ 
+ #define VCOS_ASSERT_MSG(...) ((VCOS_ASSERT_LOGGING && !VCOS_ASSERT_LOGGING_DISABLE) ? vcos_pthreads_logging_assert(__FILE__, __func__, __LINE__, __VA_ARGS__) : (void)0)
+ 
+-#define VCOS_INLINE_BODIES
+-#define VCOS_INLINE_DECL extern
+-#define VCOS_INLINE_IMPL static __inline__
+-
+ #ifdef __cplusplus
+ }
+ #endif
+diff --git a/interface/vcos/vcos_timer.h b/interface/vcos/vcos_timer.h
+index bdfa657..1de2d46 100644
+--- a/interface/vcos/vcos_timer.h
++++ b/interface/vcos/vcos_timer.h
+@@ -76,7 +76,6 @@ VCOSPRE_ VCOS_STATUS_T VCOSPOST_ vcos_timer_init(void);
+   * @param context   context passed to expiration routine
+   *
+   */
+-VCOS_INLINE_DECL
+ VCOS_STATUS_T vcos_timer_create(VCOS_TIMER_T *timer,
+                                 const char *name,
+                                 void (*expiration_routine)(void *context),
+@@ -91,24 +90,20 @@ VCOS_STATUS_T vcos_timer_create(VCOS_TIMER_T *timer,
+   * @param timer     timer handle
+   * @param delay     Delay to wait for, in ms
+   */
+-VCOS_INLINE_DECL
+ void vcos_timer_set(VCOS_TIMER_T *timer, VCOS_UNSIGNED delay);
+ 
+ /** Stop an already running timer.
+   *
+   * @param timer     timer handle
+   */
+-VCOS_INLINE_DECL
+ void vcos_timer_cancel(VCOS_TIMER_T *timer);
+ 
+ /** Stop a timer and restart it.
+   * @param timer     timer handle
+   * @param delay     delay in ms
+   */
+-VCOS_INLINE_DECL
+ void vcos_timer_reset(VCOS_TIMER_T *timer, VCOS_UNSIGNED delay);
+ 
+-VCOS_INLINE_DECL
+ void vcos_timer_delete(VCOS_TIMER_T *timer);
+ 
+ #ifdef __cplusplus
+diff --git a/interface/vcos/vcos_types.h b/interface/vcos/vcos_types.h
+index e64fd99..7d86742 100644
+--- a/interface/vcos/vcos_types.h
++++ b/interface/vcos/vcos_types.h
+@@ -120,7 +120,7 @@ typedef enum
+ 
+ #if defined(NDEBUG)
+ 
+-#ifdef __GNUC__
++#if defined(__GNUC__) && !defined(__clang__)
+ # define VCOS_INLINE_DECL extern
+ # define VCOS_INLINE_IMPL static __inline__
+ #else
+-- 
+2.7.0
+

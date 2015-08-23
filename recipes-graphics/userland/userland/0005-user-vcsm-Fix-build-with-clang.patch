@@ -1,0 +1,44 @@
+From 5cfb274f036726a85bb45fd82652d55f50208954 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Sun, 23 Aug 2015 13:17:33 -0700
+Subject: [PATCH 05/16] user-vcsm: Fix build with clang
+
+/mnt/home/kraj/work/angstrom/build/tmp-angstrom-glibc/work/raspberrypi2-angstrom-linux-gnueabi/userland/git-r5/git/host_applications/linux/libs/sm/user-vcsm.c:316:36: error: implicit conversion from enumeration
+      type 'enum vmcs_sm_cache_e' to different enumeration type 'VCSM_CACHE_TYPE_T' [-Werror,-Wenum-conversion]
+   return vcsm_malloc_cache( size, VMCS_SM_CACHE_NONE, name );
+          ~~~~~~~~~~~~~~~~~        ^~~~~~~~~~~~~~~~~~
+/mnt/home/kraj/work/angstrom/build/tmp-angstrom-glibc/work/raspberrypi2-angstrom-linux-gnueabi/userland/git-r5/git/host_applications/linux/libs/sm/user-vcsm.c:339:22: error: equality comparison with extraneous
+      parentheses [-Werror,-Wparentheses-equality]
+   if ( (vcsm_handle == VCSM_INVALID_HANDLE) )
+         ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ host_applications/linux/libs/sm/user-vcsm.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/host_applications/linux/libs/sm/user-vcsm.c b/host_applications/linux/libs/sm/user-vcsm.c
+index 4e78dc4..5298f25 100644
+--- a/host_applications/linux/libs/sm/user-vcsm.c
++++ b/host_applications/linux/libs/sm/user-vcsm.c
+@@ -313,7 +313,7 @@ unsigned int vcsm_malloc_cache( unsigned int size, VCSM_CACHE_TYPE_T cache, char
+ */
+ unsigned int vcsm_malloc( unsigned int size, char *name )
+ {
+-   return vcsm_malloc_cache( size, VMCS_SM_CACHE_NONE, name );
++   return vcsm_malloc_cache( size, (VCSM_CACHE_TYPE_T)VMCS_SM_CACHE_NONE, name );
+ }
+ 
+ /* Shares an allocated block of memory.
+@@ -336,7 +336,7 @@ unsigned int vcsm_malloc_share( unsigned int handle )
+    void *usr_ptr = NULL;
+    int rc;
+ 
+-   if ( (vcsm_handle == VCSM_INVALID_HANDLE) )
++   if ( vcsm_handle == VCSM_INVALID_HANDLE )
+    {
+       vcos_log_error( "[%s]: [%d]: NULL size or invalid device!",
+                       __func__,
+-- 
+2.7.0
+

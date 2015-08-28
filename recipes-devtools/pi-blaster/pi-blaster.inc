@@ -6,7 +6,6 @@ LIC_FILES_CHKSUM = "file://README.md;beginline=157;endline=170;md5=f20832f311266
 
 SRC_URI = "git://github.com/sarfata/pi-blaster \
            file://remove-initscript-lsb-dependency.patch \
-           file://0001-handle-install-data-hook-when-cross-compile.patch \
 "
 
 S = "${WORKDIR}/git"

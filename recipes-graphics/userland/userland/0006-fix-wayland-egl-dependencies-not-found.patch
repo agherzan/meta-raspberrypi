@@ -1,0 +1,17 @@
+diff --git a/interface/khronos/wayland-egl/wayland-egl.pc.in b/interface/khronos/wayland-egl/wayland-egl.pc.in
+index fad3dc7..bd394b8 100644
+--- a/interface/khronos/wayland-egl/wayland-egl.pc.in
++++ b/interface/khronos/wayland-egl/wayland-egl.pc.in
+@@ -1,10 +1,10 @@
+-prefix=@CMAKE_INSTALL_PREFIX@
++prefix=/usr
+ exec_prefix=${prefix}
+ libdir=${exec_prefix}/lib
+ includedir=${prefix}/include 
+ 
+ Name: wayland-egl
+ Description: VideoCore wayland-egl library
+-Version: @PROJECT_APIVER@ 
++Version: 9.2.0
+ Libs: -L${libdir} -lwayland-egl
+ Cflags: -I${includedir}

@@ -1,0 +1,25 @@
+From a1cf848468fe3d3bddca7871dd74b3131561c1f3 Mon Sep 17 00:00:00 2001
+From: Nicolas Aguirre <aguirre.nicolas@gmail.com>
+Date: Tue, 4 Aug 2015 22:43:14 +0200
+Subject: [PATCH 4/4] Fix include path
+
+---
+ interface/vmcs_host/vc_vchi_dispmanx.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/interface/vmcs_host/vc_vchi_dispmanx.h b/interface/vmcs_host/vc_vchi_dispmanx.h
+index f0bae30..7a55ee0 100644
+--- a/interface/vmcs_host/vc_vchi_dispmanx.h
++++ b/interface/vmcs_host/vc_vchi_dispmanx.h
+@@ -69,7 +69,7 @@ typedef struct {
+ #ifdef BUILD_WAYLAND
+ /* XXX: This should be in a private header that can be included from EGL and vc_* */
+ #include <wayland-server.h>
+-#include "interface/vmcs_host/wayland-dispmanx-server-protocol.h"
++#include "interface/khronos/wayland-dispmanx-server-protocol.h"
+ struct wl_dispmanx_server_buffer {
+ 	struct wl_resource *resource;
+ 	struct wl_dispmanx *dispmanx;
+-- 
+1.9.1
+

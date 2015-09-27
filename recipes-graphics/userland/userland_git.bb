@@ -9,15 +9,20 @@ PR = "r5"
 
 PROVIDES = "virtual/libgles2 \
             virtual/egl"
+
 COMPATIBLE_MACHINE = "raspberrypi"
 
 SRCBRANCH = "master"
 SRCFORK = "raspberrypi"
-SRCREV = "c2f27fb8e581f8e5af83bf28422553ade8f7a7c8"
+SRCREV = "cc92dfd6c4e8e2d90c3903dccfe77f7274b8d1b7"
 
-SRC_URI = "git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \
-           file://0001-Use-newer-POSIX-macro.patch \
-          "
+SRC_URI = "\
+    git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \
+    file://0001-fix-gcc-5.x-inlines.patch \
+    file://0002-fix-musl-build.patch \
+    file://0003-fix-alloc-size-uninitialized.patch \
+    "
+
 S = "${WORKDIR}/git"
 
 inherit cmake

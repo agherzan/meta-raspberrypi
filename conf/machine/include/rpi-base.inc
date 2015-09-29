@@ -52,12 +52,9 @@ KERNEL_DEVICETREE ?= " \
     bcm2708-rpi-b.dtb \
     bcm2708-rpi-b-plus.dtb \
     bcm2709-rpi-2-b.dtb \
-    ${@bb.utils.contains('LINUX_VERSION', '3.18', '${KERNEL_DEVICETREE_3.18.y}', '', d)} \
-    ${@bb.utils.contains('LINUX_VERSION', '4.1', '${KERNEL_DEVICETREE_4.1.y}', '', d)} \
+    ${@bb.utils.contains('PREFERRED_VERSION_linux-raspberrypi', '3.18.%', '${KERNEL_DEVICETREE_3.18.y}', '', d)} \
+    ${@bb.utils.contains('PREFERRED_VERSION_linux-raspberrypi', '4.1.%', '${KERNEL_DEVICETREE_4.1.y}', '', d)} \
     "
-#KERNEL_DEVICETREE_append ?= "${@bb.utils.contains('LINUX_VERSION', '3.18', '${KERNEL_DEVICETREE_3.18.y}', '', d)}"
-#KERNEL_DEVICETREE_append ?= "${@bb.utils.contains('LINUX_VERSION', '4.1', '${KERNEL_DEVICETREE_4.1.y}', '', d)}"
-
 KERNEL_IMAGETYPE ?= "Image"
 
 MACHINE_FEATURES = "kernel26 apm usbhost keyboard vfat ext2 screen touchscreen alsa bluetooth wifi sdio"

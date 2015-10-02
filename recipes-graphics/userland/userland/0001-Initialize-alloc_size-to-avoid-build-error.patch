@@ -1,0 +1,25 @@
+From 9c5839818d7751b3765840c44ac63f8e8aa1cbd7 Mon Sep 17 00:00:00 2001
+From: Nicolas Aguirre <aguirre.nicolas@gmail.com>
+Date: Fri, 2 Oct 2015 22:49:09 +0200
+Subject: [PATCH] Initialize alloc_size to avoid build error
+
+---
+ host_applications/linux/apps/smem/smem.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/host_applications/linux/apps/smem/smem.c b/host_applications/linux/apps/smem/smem.c
+index f780b79..618580e 100644
+--- a/host_applications/linux/apps/smem/smem.c
++++ b/host_applications/linux/apps/smem/smem.c
+@@ -192,7 +192,7 @@ int main( int argc, char **argv )
+    int  opt;
+    int  opt_alloc = 0;
+    int  opt_status = 0;
+-   uint32_t alloc_size;
++   uint32_t alloc_size = 0;
+    int  opt_pid = -1;
+    VCSM_STATUS_T status_mode = VCSM_STATUS_NONE;
+ 
+-- 
+1.9.1
+

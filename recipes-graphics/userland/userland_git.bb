@@ -14,13 +14,12 @@ COMPATIBLE_MACHINE = "raspberrypi"
 
 SRCBRANCH = "master"
 SRCFORK = "raspberrypi"
-SRCREV = "b864a841e5a459a66a890c22b3a34127cd226238"
+SRCREV = "40e377862410371a9962db79b81fd4f0f266430a"
 
 SRC_URI = "git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \
            file://bcm_host.pc \
            file://egl.pc \
            file://glesv2.pc \
-           file://0001-Use-newer-POSIX-macro.patch \
            file://0001-Allow-applications-to-set-next-resource-handle.patch \
            file://0002-wayland-Add-support-for-the-Wayland-winsys.patch \
            file://0004-Fix-include-path.patch \

@@ -1,0 +1,114 @@
+From ef43e09c2d13b88c2e92cffc94b68003afcb1f13 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Sun, 9 Aug 2015 23:59:32 -0700
+Subject: [PATCH 2/2] cmake: generate and install pkgconfig files
+
+many packages expect packageconfig support especially for detecting EGL
+libraries. This patch helps in compiling those packages on RPi
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+Upstream-Status: Submitted
+ CMakeLists.txt           | 10 +++++++++-
+ pkgconfig/bcm_host.pc.in | 10 ++++++++++
+ pkgconfig/egl.pc.in      | 12 ++++++++++++
+ pkgconfig/glesv2.pc.in   | 12 ++++++++++++
+ pkgconfig/vg.pc.in       | 11 +++++++++++
+ 5 files changed, 54 insertions(+), 1 deletion(-)
+ create mode 100644 pkgconfig/bcm_host.pc.in
+ create mode 100644 pkgconfig/egl.pc.in
+ create mode 100644 pkgconfig/glesv2.pc.in
+ create mode 100644 pkgconfig/vg.pc.in
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index d8f776c..f15dc2b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -105,6 +105,14 @@ set(vmcs_host_apps_VERSION_MAJOR 1)
+ set(vmcs_host_apps_VERSION_MINOR 0)
+ 
+ include_directories("${PROJECT_BINARY_DIR}")
+-
++include(FindPkgConfig QUIET)
++if(PKG_CONFIG_FOUND)
++	# Produce a pkg-config file
++	foreach(PCFILE bcm_host.pc  egl.pc  glesv2.pc  vg.pc)
++		configure_file("pkgconfig/${PCFILE}.in" "${PCFILE}" @ONLY)
++		install(FILES       "${CMAKE_CURRENT_BINARY_DIR}/${PCFILE}"
++			DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig")
++	endforeach()
++endif()
+ # Remove cache entry, if one added by command line
+ unset(KHRONOS_EGL_PLATFORM CACHE)
+diff --git a/pkgconfig/bcm_host.pc.in b/pkgconfig/bcm_host.pc.in
+new file mode 100644
+index 0000000..c7237c5
+--- /dev/null
++++ b/pkgconfig/bcm_host.pc.in
+@@ -0,0 +1,10 @@
++prefix=@CMAKE_INSTALL_PREFIX@
++exec_prefix=${prefix}
++libdir=${exec_prefix}/lib
++includedir=${prefix}/include
++
++Name: bcm_host
++Description: Broadcom VideoCore host API library
++Version: 1
++Libs: -L${libdir} -lbcm_host -lvcos -lvchiq_arm -pthread
++Cflags: -I${includedir} -I${includedir}/interface/vmcs_host/linux -I${includedir}/interface/vcos/pthreads -DUSE_VCHIQ_ARM
+diff --git a/pkgconfig/egl.pc.in b/pkgconfig/egl.pc.in
+new file mode 100644
+index 0000000..4e3d6ac
+--- /dev/null
++++ b/pkgconfig/egl.pc.in
+@@ -0,0 +1,12 @@
++prefix=@CMAKE_INSTALL_PREFIX@
++exec_prefix=${prefix}
++libdir=${exec_prefix}/lib
++includedir=${prefix}/include
++
++Name: EGL
++Description: Fake EGL package for RPi
++Version: 10
++Requires: bcm_host
++Libs: -L${libdir} -lEGL
++Cflags: -I${includedir}
++
+diff --git a/pkgconfig/glesv2.pc.in b/pkgconfig/glesv2.pc.in
+new file mode 100644
+index 0000000..5900225
+--- /dev/null
++++ b/pkgconfig/glesv2.pc.in
+@@ -0,0 +1,12 @@
++prefix=@CMAKE_INSTALL_PREFIX@
++exec_prefix=${prefix}
++libdir=${exec_prefix}/lib
++includedir=${prefix}/include
++
++Name: GLESv2
++Description: Fake GL ES 2 package for RPi
++Version: 10
++Requires: bcm_host
++Libs: -L${libdir} -lGLESv2
++Cflags: -I${includedir}
++
+diff --git a/pkgconfig/vg.pc.in b/pkgconfig/vg.pc.in
+new file mode 100644
+index 0000000..8c39c98
+--- /dev/null
++++ b/pkgconfig/vg.pc.in
+@@ -0,0 +1,11 @@
++prefix=@CMAKE_INSTALL_PREFIX@
++exec_prefix=${prefix}
++libdir=${exec_prefix}/lib
++includedir=${prefix}/include
++
++Name: OpenVG
++Description: Fake OpenVG package for RPi
++Version: 10
++Requires: bcm_host
++Libs: -L${libdir} -lOpenVG
++Cflags: -I${includedir}
+-- 
+2.1.4
+

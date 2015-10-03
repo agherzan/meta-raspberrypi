@@ -1,0 +1,29 @@
+From 05554d8486050546efc3c0605015786c8b267d19 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Sun, 9 Aug 2015 23:58:17 -0700
+Subject: [PATCH 1/2] set VMCS_INSTALL_PREFIX to /usr
+
+in OE we dont use /opt/vc but standard prefix
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+Upstream-Status: Submitted
+ makefiles/cmake/vmcs.cmake | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/makefiles/cmake/vmcs.cmake b/makefiles/cmake/vmcs.cmake
+index 0f8641b..e9d576d 100644
+--- a/makefiles/cmake/vmcs.cmake
++++ b/makefiles/cmake/vmcs.cmake
+@@ -10,7 +10,7 @@ INCLUDE(CPack)
+ if (ANDROID)
+   SET(VMCS_INSTALL_PREFIX "/vendor/brcm/islands" CACHE PATH "Prefix prepended to install directories" FORCE)
+ else()
+-  SET(VMCS_INSTALL_PREFIX "/opt/vc" CACHE PATH "Prefix prepended to install directories" FORCE)
++  SET(VMCS_INSTALL_PREFIX "/usr" CACHE PATH "Prefix prepended to install directories" FORCE)
+ endif()
+ 
+ SET(CMAKE_INSTALL_PREFIX "${VMCS_INSTALL_PREFIX}" CACHE INTERNAL "Prefix
+-- 
+2.1.4
+

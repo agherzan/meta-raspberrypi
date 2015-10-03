@@ -21,31 +21,28 @@ SRC_URI = "\
     file://0001-fix-gcc-5.x-inlines.patch \
     file://0002-fix-musl-build.patch \
     file://0003-fix-alloc-size-uninitialized.patch \
+    file://0002-set-VMCS_INSTALL_PREFIX-to-usr.patch \
+    file://0003-cmake-generate-and-install-pkgconfig-files.patch \
     "
 
 S = "${WORKDIR}/git"
 
-inherit cmake
+inherit cmake pkgconfig
 
 EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS='-Wl,--no-as-needed'"
 CFLAGS_append = " -fPIC"
 
-# The compiled binaries don't provide sonames.
-SOLIBS = "${SOLIBSDEV}"
-
-do_install_append() {
-    mkdir -p ${D}/${prefix}
-    mv ${D}/opt/vc/* ${D}/${prefix}
-    rm -rf ${D}/opt
-}
+# Shared libs from userland package  build aren't versioned, so we need
+# to force the .so files into the runtime package (and keep them
+# out of -dev package).
+FILES_SOLIBSDEV = ""
 
 FILES_${PN} += " \
-    ${libdir}/*${SOLIBS} \
+    ${libdir}/*.so \
     ${libdir}/plugins"
-FILES_${PN}-dev = "${includedir} \
+FILES_${PN}-dev += "${includedir} \
                    ${prefix}/src"
 FILES_${PN}-doc += "${datadir}/install"
 FILES_${PN}-dbg += "${libdir}/plugins/.debug"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
-

@@ -48,8 +48,6 @@ do_install_append() {
     rm -rf ${D}/opt
 
     # patch include files to find vcos_platform_types.h
-    find ${D}/${prefix}/include/interface -type f -exec sed -i 's/vcos_platform.h/pthreads\/vcos_platform.h/g' {} \;
-    find ${D}/${prefix}/include/interface -type f -exec sed -i 's/vcos_platform_types.h/pthreads\/vcos_platform_types.h/g' {} \;
 
     install -d ${D}${libdir}/pkgconfig
     install -m 0644 ${WORKDIR}/egl.pc ${D}${libdir}/pkgconfig/

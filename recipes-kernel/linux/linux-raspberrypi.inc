@@ -12,7 +12,8 @@ SRC_URI += " \
 
 COMPATIBLE_MACHINE = "raspberrypi"
 
-PV = "${LINUX_VERSION}+git${SRCREV}"
+PE = "1"
+PV = "${LINUX_VERSION}+git${SRCPV}"
 
 # NOTE: For now we pull in the default config from the RPi kernel GIT tree.
 KERNEL_DEFCONFIG_raspberrypi ?= "bcmrpi_defconfig"

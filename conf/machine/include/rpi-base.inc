@@ -17,12 +17,7 @@ XSERVER = " \
     xf86-video-fbdev \
     "
 
-# Really supported starting from linux-raspberrypi 3.18.y only
-KERNEL_DEVICETREE ?= " \
-    bcm2708-rpi-b.dtb \
-    bcm2708-rpi-b-plus.dtb \
-    bcm2709-rpi-2-b.dtb \
-    \
+KERNEL_DEVICETREE_3.18.y = " \
     ds1307-rtc-overlay.dtb \
     hifiberry-amp-overlay.dtb \
     hifiberry-dac-overlay.dtb \
@@ -35,6 +30,30 @@ KERNEL_DEVICETREE ?= " \
     pps-gpio-overlay.dtb \
     w1-gpio-overlay.dtb \
     w1-gpio-pullup-overlay.dtb \
+    "
+
+KERNEL_DEVICETREE_4.1.y = " \
+    overlays/hifiberry-amp-overlay.dtb \
+    overlays/hifiberry-dac-overlay.dtb \
+    overlays/hifiberry-dacplus-overlay.dtb \
+    overlays/hifiberry-digi-overlay.dtb \
+    overlays/i2c-rtc-overlay.dtb \
+    overlays/iqaudio-dac-overlay.dtb \
+    overlays/iqaudio-dacplus-overlay.dtb \
+    overlays/lirc-rpi-overlay.dtb \
+    overlays/pps-gpio-overlay.dtb \
+    overlays/w1-gpio-overlay.dtb \
+    overlays/w1-gpio-pullup-overlay.dtb \
+    overlays/rpi-ft5406-overlay.dtb \
+    "
+
+# Really supported starting from linux-raspberrypi 3.18.y only
+KERNEL_DEVICETREE ?= " \
+    bcm2708-rpi-b.dtb \
+    bcm2708-rpi-b-plus.dtb \
+    bcm2709-rpi-2-b.dtb \
+    ${@bb.utils.contains('PREFERRED_VERSION_linux-raspberrypi', '3.18.%', '${KERNEL_DEVICETREE_3.18.y}', '', d)} \
+    ${@bb.utils.contains('PREFERRED_VERSION_linux-raspberrypi', '4.1.%', '${KERNEL_DEVICETREE_4.1.y}', '', d)} \
     "
 KERNEL_IMAGETYPE ?= "Image"
 

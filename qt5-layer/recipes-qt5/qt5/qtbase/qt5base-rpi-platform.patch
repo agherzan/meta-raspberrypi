@@ -1,0 +1,27 @@
+diff -Narubp a/config.tests/unix/openvg/openvg.cpp b/config.tests/unix/openvg/openvg.cpp
+--- a/config.tests/unix/openvg/openvg.cpp	2014-11-27 08:26:56.095255849 +0900
++++ b/config.tests/unix/openvg/openvg.cpp	2014-11-27 08:29:19.607250706 +0900
+@@ -42,6 +42,7 @@
+ // There is some variation in OpenVG engines as to what case
+ // the VG includes use.  The Khronos reference implementation
+ // for OpenVG 1.1 uses upper case, so we treat that as canonical.
++#undef QT_LOWER_CASE_VG_INCLUDES
+ #if defined(QT_LOWER_CASE_VG_INCLUDES)
+ #include <vg/openvg.h>
+ #else
+diff -Narubp a/mkspecs/linux-oe-g++/qmake.conf b/mkspecs/linux-oe-g++/qmake.conf
+--- a/mkspecs/linux-oe-g++/qmake.conf	2014-11-29 14:21:39.664299980 +0900
++++ b/mkspecs/linux-oe-g++/qmake.conf	2014-11-30 00:31:18.878988997 +0900
+@@ -37,4 +37,12 @@ QMAKE_LINK_C_SHLIB = $(OE_QMAKE_LINK)
+ # for the SDK
+ isEmpty(QMAKE_QT_CONFIG):QMAKE_QT_CONFIG = $(OE_QMAKE_QT_CONFIG)
+ 
++QT_QPA_DEFAULT_PLATFORM = eglfs
++QMAKE_LIBS_EGL          = -lEGL -lGLESv2
++QMAKE_LIBS_OPENVG       = $${QMAKE_LIBS_EGL} -lOpenVG
++
++INCLUDEPATH += $$[QT_SYSROOT]/usr/include/interface/vmcs_host/linux
++INCLUDEPATH += $$[QT_SYSROOT]/usr/include/interface/vcos/pthreads/
++EGLFS_PLATFORM_HOOKS_LIBS = -lbcm_host
++
+ load(qt_config)

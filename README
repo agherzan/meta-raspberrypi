@@ -199,8 +199,34 @@ able to compile omxplayer you will need to whiteflag the commercial license
 adding to you local.conf:
 LICENSE_FLAGS_WHITELIST = "commercial"
 
+4. Board Configuration
+======================
 
-4. Source code and mirrors
+4.A. Audio Routing
+==================
+To load audio driver
+
+    modprobe snd-bcm2835
+
+To test audio playback
+
+    e.g. aplay test.wav
+
+Note that without HDMI connected this emits audio from the 3.5in jack connector
+as expected. However With an HDMI display connected there is no audio output from
+the jack connector.
+
+To force the audio routing via the 3.5in jack connector use
+
+    amixer cset numid=3 1
+
+Options to amixer cset are:
+
+    0=auto
+    1=headphones
+    2=hdmi
+
+5. Source code and mirrors
 ==========================
 
 Main repo:
@@ -214,10 +240,10 @@ Bitbucket mirror:
     https://bitbucket.org/agherzan/meta-raspberrypi
 
 
-5. Contributing
+6. Contributing
 ===============
 
-5.A. Mailing list
+6.A. Mailing list
 =================
 The main communication tool we use is a mailing list:
     yocto@yoctoproject.org
@@ -241,7 +267,7 @@ When sending patches to mailing list, please use something like:
 
     git send-email --to yocto@yoctoproject.org <generated patch>
 
-5.B. Redmine
+6.B. Redmine
 ============
 In order to manage and trace the meta-raspberrypi issues, we use redmine:
     http://redmine.gherzan.ro/projects/meta-raspberrypi
@@ -255,7 +281,7 @@ for a bug:
     [Bug #13]
 
 
-6. Maintainers
+7. Maintainers
 ==============
 
     Andrei Gherzan <andrei at gherzan.ro>

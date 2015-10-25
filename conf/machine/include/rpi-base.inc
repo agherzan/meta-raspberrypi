@@ -27,6 +27,7 @@ KERNEL_DEVICETREE ?= " \
     overlays/hifiberry-dac-overlay.dtb \
     overlays/hifiberry-dacplus-overlay.dtb \
     overlays/hifiberry-digi-overlay.dtb \
+    overlays/i2c-rtc-overlay.dtb \
     overlays/iqaudio-dac-overlay.dtb \
     overlays/iqaudio-dacplus-overlay.dtb \
     overlays/lirc-rpi-overlay.dtb \

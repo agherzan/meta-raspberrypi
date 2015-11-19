@@ -189,6 +189,11 @@ kernels.
 NOTE: KERNEL_DEVICETREE is default enabled for kernel >= 3.18 and always disabled for
       older kernel versions.
 
+2.M. Optional - enable SPI bus
+==============================
+When using device tree kernels, set this variable to enable the SPI bus
+ENABLE_SPI_BUS = "1"
+
 3. Extra apps
 =============
 

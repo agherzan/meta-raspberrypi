@@ -11,6 +11,8 @@ RDEPENDS_${PN} = "\
     rpio \
     rpi-gpio \
     pi-blaster \
+    python-rtimu \
+    python-sense-hat \
 "
 
 RRECOMMENDS_${PN} = "\

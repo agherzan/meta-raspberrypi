@@ -15,8 +15,8 @@ SRC_URI = " \
 S = "${WORKDIR}/git"
 
 do_install () {
-    install -d ${D}${libexecdir}
-    cp ./mkimage/* ${D}${libexecdir}
+    install -d ${D}${libexecdir}/rpi-mkimage
+    install -t ${D}${libexecdir}/rpi-mkimage ./mkimage/*
 }
 
 BBCLASSEXTEND = "native"

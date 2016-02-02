@@ -24,6 +24,6 @@ COMPATIBLE_MACHINE = "raspberrypi"
 
 do_compile_append() {
     # Create kernel.img from uboot.bin and name it u-boot.img
-    ${STAGING_DIR_NATIVE}/usr/lib/rpi-mkimage/imagetool-uncompressed.py u-boot.bin
+    ${STAGING_LIBEXECDIR_NATIVE}/rpi-mkimage/imagetool-uncompressed.py u-boot.bin
     mv kernel.img u-boot.img
 }

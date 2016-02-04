@@ -10,6 +10,8 @@ PR = "r5"
 PROVIDES = "virtual/libgles2 \
             virtual/egl"
 
+RPROVIDES_${PN} += "libgles2 libgl"
+
 COMPATIBLE_MACHINE = "raspberrypi"
 
 SRCBRANCH = "master"
@@ -33,6 +35,7 @@ SRC_URI = "\
     file://0013-zero-out-wl-buffers-in-egl_surface_free.patch \
     file://0014-initialize-front-back-wayland-buffers.patch \
     file://0015-Remove-RPC_FLUSH.patch \
+    file://0016-define-PROJECT_APIVER.patch \
 "
 S = "${WORKDIR}/git"
 

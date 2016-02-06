@@ -36,6 +36,7 @@ SRC_URI = "\
     file://0014-initialize-front-back-wayland-buffers.patch \
     file://0015-Remove-RPC_FLUSH.patch \
     file://0016-define-PROJECT_APIVER.patch \
+    file://0017-fix-cmake-dependency-race.patch \
 "
 S = "${WORKDIR}/git"
 

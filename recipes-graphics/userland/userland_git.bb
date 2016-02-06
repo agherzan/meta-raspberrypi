@@ -2,8 +2,8 @@ DESCRIPTION = "This repository contains the source code for the ARM side \
 libraries used on Raspberry Pi. These typically are installed in /opt/vc/lib \
 and includes source for the ARM side code to interface to: EGL, mmal, GLESv2,\
 vcos, openmaxil, vchiq_arm, bcm_host, WFC, OpenVG."
-LICENSE = "Broadcom"
-LIC_FILES_CHKSUM = "file://LICENCE;md5=957f6640d5e2d2acfce73a36a56cb32f"
+LICENSE = "BSD-3-Clause"
+LIC_FILES_CHKSUM = "file://LICENCE;md5=0448d6488ef8cc380632b1569ee6d196"
 
 PR = "r5"
 
@@ -14,15 +14,14 @@ COMPATIBLE_MACHINE = "raspberrypi"
 
 SRCBRANCH = "master"
 SRCFORK = "raspberrypi"
-SRCREV = "40e377862410371a9962db79b81fd4f0f266430a"
+SRCREV = "2a4af2192c0e161555fdb2a12e902b587166c4a6"
 
 SRC_URI = "\
     git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \
-    file://0001-fix-gcc-5.x-inlines.patch \
-    file://0002-fix-musl-build.patch \
-    file://0003-fix-alloc-size-uninitialized.patch \
-    file://0002-set-VMCS_INSTALL_PREFIX-to-usr.patch \
-    file://0003-cmake-generate-and-install-pkgconfig-files.patch \
+    file://0001-Fix-VCOS_INLINE_DECL-to-not-use-extern-inlines-in-de.patch \
+    file://0002-musl-inspired-fixed.patch \
+    file://0003-set-VMCS_INSTALL_PREFIX-to-usr.patch \
+    file://0004-cmake-generate-and-install-pkgconfig-files.patch \
     "
 
 S = "${WORKDIR}/git"

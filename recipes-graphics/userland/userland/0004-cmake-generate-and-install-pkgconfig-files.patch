@@ -1,20 +1,19 @@
-From ef43e09c2d13b88c2e92cffc94b68003afcb1f13 Mon Sep 17 00:00:00 2001
+From 59fd98d2ee9076c08d020167e5176e2e3e669917 Mon Sep 17 00:00:00 2001
 From: Khem Raj <raj.khem@gmail.com>
 Date: Sun, 9 Aug 2015 23:59:32 -0700
-Subject: [PATCH 2/2] cmake: generate and install pkgconfig files
+Subject: [PATCH 04/17] cmake: generate and install pkgconfig files
 
 many packages expect packageconfig support especially for detecting EGL
 libraries. This patch helps in compiling those packages on RPi
 
 Signed-off-by: Khem Raj <raj.khem@gmail.com>
 ---
-Upstream-Status: Submitted
  CMakeLists.txt           | 10 +++++++++-
  pkgconfig/bcm_host.pc.in | 10 ++++++++++
- pkgconfig/egl.pc.in      | 12 ++++++++++++
+ pkgconfig/egl.pc.in      | 13 +++++++++++++
  pkgconfig/glesv2.pc.in   | 12 ++++++++++++
  pkgconfig/vg.pc.in       | 11 +++++++++++
- 5 files changed, 54 insertions(+), 1 deletion(-)
+ 5 files changed, 55 insertions(+), 1 deletion(-)
  create mode 100644 pkgconfig/bcm_host.pc.in
  create mode 100644 pkgconfig/egl.pc.in
  create mode 100644 pkgconfig/glesv2.pc.in
@@ -58,10 +57,10 @@ index 0000000..c7237c5
 +Cflags: -I${includedir} -I${includedir}/interface/vmcs_host/linux -I${includedir}/interface/vcos/pthreads -DUSE_VCHIQ_ARM
 diff --git a/pkgconfig/egl.pc.in b/pkgconfig/egl.pc.in
 new file mode 100644
-index 0000000..4e3d6ac
+index 0000000..27a6236
 --- /dev/null
 +++ b/pkgconfig/egl.pc.in
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,13 @@
 +prefix=@CMAKE_INSTALL_PREFIX@
 +exec_prefix=${prefix}
 +libdir=${exec_prefix}/lib
@@ -71,8 +70,9 @@ index 0000000..4e3d6ac
 +Description: Fake EGL package for RPi
 +Version: 10
 +Requires: bcm_host
-+Libs: -L${libdir} -lEGL
-+Cflags: -I${includedir}
++Libs: -L${libdir} -lEGL -lGLESv2 -lbcm_host -lvchostif
++Cflags: -I${includedir} -I${includedir}/interface/vmcs_host/linux \
++        -I${includedir}/interface/vcos/pthreads
 +
 diff --git a/pkgconfig/glesv2.pc.in b/pkgconfig/glesv2.pc.in
 new file mode 100644
@@ -110,5 +110,5 @@ index 0000000..8c39c98
 +Libs: -L${libdir} -lOpenVG
 +Cflags: -I${includedir}
 -- 
-2.1.4
+2.7.1
 

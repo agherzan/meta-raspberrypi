@@ -32,6 +32,7 @@ SRC_URI = "\
     file://0012-interface-remove-faulty-assert-to-make-weston-happy-.patch \
     file://0013-zero-out-wl-buffers-in-egl_surface_free.patch \
     file://0014-initialize-front-back-wayland-buffers.patch \
+    file://0015-Remove-RPC_FLUSH.patch \
 "
 S = "${WORKDIR}/git"
 

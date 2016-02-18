@@ -1,7 +1,7 @@
-From e60f708bef880542fbe45df7dba982c886852dd4 Mon Sep 17 00:00:00 2001
+From 7c07db6c640ec4dfc6baec23f86c7b312028c9c6 Mon Sep 17 00:00:00 2001
 From: Khem Raj <raj.khem@gmail.com>
 Date: Sun, 23 Aug 2015 13:41:33 -0700
-Subject: [PATCH 07/16] vcos_platform_types: Dont use extern inline with clang
+Subject: [PATCH 04/13] vcos_platform_types: Dont use extern inline with clang
 
 Its very gcc specific implementation here in this code, we cant use
 it with clang as such, so we will use static inline instead which is
@@ -80,5 +80,5 @@ index e64fd99..7d86742 100644
  # define VCOS_INLINE_IMPL static __inline__
  #else
 -- 
-2.7.0
+2.7.1
 

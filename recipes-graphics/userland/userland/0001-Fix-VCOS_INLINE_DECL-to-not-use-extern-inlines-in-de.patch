@@ -1,7 +1,7 @@
-From d0b146e6571585989e7149a512533fcd6532545a Mon Sep 17 00:00:00 2001
+From 58e03d60603baabf63137cdc81ed774cc94d26d6 Mon Sep 17 00:00:00 2001
 From: Khem Raj <raj.khem@gmail.com>
 Date: Sat, 6 Feb 2016 11:00:25 -0800
-Subject: [PATCH 01/16] Fix VCOS_INLINE_DECL to not use extern inlines in
+Subject: [PATCH 01/13] Fix VCOS_INLINE_DECL to not use extern inlines in
  declarations
 
 Signed-off-by: Khem Raj <raj.khem@gmail.com>
@@ -41,5 +41,5 @@ index 6feb4d2..e64fd99 100644
  #endif
  
 -- 
-2.7.0
+2.7.1
 

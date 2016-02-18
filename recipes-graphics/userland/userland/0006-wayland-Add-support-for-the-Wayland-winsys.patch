@@ -1,7 +1,7 @@
-From dba72dbc97a07509befc3072cc4dc5184913b5a7 Mon Sep 17 00:00:00 2001
+From 16edb74ea67abe95b1c1ff629aa65c969b871403 Mon Sep 17 00:00:00 2001
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Date: Tue, 1 Oct 2013 13:19:20 +0200
-Subject: [PATCH 09/16] wayland: Add support for the Wayland winsys
+Subject: [PATCH 06/13] wayland: Add support for the Wayland winsys
 
 * Adds EGL_WL_bind_wayland_display extension
 * Adds wayland-egl library
@@ -67,10 +67,10 @@ index 8df9393..d0d1387 100644
 +
 +*~
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index f15dc2b..b240ef6 100644
+index 5e211b4..aa5e14f 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -13,6 +13,17 @@ include(makefiles/cmake/global_settings.cmake)
+@@ -19,6 +19,17 @@ include(makefiles/cmake/global_settings.cmake)
  include(makefiles/cmake/arm-linux.cmake)
  include(makefiles/cmake/vmcs.cmake)
  
@@ -1876,5 +1876,5 @@ index 0000000..ad90d30
 +    set(${_sources} ${${_sources}} PARENT_SCOPE)
 +endfunction()
 -- 
-2.7.0
+2.7.1
 

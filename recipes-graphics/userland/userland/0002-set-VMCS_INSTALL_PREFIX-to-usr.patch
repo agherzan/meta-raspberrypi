@@ -1,7 +1,7 @@
-From 8792a3645822c3ee2cea74def2a48e3e7f247ee1 Mon Sep 17 00:00:00 2001
+From 8b114166f800df09e10de82b50e4856fe7104bbf Mon Sep 17 00:00:00 2001
 From: Khem Raj <raj.khem@gmail.com>
 Date: Sun, 9 Aug 2015 23:58:17 -0700
-Subject: [PATCH 03/16] set VMCS_INSTALL_PREFIX to /usr
+Subject: [PATCH 02/13] set VMCS_INSTALL_PREFIX to /usr
 
 in OE we dont use /opt/vc but standard prefix
 
@@ -24,5 +24,5 @@ index 0f8641b..e9d576d 100644
  
  SET(CMAKE_INSTALL_PREFIX "${VMCS_INSTALL_PREFIX}" CACHE INTERNAL "Prefix
 -- 
-2.7.0
+2.7.1
 

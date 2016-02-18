@@ -1,7 +1,7 @@
-From 59fd98d2ee9076c08d020167e5176e2e3e669917 Mon Sep 17 00:00:00 2001
+From 91c1eceb27ce3ff8d8943028968cd860683d7905 Mon Sep 17 00:00:00 2001
 From: Khem Raj <raj.khem@gmail.com>
 Date: Sun, 9 Aug 2015 23:59:32 -0700
-Subject: [PATCH 04/17] cmake: generate and install pkgconfig files
+Subject: [PATCH 03/13] cmake: generate and install pkgconfig files
 
 many packages expect packageconfig support especially for detecting EGL
 libraries. This patch helps in compiling those packages on RPi
@@ -20,10 +20,10 @@ Signed-off-by: Khem Raj <raj.khem@gmail.com>
  create mode 100644 pkgconfig/vg.pc.in
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index d8f776c..f15dc2b 100644
+index fbb27f6..5e211b4 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -105,6 +105,14 @@ set(vmcs_host_apps_VERSION_MAJOR 1)
+@@ -111,6 +111,14 @@ set(vmcs_host_apps_VERSION_MAJOR 1)
  set(vmcs_host_apps_VERSION_MINOR 0)
  
  include_directories("${PROJECT_BINARY_DIR}")

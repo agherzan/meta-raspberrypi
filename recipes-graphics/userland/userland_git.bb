@@ -20,10 +20,8 @@ SRCREV = "748b2ba6112435063352d72f48d1d6dcc124bd6f"
 
 SRC_URI = "\
     git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \
-    file://0001-Fix-VCOS_INLINE_DECL-to-not-use-extern-inlines-in-de.patch \
     file://0002-set-VMCS_INSTALL_PREFIX-to-usr.patch \
     file://0003-cmake-generate-and-install-pkgconfig-files.patch \
-    file://0004-vcos_platform_types-Dont-use-extern-inline-with-clan.patch \
     file://0005-Allow-applications-to-set-next-resource-handle.patch \
     file://0006-wayland-Add-support-for-the-Wayland-winsys.patch \
     file://0007-wayland-Add-Wayland-example.patch \

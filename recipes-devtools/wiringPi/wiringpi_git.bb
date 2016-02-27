@@ -9,10 +9,10 @@ SRCREV = "d79506694d7ba1c3da865d095238289d6175057d"
 
 S = "${WORKDIR}/git"
 
-SRC_URI = "\
-          git://git.drogon.net/wiringPi \
-          file://0001-Add-initial-cross-compile-support.patch \
-          "
+SRC_URI = "git://git.drogon.net/wiringPi \
+           file://0001-Add-initial-cross-compile-support.patch \
+           file://0001-include-asm-ioctl.h-directly-for-_IOC_SIZEBITS.patch \
+           "
 
 COMPATIBLE_MACHINE = "raspberrypi"
 

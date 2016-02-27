@@ -7,9 +7,9 @@ LIC_FILES_CHKSUM = "file://README.rst;beginline=41;endline=53;md5=d5d95d7486a4d9
 
 SRCNAME = "RPIO"
 
-SRC_URI = "\
-          http://pypi.python.org/packages/source/R/RPIO/${SRCNAME}-${PV}.tar.gz \
-          "
+SRC_URI = "http://pypi.python.org/packages/source/R/RPIO/${SRCNAME}-${PV}.tar.gz \
+           file://0001-include-sys-types.h-explicitly-for-getting-caddr_t-d.patch \
+           "
 S = "${WORKDIR}/${SRCNAME}-${PV}"
 
 inherit setuptools

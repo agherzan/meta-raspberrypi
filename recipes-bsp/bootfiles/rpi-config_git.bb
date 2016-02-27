@@ -7,7 +7,7 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384
 
 COMPATIBLE_MACHINE = "raspberrypi"
 
-SRCREV = "5d2ca5f9bcb1b239c051e20c05a233fd79cf09d5"
+SRCREV = "648ffc470824c43eb0d16c485f4c24816b32cd6f"
 SRC_URI = "git://github.com/Evilpaul/RPi-config.git;protocol=git;branch=master \
           "
 
@@ -53,6 +53,9 @@ do_deploy() {
     fi
     if [ -n "${GPU_MEM_512}" ]; then
         sed -i '/#gpu_mem_512/ c\gpu_mem_512=${GPU_MEM_512}' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
+    if [ -n "${GPU_MEM_1024}" ]; then
+        sed -i '/#gpu_mem_1024/ c\gpu_mem_1024=${GPU_MEM_1024}' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi
 
     # Video camera support

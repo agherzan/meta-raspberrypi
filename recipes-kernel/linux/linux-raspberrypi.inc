@@ -66,10 +66,12 @@ do_rpiboot_mkimage() {
 }
 
 do_bundle_initramfs_append() {
-    if test "x${KERNEL_IMAGETYPE}" != "xuImage" ; then
-        if test -n "${KERNEL_DEVICETREE}"; then
-            # Add RPi bootloader trailer to kernel image to enable DeviceTree support
-            ${STAGING_LIBEXECDIR_NATIVE}/mkknlimg --dtok ${KERNEL_OUTPUT}.initramfs ${KERNEL_OUTPUT}.initramfs
+    if [ ! -z "${INITRAMFS_IMAGE}" -a x"${INITRAMFS_IMAGE_BUNDLE}" = x1 ]; then
+        if test "x${KERNEL_IMAGETYPE}" != "xuImage" ; then
+            if test -n "${KERNEL_DEVICETREE}"; then
+                # Add RPi bootloader trailer to kernel image to enable DeviceTree support
+                ${STAGING_LIBEXECDIR_NATIVE}/mkknlimg --dtok ${KERNEL_OUTPUT}.initramfs ${KERNEL_OUTPUT}.initramfs
+            fi
         fi
     fi
 }

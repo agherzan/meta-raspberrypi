@@ -75,6 +75,12 @@ do_deploy() {
         echo "# Enable SPI bus" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "dtparam=spi=on" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi
+
+    if [ -n "${ENABLE_I2C}" ]; then
+        echo "# Enable I2C" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+        echo "dtparam=i2c1=on" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+        echo "dtparam=i2c_arm=on" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
 }
 
 addtask deploy before do_package after do_install

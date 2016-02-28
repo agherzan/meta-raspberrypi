@@ -15,6 +15,8 @@ S = "${WORKDIR}/git"
 
 PR = "r4"
 
+PITFT="${@bb.utils.contains("MACHINE_FEATURES", "pitft", "1", "0", d)}"
+
 inherit deploy
 
 do_deploy() {
@@ -71,12 +73,12 @@ do_deploy() {
     fi
 
     # SPI bus support
-    if [ -n "${ENABLE_SPI_BUS}" ]; then
+    if [ -n "${ENABLE_SPI_BUS}" ] || [ "${PITFT}" = "1" ]; then
         echo "# Enable SPI bus" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "dtparam=spi=on" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi
 
-    if [ -n "${ENABLE_I2C}" ]; then
+    if [ -n "${ENABLE_I2C}" ] || [ "${PITFT}" = "1" ]; then
         echo "# Enable I2C" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "dtparam=i2c1=on" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "dtparam=i2c_arm=on" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt

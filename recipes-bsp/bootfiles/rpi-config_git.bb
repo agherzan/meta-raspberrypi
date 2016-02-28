@@ -16,6 +16,7 @@ S = "${WORKDIR}/git"
 PR = "r4"
 
 PITFT="${@bb.utils.contains("MACHINE_FEATURES", "pitft", "1", "0", d)}"
+PITFT22="${@bb.utils.contains("MACHINE_FEATURES", "pitft22", "1", "0", d)}"
 
 inherit deploy
 
@@ -82,6 +83,12 @@ do_deploy() {
         echo "# Enable I2C" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "dtparam=i2c1=on" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "dtparam=i2c_arm=on" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
+
+    # PiTFT22 display support
+    if [ "${PITFT22}" = "1" ]; then
+        echo "# Enable PITFT22 display" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+        echo "dtoverlay=pitft22,rotate=270,speed=32000000,txbuflen=32768" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi
 }
 

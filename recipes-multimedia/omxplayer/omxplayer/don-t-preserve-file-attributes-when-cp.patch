@@ -1,0 +1,18 @@
+When running install (fakeroot) host-user-contaminated will fail because dist
+rule copies files while preserving file attributes like user ID.
+
+Upstream-Status: Submitted [https://github.com/popcornmix/omxplayer/pull/431]
+Signed-off-by: Andrei Gherzan <andrei@gherzan.ro>
+
+Index: git/Makefile
+===================================================================
+--- git.orig/Makefile
++++ git/Makefile
+@@ -87,5 +87,5 @@ dist: omxplayer.bin omxplayer.1
+ 	cp COPYING $(DIST)/usr/share/doc/omxplayer
+ 	cp README.md $(DIST)/usr/share/doc/omxplayer/README
+ 	cp omxplayer.1 $(DIST)/usr/share/man/man1
+-	cp -a ffmpeg_compiled/usr/lib/*.so* $(DIST)/usr/lib/omxplayer/
++	cp -P ffmpeg_compiled/usr/lib/*.so* $(DIST)/usr/lib/omxplayer/
+ 	tar -czf omxplayer-dist.tar.gz $(DIST)
+\ No newline at end of file

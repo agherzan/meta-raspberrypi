@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/popcornmix/omxplayer.git;protocol=git;branch=master 
            file://0004-Add-FFMPEG_EXTRA_CFLAGS-and-FFMPEG_EXTRA_LDFLAGS.patch \
            file://fix-tar-command-with-DIST.patch \
            file://use-native-pkg-config.patch \
+           file://don-t-preserve-file-attributes-when-cp.patch \
            "
 S = "${WORKDIR}/git"
 

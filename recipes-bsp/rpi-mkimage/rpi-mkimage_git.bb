@@ -15,8 +15,8 @@ SRC_URI = " \
 S = "${WORKDIR}/git"
 
 do_install () {
-    install -d ${D}${libexecdir}
-    install -t ${D}${libexecdir} mkimage/*
+    install -d ${D}${bindir}
+    install -t ${D}${bindir} mkimage/*
 }
 
 BBCLASSEXTEND = "native"

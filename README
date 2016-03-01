@@ -24,13 +24,16 @@ Contents:
     2.J. Boot to U-Boot
     2.K. Image with Initramfs
     2.L. Device tree support
+    2.M. Optional - enable SPI bus
 3. Extra apps
     3.A. omxplayer
-4. Source code and mirrors
-5. Contribution
+4. Board Configuration
+    4.A. Audio Routing
+5. Source code and mirrors
+6. Contribution
     5.A. Mailing List
     5.B. Redmine
-6. Maintainers
+7. Maintainers
 
 
 1. Description

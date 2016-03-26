@@ -34,6 +34,7 @@ SRC_URI = "\
     file://0012-Fix-enum-conversion-warnings.patch \
     file://0013-Fix-for-framerate-with-nested-composition.patch \
     file://0014-Fix-errors-due-to-ignored-return-code.patch \
+    file://0015-wl-dispmanx-buffer-wrapping.patch \
 "
 S = "${WORKDIR}/git"
 

@@ -53,7 +53,7 @@ IMAGE_DEPENDS_rpi-sdimg = " \
 			parted-native \
 			mtools-native \
 			dosfstools-native \
-			virtual/kernel \
+			virtual/kernel:do_deploy \
 			${IMAGE_BOOTLOADER} \
 			${@bb.utils.contains('KERNEL_IMAGETYPE', 'uImage', 'u-boot', '',d)} \
 			"

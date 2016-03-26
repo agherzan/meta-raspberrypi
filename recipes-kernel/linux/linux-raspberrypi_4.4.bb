@@ -1,6 +1,10 @@
-LINUX_VERSION ?= "4.4.3"
+FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-${PV}:"
 
-SRCREV = "36babd89241c85258acebe06616f1f1a58356f8e"
-SRC_URI = "git://github.com/raspberrypi/linux.git;protocol=git;branch=rpi-4.4.y"
+LINUX_VERSION ?= "4.4.6"
+
+SRCREV = "2faaa2ccef9e4c595bd26f14285c225ceea6097e"
+SRC_URI = "git://github.com/raspberrypi/linux.git;protocol=git;branch=rpi-4.4.y \
+           file://0001-dts-add-overlay-for-pitft22.patch \
+"
 
 require linux-raspberrypi.inc

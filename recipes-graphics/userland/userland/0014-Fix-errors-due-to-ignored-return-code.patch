@@ -1,0 +1,43 @@
+From 8ac57765d8b971aaa5ee5c610d8df25fa2ea36da Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Thu, 24 Mar 2016 15:03:50 -0700
+Subject: [PATCH 14/14] Fix errors due to ignored return code
+
+Clang warns/errors about not checking the return
+values from chdir() and fread(), here we check
+for chdir return code and report back using error()
+API, and second fix to fread is to let compiler
+ignore the value via assigning it to an unused variable
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ host_applications/linux/apps/dtoverlay/dtoverlay_main.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/host_applications/linux/apps/dtoverlay/dtoverlay_main.c b/host_applications/linux/apps/dtoverlay/dtoverlay_main.c
+index 4b33809..fa8324f 100755
+--- a/host_applications/linux/apps/dtoverlay/dtoverlay_main.c
++++ b/host_applications/linux/apps/dtoverlay/dtoverlay_main.c
+@@ -353,7 +353,8 @@ static int dtoverlay_remove(STATE_T *state, const char *overlay)
+     int rmpos;
+     int i;
+ 
+-    chdir(work_dir);
++    if (chdir(work_dir) != 0)
++	return error("chdir to %s failed", work_dir);
+ 
+     overlay_dir = sprintf_dup("%s/%s", dt_overlays_dir, overlay);
+     if (!dir_exists(overlay_dir))
+@@ -633,7 +634,8 @@ static int overlay_applied(const char *overlay_dir)
+     FILE *fp = fopen(status_path, "r");
+     if (fp)
+     {
+-	fread(status, sizeof(status), 1, fp);
++	int bytes __attribute__((unused));
++	bytes = fread(status, sizeof(status), 1, fp);
+ 	fclose(fp);
+     }
+     free_string(status_path);
+-- 
+2.7.4
+

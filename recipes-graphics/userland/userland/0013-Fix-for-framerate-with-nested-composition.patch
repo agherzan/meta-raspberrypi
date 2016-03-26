@@ -1,0 +1,27 @@
+From 7f424ce48f6c14118aea2ab770b3bbf87e1f0393 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Thu, 24 Mar 2016 14:30:58 -0700
+Subject: [PATCH 13/13] Fix for framerate with nested composition
+
+frame rate appears irregular and lower than expected when using nested composition.
+
+Signed-off-by: Khem Raj <raj.khem@gmail.com>
+---
+ interface/khronos/egl/egl_client.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/interface/khronos/egl/egl_client.c b/interface/khronos/egl/egl_client.c
+index 024f3ed..95bb581 100644
+--- a/interface/khronos/egl/egl_client.c
++++ b/interface/khronos/egl/egl_client.c
+@@ -2360,6 +2360,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surf)
+                   wl_surface_damage(wl_egl_window->wl_surface, 0, 0,
+                                     surface->width, surface->height);
+                   wl_surface_commit(wl_egl_window->wl_surface);
++                  wl_display_flush(wl_display);
+ 
+                   while(ret != -1 && surface->back_wl_buffer->in_use)
+                      ret = wl_display_dispatch_queue(wl_display, process->wl_queue);
+-- 
+2.7.4
+

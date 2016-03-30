@@ -204,7 +204,7 @@ kernels.
 NOTE: KERNEL_DEVICETREE is default enabled for kernel >= 3.18 and always disabled for
       older kernel versions.
 
-3.L. Eenable SPI bus
+3.L. Enable SPI bus
 ====================
 When using device tree kernels, set this variable to enable the SPI bus
 ENABLE_SPI_BUS = "1"
@@ -232,6 +232,7 @@ the modelname should be added as a MACHINE_FEATURES in local.conf like below:
 
 List of currently supported models:
     - pitft22
+    - pitft28r
 
 
 4. Extra apps

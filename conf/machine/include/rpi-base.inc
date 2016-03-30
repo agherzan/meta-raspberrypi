@@ -33,6 +33,7 @@ KERNEL_DEVICETREE ?= " \
     overlays/iqaudio-dacplus-overlay.dtb \
     overlays/lirc-rpi-overlay.dtb \
     overlays/pitft22-overlay.dtb \
+    overlays/pitft28-resistive-overlay.dtb \
     overlays/pps-gpio-overlay.dtb \
     overlays/w1-gpio-overlay.dtb \
     overlays/w1-gpio-pullup-overlay.dtb \

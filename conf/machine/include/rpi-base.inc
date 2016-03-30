@@ -35,6 +35,7 @@ KERNEL_DEVICETREE ?= " \
     overlays/pitft22-overlay.dtb \
     overlays/pitft28-resistive-overlay.dtb \
     overlays/pps-gpio-overlay.dtb \
+    overlays/rpi-ft5406-overlay.dtb \
     overlays/w1-gpio-overlay.dtb \
     overlays/w1-gpio-pullup-overlay.dtb \
     "

@@ -33,6 +33,7 @@ SRC_URI = "\
     file://0011-fix-cmake-dependency-race.patch \
     file://0012-Fix-enum-conversion-warnings.patch \
     file://0013-Fix-for-framerate-with-nested-composition.patch \
+    file://0014-build-shared-library-for-vchostif.patch \
     file://0015-wl-dispmanx-buffer-wrapping.patch \
 "
 S = "${WORKDIR}/git"

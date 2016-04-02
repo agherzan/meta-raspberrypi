@@ -16,7 +16,7 @@ COMPATIBLE_MACHINE = "raspberrypi"
 
 SRCBRANCH = "master"
 SRCFORK = "raspberrypi"
-SRCREV = "2f56a2943a9eb8420df52ccf91f5a1c5a70e8713"
+SRCREV = "703a2c4b35e23ee44ad84db6b9c3f89c0a627143"
 
 SRC_URI = "\
     git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \
@@ -33,7 +33,6 @@ SRC_URI = "\
     file://0011-fix-cmake-dependency-race.patch \
     file://0012-Fix-enum-conversion-warnings.patch \
     file://0013-Fix-for-framerate-with-nested-composition.patch \
-    file://0014-Fix-errors-due-to-ignored-return-code.patch \
     file://0015-wl-dispmanx-buffer-wrapping.patch \
 "
 S = "${WORKDIR}/git"

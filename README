@@ -73,7 +73,11 @@ revision: HEAD
 a. source poky/oe-init-build-env rpi-build
 b. Add needed layer to bblayers.conf:
     - meta-raspberrypi
-c. Set MACHINE to "raspberrypi"/"raspberrypi2" in local.conf
+c. Set MACHINE in local.conf to one of the supported boards:
+    - raspberrypi
+    - raspberrypi0
+    - raspberrypi2
+    - raspberrypi3
 d. bitbake rpi-hwup-image
 e. dd to a SD card the generated sdimg file (use xzcat if rpi-sdimg.xz is used)
 f. Boot your RPI.

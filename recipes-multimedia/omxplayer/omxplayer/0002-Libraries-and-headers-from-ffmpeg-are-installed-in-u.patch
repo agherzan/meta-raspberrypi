@@ -6,14 +6,16 @@ Subject: [PATCH] Libraries and headers from ffmpeg are installed in /usr.
 Don't search for libraries and headers in /usr/local.
 
 Upstream-Status: Inappropriate [embedded specific]
+
 Signed-off-by: Andrei Gherzan <andrei@gherzan.ro>
+Signed-off-by: Jonathan Liu <net147@gmail.com>
 ---
  Makefile        | 6 +++---
  Makefile.ffmpeg | 2 +-
  2 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 38e1400..1b15999 100644
+index be97c2b..2c120fc 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -1,9 +1,9 @@
@@ -32,14 +34,14 @@ index 38e1400..1b15999 100644
  	cp COPYING $(DIST)/usr/share/doc/omxplayer
  	cp README.md $(DIST)/usr/share/doc/omxplayer/README
  	cp omxplayer.1 $(DIST)/usr/share/man/man1
--	cp -a ffmpeg_compiled/usr/local/lib/*.so* $(DIST)/usr/lib/omxplayer/
-+	cp -a ffmpeg_compiled/usr/lib/*.so* $(DIST)/usr/lib/omxplayer/
+-	cp -P ffmpeg_compiled/usr/local/lib/*.so* $(DIST)/usr/lib/omxplayer/
++	cp -P ffmpeg_compiled/usr/lib/*.so* $(DIST)/usr/lib/omxplayer/
  	cd $(DIST); tar -czf ../$(DIST).tgz *
 diff --git a/Makefile.ffmpeg b/Makefile.ffmpeg
-index 4d2d720..9d66a85 100644
+index 5ccf96f..a7ddd5f 100644
 --- a/Makefile.ffmpeg
 +++ b/Makefile.ffmpeg
-@@ -256,5 +256,5 @@ checkout:
+@@ -254,5 +254,5 @@ checkout:
  .PHONY : install
  install:
  	cd ffmpeg; make -j9 DESTDIR="$(WORK)/ffmpeg_compiled" install

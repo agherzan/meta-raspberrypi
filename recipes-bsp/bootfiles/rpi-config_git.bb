@@ -96,6 +96,12 @@ do_deploy() {
         echo "# Enable PITFT28r display" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "dtoverlay=pitft28-resistive,rotate=90,speed=32000000,txbuflen=32768" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi
+
+    # UART support
+    if [ "${ENABLE_UART}" = "1" ]; then
+        echo "# Enable UART" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+        echo "enable_uart=1" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
 }
 
 addtask deploy before do_package after do_install

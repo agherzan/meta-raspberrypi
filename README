@@ -29,6 +29,7 @@ Contents:
     3.L. Enable SPI bus
     3.M. Enable I2C
     3.N. Enable PiTFT support
+    3.O. Enable UART support
 4. Extra apps
     4.A. omxplayer
 5. Board Configuration
@@ -238,6 +239,20 @@ List of currently supported models:
     - pitft22
     - pitft28r
 
+3.O. Enable UART
+===============
+
+RaspberryPi 1, 2 and CM will have UART console enabled by default.
+
+RaspberryPi 3 does not have the UART enabled by default because this needs a
+fixed core frequency and enable_uart wil set it to the minimum. Certain
+operations - 60fps h264 decode, high quality deinterlace - which aren't
+performed on the ARM may be affected, and we wouldn't want to do that to users
+who don't want to use the serial port. Users who want serial console support on
+RaspberryPi3 will have to explicitely set in local.conf: ENABLE_UART = "1".
+
+Ref.: https://github.com/raspberrypi/firmware/issues/553
+      https://github.com/RPi-Distro/repo/issues/22
 
 4. Extra apps
 =============

@@ -36,6 +36,7 @@ KERNEL_DEVICETREE ?= " \
     overlays/rpi-ft5406-overlay.dtb \
     overlays/w1-gpio-overlay.dtb \
     overlays/w1-gpio-pullup-overlay.dtb \
+    overlays/pi3-miniuart-bt-overlay.dtb \
     "
 KERNEL_IMAGETYPE ?= "Image"
 

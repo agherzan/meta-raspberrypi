@@ -332,18 +332,15 @@ When sending patches to mailing list, please use something like:
 
     git send-email --to yocto@yoctoproject.org <generated patch>
 
-7.B. Redmine
-============
-In order to manage and trace the meta-raspberrypi issues, we use redmine:
-    http://redmine.gherzan.ro/projects/meta-raspberrypi
+7.B. Github issues
+==================
+In order to manage and trace the meta-raspberrypi issues, we use github issues:
+    https://github.com/agherzan/meta-raspberrypi/issues
 
-Here we report, trace and develop bugs, features or support tickets for this
-yocto BSP later.
-
-If you push patches which have a redmine issue associated, please provide the
+If you push patches which have a github issue associated, please provide the
 issue number in the commit log just before "Signed-off-by" line(s). Example line
 for a bug:
-    [Bug #13]
+    [Issue #13]
 
 
 8. Maintainers

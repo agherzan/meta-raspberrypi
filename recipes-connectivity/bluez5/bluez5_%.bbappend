@@ -13,7 +13,7 @@ do_install_append_raspberrypi3() {
     install -d ${D}/lib/firmware/brcm/
     install -m 0644 ${WORKDIR}/BCM43430A1.hcd ${D}/lib/firmware/brcm/BCM43430A1.hcd
 
-    if ${@base_contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
+    if ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
         install -d ${D}${systemd_unitdir}/system
         install -m 0644 ${WORKDIR}/brcm43438.service ${D}${systemd_unitdir}/system
     fi

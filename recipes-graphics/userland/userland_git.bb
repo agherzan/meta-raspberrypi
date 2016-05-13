@@ -16,11 +16,10 @@ COMPATIBLE_MACHINE = "raspberrypi"
 
 SRCBRANCH = "master"
 SRCFORK = "raspberrypi"
-SRCREV = "703a2c4b35e23ee44ad84db6b9c3f89c0a627143"
+SRCREV = "17c28b9d1d234893b73adeb95efc4959b617fc85"
 
 SRC_URI = "\
     git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \
-    file://0001-set-VMCS_INSTALL_PREFIX-to-usr.patch \
     file://0002-cmake-generate-and-install-pkgconfig-files.patch \
     file://0003-Allow-applications-to-set-next-resource-handle.patch \
     file://0004-wayland-Add-support-for-the-Wayland-winsys.patch \
@@ -41,7 +40,8 @@ S = "${WORKDIR}/git"
 inherit cmake pkgconfig
 
 EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS='-Wl,--no-as-needed' \
-                "
+                 -DVMCS_INSTALL_PREFIX=${exec_prefix} \
+"
 
 PACKAGECONFIG ?= "${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)}"
 

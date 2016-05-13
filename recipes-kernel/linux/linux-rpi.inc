@@ -18,6 +18,8 @@ UDEV_GE_141 ?= "1"
 CMDLINE_DEBUG ?= '${@base_conditional("DISTRO_TYPE", "release", "quiet", "debug", d)}'
 CMDLINE_append = " ${CMDLINE_DEBUG}"
 
+KERNEL_INITRAMFS ?= '${@base_conditional("INITRAMFS_IMAGE_BUNDLE", "1", "1", "", d)}'
+
 # Set a variable in .configure
 # $1 - Configure variable to be set
 # $2 - value [n/y/value]
@@ -38,15 +40,10 @@ do_configure_prepend() {
     CONF_SED_SCRIPT=""
 
     # oabi / eabi support
-    if [ "${TARGET_OS}" = "linux-gnueabi" -o  "${TARGET_OS}" = "linux-uclibceabi" ]; then
-        kernel_configure_variable AEABI y
-        if [ "${ARM_KEEP_OABI}" = "1" ] ; then
-            kernel_configure_variable OABI_COMPAT y
-        else
-            kernel_configure_variable OABI_COMPAT n
-        fi
+    kernel_configure_variable AEABI y
+    if [ "${ARM_KEEP_OABI}" = "1" ] ; then
+        kernel_configure_variable OABI_COMPAT y
     else
-        kernel_configure_variable AEABI n
         kernel_configure_variable OABI_COMPAT n
     fi
 
@@ -103,7 +100,14 @@ do_configure_prepend() {
         kernel_configure_variable ROOT_NFS y
         kernel_configure_variable CMDLINE "\"${CMDLINE_NFSROOT_USB}\""
     fi
-
+    if [ ! -z "${KERNEL_INITRAMFS}" ]; then
+        kernel_configure_variable BLK_DEV_INITRD y
+        kernel_configure_variable INITRAMFS_SOURCE ""
+        kernel_configure_variable RD_GZIP y
+        kernel_configure_variable OVERLAY_FS y
+        kernel_configure_variable SQUASHFS y
+        kernel_configure_variable UBIFS_FS y
+    fi
     # Activate CONFIG_LEGACY_PTYS
     kernel_configure_variable LEGACY_PTYS y
 

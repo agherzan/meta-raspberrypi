@@ -73,6 +73,7 @@ FATPAYLOAD ?= ""
 
 IMAGEDATESTAMP = "${@time.strftime('%Y.%m.%d',time.gmtime())}"
 IMAGE_CMD_rpi-sdimg[vardepsexclude] = "IMAGEDATESTAMP"
+IMAGE_CMD_rpi-sdimg[vardepsexclude] = "DATETIME"
 
 IMAGE_CMD_rpi-sdimg () {
 

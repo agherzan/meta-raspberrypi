@@ -1,7 +1,7 @@
-From 39de2c976a1a98cd6c8ee20154c63d302d9a0c54 Mon Sep 17 00:00:00 2001
+From 6c9d407c9ec0859380e7bcf35cf915cef4b3687b Mon Sep 17 00:00:00 2001
 From: "Yann E. MORIN" <yann.morin.1998@free.fr>
 Date: Sat, 24 Jan 2015 22:07:19 +0100
-Subject: [PATCH 07/13] interface: remove faulty assert() to make weston happy
+Subject: [PATCH 05/13] interface: remove faulty assert() to make weston happy
  at runtime
 
 This was removed after a discussion on IRC with the weston guys
@@ -13,7 +13,7 @@ Signed-off-by: "Yann E. MORIN" <yann.morin.1998@free.fr>
  1 file changed, 1 deletion(-)
 
 diff --git a/interface/vmcs_host/vc_vchi_dispmanx.c b/interface/vmcs_host/vc_vchi_dispmanx.c
-index 1d24b6e..e2e7ccc 100755
+index 3e668f5..8e065dc 100755
 --- a/interface/vmcs_host/vc_vchi_dispmanx.c
 +++ b/interface/vmcs_host/vc_vchi_dispmanx.c
 @@ -1304,7 +1304,6 @@ static void *dispmanx_notify_func( void *arg ) {
@@ -25,5 +25,5 @@ index 1d24b6e..e2e7ccc 100755
           }
        } else {
 -- 
-2.7.4
+2.9.0
 

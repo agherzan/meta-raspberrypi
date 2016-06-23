@@ -16,24 +16,23 @@ COMPATIBLE_MACHINE = "raspberrypi"
 
 SRCBRANCH = "master"
 SRCFORK = "raspberrypi"
-SRCREV = "17c28b9d1d234893b73adeb95efc4959b617fc85"
+SRCREV = "0147f98bdd4fdc822d25d8a70cf5adc5adb89096"
 
 SRC_URI = "\
     git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \
-    file://0002-cmake-generate-and-install-pkgconfig-files.patch \
-    file://0003-Allow-applications-to-set-next-resource-handle.patch \
-    file://0004-wayland-Add-support-for-the-Wayland-winsys.patch \
-    file://0005-wayland-Add-Wayland-example.patch \
-    file://0006-wayland-egl-Add-bcm_host-to-dependencies.patch \
-    file://0007-interface-remove-faulty-assert-to-make-weston-happy-.patch \
-    file://0008-zero-out-wl-buffers-in-egl_surface_free.patch \
-    file://0009-initialize-front-back-wayland-buffers.patch \
-    file://0010-Remove-RPC_FLUSH.patch \
-    file://0011-fix-cmake-dependency-race.patch \
-    file://0012-Fix-enum-conversion-warnings.patch \
-    file://0013-Fix-for-framerate-with-nested-composition.patch \
-    file://0014-build-shared-library-for-vchostif.patch \
-    file://0015-wl-dispmanx-buffer-wrapping.patch \
+    file://0001-Allow-applications-to-set-next-resource-handle.patch \
+    file://0002-wayland-Add-support-for-the-Wayland-winsys.patch \
+    file://0003-wayland-Add-Wayland-example.patch \
+    file://0004-wayland-egl-Add-bcm_host-to-dependencies.patch \
+    file://0005-interface-remove-faulty-assert-to-make-weston-happy-.patch \
+    file://0006-zero-out-wl-buffers-in-egl_surface_free.patch \
+    file://0007-initialize-front-back-wayland-buffers.patch \
+    file://0008-Remove-RPC_FLUSH.patch \
+    file://0009-fix-cmake-dependency-race.patch \
+    file://0010-Fix-enum-conversion-warnings.patch \
+    file://0011-Fix-for-framerate-with-nested-composition.patch \
+    file://0012-build-shared-library-for-vchostif.patch \
+    file://0013-implement-buffer-wrapping-interface-for-dispmanx.patch \
 "
 S = "${WORKDIR}/git"
 

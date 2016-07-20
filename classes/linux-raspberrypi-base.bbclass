@@ -1,7 +1,8 @@
 inherit linux-kernel-base
 
-
 def get_dts(d, ver):
+    import re
+
     staging_dir = d.getVar("STAGING_KERNEL_BUILDDIR", True)
     dts = d.getVar("KERNEL_DEVICETREE", True)
 
@@ -20,20 +21,24 @@ def get_dts(d, ver):
 
     # Always turn off device tree support for kernel's < 3.18
     try:
-        if int(min_ver[0]) <= 3:
-            if int(min_ver[1]) < 18:
-                dts = ""
+        if int(min_ver[0]) >= 4:
+            if (int(min_ver[1]) < 4) or (int(min_ver[1]) == 4 and int(min_ver[2]) < 6):
+                dts = ' '.join([(re.sub(r'(.*)\.dtbo$', r'\1-overlay.dtb', x)) for x in dts.split()])
+        elif int(min_ver[1]) < 18:
+            dts = ""
     except IndexError:
         min_ver = None
 
     return dts
 
 
-def split_overlays(d, out):
-    dts = get_dts(d, None)
+def split_overlays(d, ver, out):
+    dts = get_dts(d, ver)
     if out:
         overlays = oe.utils.str_filter_out('\S+\-overlay\.dtb$', dts, d)
+        overlays = oe.utils.str_filter_out('\S+\.dtbo$', overlays, d)
     else:
-        overlays = oe.utils.str_filter('\S+\-overlay\.dtb$', dts, d)
+        overlays = oe.utils.str_filter('\S+\-overlay\.dtb$', dts, d) + \
+                   " " + oe.utils.str_filter('\S+\.dtbo$', dts, d)
 
     return overlays

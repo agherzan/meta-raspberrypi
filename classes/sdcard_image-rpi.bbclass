@@ -71,6 +71,8 @@ SDIMG = "${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.rootfs.rpi-sdimg"
 # Additional files and/or directories to be copied into the vfat partition from the IMAGE_ROOTFS.
 FATPAYLOAD ?= ""
 
+RPI_KERNEL_VERSION := "${@get_kernelversion_file('${STAGING_KERNEL_BUILDDIR}')}"
+
 IMAGE_CMD_rpi-sdimg () {
 
 	# Align partitions
@@ -81,7 +83,7 @@ IMAGE_CMD_rpi-sdimg () {
 	echo "Creating filesystem with Boot partition ${BOOT_SPACE_ALIGNED} KiB and RootFS $ROOTFS_SIZE KiB"
 
 	# Check if we are building with device tree support
-	DTS="${@get_dts(d, None)}"
+	DTS="${@get_dts(d, '${RPI_KERNEL_VERSION}')}"
 
 	# Initialize sdcard image file
 	dd if=/dev/zero of=${SDIMG} bs=1024 count=0 seek=${SDIMG_SIZE}
@@ -101,9 +103,9 @@ IMAGE_CMD_rpi-sdimg () {
 	mkfs.vfat -n "${BOOTDD_VOLUME_ID}" -S 512 -C ${WORKDIR}/boot.img $BOOT_BLOCKS
 	mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/bcm2835-bootfiles/* ::/
 	if test -n "${DTS}"; then
-		# Device Tree Overlays are assumed to be suffixed by '-overlay.dtb' string and will be put in a dedicated folder
-		DT_OVERLAYS="${@split_overlays(d, 0)}"
-		DT_ROOT="${@split_overlays(d, 1)}"
+		# Device Tree Overlays are assumed to be suffixed by '-overlay.dtb' (4.1.x) or by '.dtbo' (4.4.9+) string and will be put in a dedicated folder
+		DT_OVERLAYS="${@split_overlays(d, '${RPI_KERNEL_VERSION}', 0)}"
+		DT_ROOT="${@split_overlays(d, '${RPI_KERNEL_VERSION}', 1)}"
 
 		# Copy board device trees to root folder
 		for DTB in ${DT_ROOT}; do
@@ -115,9 +117,10 @@ IMAGE_CMD_rpi-sdimg () {
 		# Copy device tree overlays to dedicated folder
 		mmd -i ${WORKDIR}/boot.img overlays
 		for DTB in ${DT_OVERLAYS}; do
-			DTB_BASE_NAME=`basename ${DTB} .dtb`
+				DTB_EXT=${DTB##*.}
+				DTB_BASE_NAME=`basename ${DTB} ."${DTB_EXT}"`
 
-			mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${DTB_BASE_NAME}.dtb ::overlays/${DTB_BASE_NAME}.dtb
+			mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${DTB_BASE_NAME}.${DTB_EXT} ::overlays/${DTB_BASE_NAME}.${DTB_EXT}
 		done
 	fi
 	case "${KERNEL_IMAGETYPE}" in

@@ -37,6 +37,7 @@ KERNEL_DEVICETREE ?= " \
     overlays/w1-gpio.dtbo \
     overlays/w1-gpio-pullup.dtbo \
     overlays/pi3-miniuart-bt.dtbo \
+    overlays/vc4-kms-v3d.dtbo \
     "
 KERNEL_IMAGETYPE ?= "Image"
 

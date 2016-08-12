@@ -1,4 +1,4 @@
-From 377f6aada3b7569e3d662fc830e01b8c5ba8a15d Mon Sep 17 00:00:00 2001
+From a00eee4a5464f0add14232e1f9d7a8268c02770e Mon Sep 17 00:00:00 2001
 From: Khem Raj <raj.khem@gmail.com>
 Date: Thu, 18 Feb 2016 09:04:46 +0000
 Subject: [PATCH 10/13] Fix enum conversion warnings

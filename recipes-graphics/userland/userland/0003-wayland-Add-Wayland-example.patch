@@ -1,4 +1,4 @@
-From b6ee187184456d66095146e3dc06b6baa29c17d7 Mon Sep 17 00:00:00 2001
+From ce82c93dfede66447ea9d1195202bf0b0b09fa16 Mon Sep 17 00:00:00 2001
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Date: Tue, 1 Oct 2013 13:19:20 +0200
 Subject: [PATCH 03/13] wayland: Add Wayland example

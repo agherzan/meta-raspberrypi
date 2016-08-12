@@ -1,4 +1,4 @@
-PACKAGECONFIG_rpi_remove = "${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', ' fbdev', '', d)}"
+PACKAGECONFIG_remove_rpi = "${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', ' fbdev', '', d)}"
 EXTRA_OECONF += "--disable-xwayland-test \
                  --disable-simple-egl-clients \
 "

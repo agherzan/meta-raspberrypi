@@ -1,5 +1,5 @@
-RPIFW_SRCREV ?= "390f53ed0fd79df274bdcc81d99e09fa262f03ab"
-RPIFW_DATE ?= "20160622"
+RPIFW_SRCREV ?= "1205048f037098b1532bb947d1f4b823bcdebdf7"
+RPIFW_DATE ?= "20160726"
 RPIFW_SRC_URI ?= "git://github.com/raspberrypi/firmware.git;protocol=git;branch=master"
 RPIFW_S ?= "${WORKDIR}/git"
 

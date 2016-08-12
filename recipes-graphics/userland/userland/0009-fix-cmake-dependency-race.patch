@@ -1,4 +1,4 @@
-From c4217231fd78daee83b0c0f312c1d392aa6e0f47 Mon Sep 17 00:00:00 2001
+From b83cbbfa7e37c292ce403b44b7e6e2b4c48270a6 Mon Sep 17 00:00:00 2001
 From: Khem Raj <raj.khem@gmail.com>
 Date: Sat, 6 Feb 2016 13:12:47 -0800
 Subject: [PATCH 09/13] fix cmake dependency race
@@ -42,7 +42,7 @@ index 1d81ca3..d6cd415 100644
     add_library (vcos SHARED ${SOURCES})
     target_link_libraries (vcos pthread dl rt)
 diff --git a/interface/vmcs_host/CMakeLists.txt b/interface/vmcs_host/CMakeLists.txt
-index 35150ed..22949a8 100755
+index 6ef97bd..f62a9f5 100755
 --- a/interface/vmcs_host/CMakeLists.txt
 +++ b/interface/vmcs_host/CMakeLists.txt
 @@ -17,14 +17,6 @@ set(VCHOSTIF_SOURCE

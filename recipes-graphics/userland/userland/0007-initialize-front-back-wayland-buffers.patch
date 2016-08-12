@@ -1,4 +1,4 @@
-From ed31a6a206c9e205bd5316e95788e5d7bb837e38 Mon Sep 17 00:00:00 2001
+From d0535b7c6108d241ee943eff11c1d62171066d1a Mon Sep 17 00:00:00 2001
 From: Khem Raj <raj.khem@gmail.com>
 Date: Sat, 6 Feb 2016 11:11:41 -0800
 Subject: [PATCH 07/13] initialize front back wayland buffers
@@ -11,7 +11,7 @@ Signed-off-by: Khem Raj <raj.khem@gmail.com>
  1 file changed, 3 insertions(+)
 
 diff --git a/interface/khronos/egl/egl_client_surface.c b/interface/khronos/egl/egl_client_surface.c
-index 512c83b..a429724 100644
+index 1f923d9..9a9582c 100644
 --- a/interface/khronos/egl/egl_client_surface.c
 +++ b/interface/khronos/egl/egl_client_surface.c
 @@ -401,11 +401,14 @@ EGL_SURFACE_T *egl_surface_create(

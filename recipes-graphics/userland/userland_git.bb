@@ -71,3 +71,5 @@ FILES_${PN}-doc += "${datadir}/install"
 FILES_${PN}-dbg += "${libdir}/plugins/.debug"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
+
+RDEPENDS_${PN} += "bash"

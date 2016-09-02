@@ -35,6 +35,8 @@ do_install_append() {
 
 PACKAGES += "${PN}-tests"
 
+RDEPENDS_${PN}-dev = ""
+
 FILES_${PN} = ""
 FILES_${PN}-tests = "${libdir}/${BPN}"
 FILES_${PN}-dbg += "${libdir}/${BPN}/.debug"

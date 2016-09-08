@@ -1,0 +1,527 @@
+commit b7343f51f7eb9244eae23ab110675b2be4849d67
+Author: Jean Parpaillon <jean.parpaillon@free.fr>
+Date:   Tue Jul 12 15:59:43 2016 +0200
+
+    Add support for PiTFT35
+
+diff --git a/arch/arm/boot/dts/overlays/Makefile b/arch/arm/boot/dts/overlays/Makefile
+index f1af1ee..c12ee9e 100644
+--- a/arch/arm/boot/dts/overlays/Makefile
++++ b/arch/arm/boot/dts/overlays/Makefile
+@@ -43,6 +43,7 @@ dtb-$(RPI_DT_OVERLAYS) += piscreen-overlay.dtb
+ dtb-$(RPI_DT_OVERLAYS) += piscreen2r-overlay.dtb
+ dtb-$(RPI_DT_OVERLAYS) += pitft28-capacitive-overlay.dtb
+ dtb-$(RPI_DT_OVERLAYS) += pitft28-resistive-overlay.dtb
++dtb-$(RPI_DT_OVERLAYS) += pitft35-resistive-overlay.dtb
+ dtb-$(RPI_DT_OVERLAYS) += pps-gpio-overlay.dtb
+ dtb-$(RPI_DT_OVERLAYS) += pwm-overlay.dtb
+ dtb-$(RPI_DT_OVERLAYS) += pwm-2chan-overlay.dtb
+diff --git a/arch/arm/boot/dts/overlays/README b/arch/arm/boot/dts/overlays/README
+index 5f5ffb5..2771b0a 100644
+--- a/arch/arm/boot/dts/overlays/README
++++ b/arch/arm/boot/dts/overlays/README
+@@ -560,6 +560,18 @@ Params: speed                   Display SPI bus speed
+         debug                   Debug output level {0-7}
+ 
+ 
++Name:   pitft35-resistive
++Info:   Adafruit PiTFT 3.5" resistive touch screen
++Load:   dtoverlay=pitft35-resistive,<param>=<val>
++Params: speed                   Display SPI bus speed
++
++        rotate                  Display rotation {0,90,180,270}
++
++        fps                     Delay between frame updates
++
++        debug                   Debug output level {0-7}
++
++
+ Name:   pps-gpio
+ Info:   Configures the pps-gpio (pulse-per-second time signal via GPIO).
+ Load:   dtoverlay=pps-gpio,<param>=<val>
+diff --git a/arch/arm/boot/dts/overlays/pitft35-resistive-overlay.dts b/arch/arm/boot/dts/overlays/pitft35-resistive-overlay.dts
+new file mode 100644
+index 0000000..14e2df5
+--- /dev/null
++++ b/arch/arm/boot/dts/overlays/pitft35-resistive-overlay.dts
+@@ -0,0 +1,115 @@
++/*
++ * Device Tree overlay for Adafruit PiTFT 3.5" resistive touch screen
++ *
++ */
++
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "brcm,bcm2835", "brcm,bcm2708", "brcm,bcm2709";
++
++	fragment@0 {
++		target = <&spi0>;
++		__overlay__ {
++			status = "okay";
++
++			spidev@0{
++				status = "disabled";
++			};
++
++			spidev@1{
++				status = "disabled";
++			};
++		};
++	};
++
++	fragment@1 {
++		target = <&gpio>;
++		__overlay__ {
++			pitft_pins: pitft_pins {
++				brcm,pins = <24 25>;
++				brcm,function = <0 1>; /* in out */
++				brcm,pull = <2 0>; /* pullup none */
++			};
++		};
++	};
++
++	fragment@2 {
++		target = <&spi0>;
++		__overlay__ {
++			/* needed to avoid dtc warning */
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			pitft: pitft@0{
++				compatible = "himax,hx8357d";
++				reg = <0>;
++				pinctrl-names = "default";
++				pinctrl-0 = <&pitft_pins>;
++
++				spi-max-frequency = <32000000>;
++				rotate = <90>;
++				fps = <25>;
++				bgr;
++				buswidth = <8>;
++				dc-gpios = <&gpio 25 0>;
++				debug = <0>;
++			};
++
++			pitft_ts@1 {
++				#address-cells = <1>;
++				#size-cells = <0>;
++				compatible = "st,stmpe610";
++				reg = <1>;
++
++				spi-max-frequency = <500000>;
++				irq-gpio = <&gpio 24 0x2>; /* IRQF_TRIGGER_FALLING */
++				interrupts = <24 2>; /* high-to-low edge triggered */
++				interrupt-parent = <&gpio>;
++				interrupt-controller;
++
++				stmpe_touchscreen {
++					compatible = "st,stmpe-ts";
++					st,sample-time = <4>;
++					st,mod-12b = <1>;
++					st,ref-sel = <0>;
++					st,adc-freq = <2>;
++					st,ave-ctrl = <3>;
++					st,touch-det-delay = <4>;
++					st,settling = <2>;
++					st,fraction-z = <7>;
++					st,i-drive = <0>;
++				};
++
++				stmpe_gpio: stmpe_gpio {
++					#gpio-cells = <2>;
++					compatible = "st,stmpe-gpio";
++					/*
++					 * only GPIO2 is wired/available
++					 * and it is wired to the backlight
++					 */
++					st,norequest-mask = <0x7b>;
++				};
++			};
++		};
++	};
++
++	fragment@3 {
++		target-path = "/soc";
++		__overlay__ {
++			backlight {
++				compatible = "gpio-backlight";
++				gpios = <&stmpe_gpio 2 0>;
++				default-on;
++			};
++		};
++	};
++
++	__overrides__ {
++		speed =   <&pitft>,"spi-max-frequency:0";
++		rotate =  <&pitft>,"rotate:0";
++		fps =     <&pitft>,"fps:0";
++		debug =   <&pitft>,"debug:0";
++	};
++};
+diff --git a/drivers/staging/fbtft/Kconfig b/drivers/staging/fbtft/Kconfig
+index 6cf0c58..3a0739d 100644
+--- a/drivers/staging/fbtft/Kconfig
++++ b/drivers/staging/fbtft/Kconfig
+@@ -38,6 +38,12 @@ config FB_TFT_HX8353D
+ 	help
+ 	  Generic Framebuffer support for HX8353D
+ 
++config FB_TFT_HX8357D
++	tristate "FB driver for the HX8357D LCD Controller"
++	depends on FB_TFT
++	help
++	  Generic Framebuffer support for HX8357D
++
+ config FB_TFT_ILI9163
+ 	tristate "FB driver for the ILI9163 LCD Controller"
+ 	depends on FB_TFT
+diff --git a/drivers/staging/fbtft/Makefile b/drivers/staging/fbtft/Makefile
+index 9e73bee..554b526 100644
+--- a/drivers/staging/fbtft/Makefile
++++ b/drivers/staging/fbtft/Makefile
+@@ -8,6 +8,7 @@ obj-$(CONFIG_FB_TFT_BD663474)    += fb_bd663474.o
+ obj-$(CONFIG_FB_TFT_HX8340BN)    += fb_hx8340bn.o
+ obj-$(CONFIG_FB_TFT_HX8347D)     += fb_hx8347d.o
+ obj-$(CONFIG_FB_TFT_HX8353D)     += fb_hx8353d.o
++obj-$(CONFIG_FB_TFT_HX8357D)     += fb_hx8357d.o
+ obj-$(CONFIG_FB_TFT_ILI9163)     += fb_ili9163.o
+ obj-$(CONFIG_FB_TFT_ILI9320)     += fb_ili9320.o
+ obj-$(CONFIG_FB_TFT_ILI9325)     += fb_ili9325.o
+diff --git a/drivers/staging/fbtft/fb_hx8357d.c b/drivers/staging/fbtft/fb_hx8357d.c
+new file mode 100644
+index 0000000..8c7bb3a
+--- /dev/null
++++ b/drivers/staging/fbtft/fb_hx8357d.c
+@@ -0,0 +1,222 @@
++/*
++ * FB driver for the HX8357D LCD Controller
++ * Copyright (C) 2015 Adafruit Industries
++ *
++ * Based on the HX8347D FB driver
++ * Copyright (C) 2013 Christian Vogelgsang
++ *
++ * Based on driver code found here: https://github.com/watterott/r61505u-Adapter
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/delay.h>
++
++#include "fbtft.h"
++#include "fb_hx8357d.h"
++
++#define DRVNAME		"fb_hx8357d"
++#define WIDTH		320
++#define HEIGHT		480
++
++
++static int init_display(struct fbtft_par *par)
++{
++	fbtft_par_dbg(DEBUG_INIT_DISPLAY, par, "%s()\n", __func__);
++
++	par->fbtftops.reset(par);
++
++	/* Reset things like Gamma */
++	write_reg(par, HX8357B_SWRESET);
++	usleep_range(5000, 7000);
++
++	/* setextc */
++	write_reg(par, HX8357D_SETC, 0xFF, 0x83, 0x57);
++	msleep(150);
++
++	/* setRGB which also enables SDO */
++	write_reg(par, HX8357_SETRGB, 0x00, 0x00, 0x06, 0x06);
++
++	/* -1.52V */
++	write_reg(par, HX8357D_SETCOM, 0x25);
++
++	/* Normal mode 70Hz, Idle mode 55 Hz */
++	write_reg(par, HX8357_SETOSC, 0x68);
++
++	/* Set Panel - BGR, Gate direction swapped */
++	write_reg(par, HX8357_SETPANEL, 0x05);
++
++	write_reg(par, HX8357_SETPWR1,
++		0x00,  /* Not deep standby */
++		0x15,  /* BT */
++		0x1C,  /* VSPR */
++		0x1C,  /* VSNR */
++		0x83,  /* AP */
++		0xAA);  /* FS */
++
++	write_reg(par, HX8357D_SETSTBA,
++		0x50,  /* OPON normal */
++		0x50,  /* OPON idle */
++		0x01,  /* STBA */
++		0x3C,  /* STBA */
++		0x1E,  /* STBA */
++		0x08);  /* GEN */
++
++	write_reg(par, HX8357D_SETCYC,
++		0x02,  /* NW 0x02 */
++		0x40,  /* RTN */
++		0x00,  /* DIV */
++		0x2A,  /* DUM */
++		0x2A,  /* DUM */
++		0x0D,  /* GDON */
++		0x78);  /* GDOFF */
++
++	write_reg(par, HX8357D_SETGAMMA,
++		0x02,
++		0x0A,
++		0x11,
++		0x1d,
++		0x23,
++		0x35,
++		0x41,
++		0x4b,
++		0x4b,
++		0x42,
++		0x3A,
++		0x27,
++		0x1B,
++		0x08,
++		0x09,
++		0x03,
++		0x02,
++		0x0A,
++		0x11,
++		0x1d,
++		0x23,
++		0x35,
++		0x41,
++		0x4b,
++		0x4b,
++		0x42,
++		0x3A,
++		0x27,
++		0x1B,
++		0x08,
++		0x09,
++		0x03,
++		0x00,
++		0x01);
++
++	/* 16 bit */
++	write_reg(par, HX8357_COLMOD, 0x55);
++
++	write_reg(par, HX8357_MADCTL, 0xC0);
++
++	/* TE off */
++	write_reg(par, HX8357_TEON, 0x00);
++
++	/* tear line */
++	write_reg(par, HX8357_TEARLINE, 0x00, 0x02);
++
++	/* Exit Sleep */
++	write_reg(par, HX8357_SLPOUT);
++	msleep(150);
++
++	/* display on */
++	write_reg(par, HX8357_DISPON);
++	usleep_range(5000, 7000);
++
++	return 0;
++}
++
++static void set_addr_win(struct fbtft_par *par, int xs, int ys, int xe, int ye)
++{
++	fbtft_par_dbg(DEBUG_SET_ADDR_WIN, par,
++		"%s(xs=%d, ys=%d, xe=%d, ye=%d)\n", __func__, xs, ys, xe, ye);
++
++	/* Column addr set */
++	write_reg(par, HX8357_CASET,
++		xs >> 8, xs & 0xff,  /* XSTART */
++		xe >> 8, xe & 0xff); /* XEND */
++
++	/* Row addr set */
++	write_reg(par, HX8357_PASET,
++		ys >> 8, ys & 0xff,  /* YSTART */
++		ye >> 8, ye & 0xff); /* YEND */
++
++	/* write to RAM */
++	write_reg(par, HX8357_RAMWR);
++}
++
++#define HX8357D_MADCTL_MY  0x80
++#define HX8357D_MADCTL_MX  0x40
++#define HX8357D_MADCTL_MV  0x20
++#define HX8357D_MADCTL_ML  0x10
++#define HX8357D_MADCTL_RGB 0x00
++#define HX8357D_MADCTL_BGR 0x08
++#define HX8357D_MADCTL_MH  0x04
++static int set_var(struct fbtft_par *par)
++{
++	u8 val;
++
++	fbtft_par_dbg(DEBUG_INIT_DISPLAY, par, "%s()\n", __func__);
++
++	switch (par->info->var.rotate) {
++	case 270:
++		val = HX8357D_MADCTL_MV | HX8357D_MADCTL_MX;
++		break;
++	case 180:
++		val = 0;
++		break;
++	case 90:
++		val = HX8357D_MADCTL_MV | HX8357D_MADCTL_MY;
++		break;
++	default:
++		val = HX8357D_MADCTL_MX | HX8357D_MADCTL_MY;
++		break;
++	}
++
++	val |= (par->bgr ? HX8357D_MADCTL_RGB : HX8357D_MADCTL_BGR);
++
++	/* Memory Access Control */
++	write_reg(par, HX8357_MADCTL, val);
++
++	return 0;
++}
++
++static struct fbtft_display display = {
++	.regwidth = 8,
++	.width = WIDTH,
++	.height = HEIGHT,
++	.gamma_num = 2,
++	.gamma_len = 14,
++	.fbtftops = {
++		.init_display = init_display,
++		.set_addr_win = set_addr_win,
++		.set_var = set_var,
++	},
++};
++FBTFT_REGISTER_DRIVER(DRVNAME, "himax,hx8357d", &display);
++
++MODULE_ALIAS("spi:" DRVNAME);
++MODULE_ALIAS("platform:" DRVNAME);
++MODULE_ALIAS("spi:hx8357d");
++MODULE_ALIAS("platform:hx8357d");
++
++MODULE_DESCRIPTION("FB driver for the HX8357D LCD Controller");
++MODULE_AUTHOR("Sean Cross <xobs@kosagi.com>");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/staging/fbtft/fb_hx8357d.h b/drivers/staging/fbtft/fb_hx8357d.h
+new file mode 100644
+index 0000000..de05e8c
+--- /dev/null
++++ b/drivers/staging/fbtft/fb_hx8357d.h
+@@ -0,0 +1,102 @@
++/***************************************************
++  This is our library for the Adafruit  ILI9341 Breakout and Shield
++  ----> http://www.adafruit.com/products/1651
++
++  Check out the links above for our tutorials and wiring diagrams
++  These displays use SPI to communicate, 4 or 5 pins are required to
++  interface (RST is optional)
++  Adafruit invests time and resources providing this open source code,
++  please support Adafruit and open-source hardware by purchasing
++  products from Adafruit!
++
++  Written by Limor Fried/Ladyada for Adafruit Industries.
++  MIT license, all text above must be included in any redistribution
++ ****************************************************/
++
++#ifndef __HX8357_H__
++#define __HX8357_H__
++
++#define HX8357D 0xD
++#define HX8357B 0xB
++
++#define HX8357_TFTWIDTH  320
++#define HX8357_TFTHEIGHT 480
++
++#define HX8357B_NOP     0x00
++#define HX8357B_SWRESET 0x01
++#define HX8357B_RDDID   0x04
++#define HX8357B_RDDST   0x09
++
++#define HX8357B_RDPOWMODE  0x0A
++#define HX8357B_RDMADCTL  0x0B
++#define HX8357B_RDCOLMOD  0x0C
++#define HX8357B_RDDIM  0x0D
++#define HX8357B_RDDSDR  0x0F
++
++#define HX8357_SLPIN   0x10
++#define HX8357_SLPOUT  0x11
++#define HX8357B_PTLON   0x12
++#define HX8357B_NORON   0x13
++
++#define HX8357_INVOFF  0x20
++#define HX8357_INVON   0x21
++#define HX8357_DISPOFF 0x28
++#define HX8357_DISPON  0x29
++
++#define HX8357_CASET   0x2A
++#define HX8357_PASET   0x2B
++#define HX8357_RAMWR   0x2C
++#define HX8357_RAMRD   0x2E
++
++#define HX8357B_PTLAR   0x30
++#define HX8357_TEON  0x35
++#define HX8357_TEARLINE  0x44
++#define HX8357_MADCTL  0x36
++#define HX8357_COLMOD  0x3A
++
++#define HX8357_SETOSC 0xB0
++#define HX8357_SETPWR1 0xB1
++#define HX8357B_SETDISPLAY 0xB2
++#define HX8357_SETRGB 0xB3
++#define HX8357D_SETCOM  0xB6
++
++#define HX8357B_SETDISPMODE  0xB4
++#define HX8357D_SETCYC  0xB4
++#define HX8357B_SETOTP 0xB7
++#define HX8357D_SETC 0xB9
++
++#define HX8357B_SET_PANEL_DRIVING 0xC0
++#define HX8357D_SETSTBA 0xC0
++#define HX8357B_SETDGC  0xC1
++#define HX8357B_SETID  0xC3
++#define HX8357B_SETDDB  0xC4
++#define HX8357B_SETDISPLAYFRAME 0xC5
++#define HX8357B_GAMMASET 0xC8
++#define HX8357B_SETCABC  0xC9
++#define HX8357_SETPANEL  0xCC
++
++#define HX8357B_SETPOWER 0xD0
++#define HX8357B_SETVCOM 0xD1
++#define HX8357B_SETPWRNORMAL 0xD2
++
++#define HX8357B_RDID1   0xDA
++#define HX8357B_RDID2   0xDB
++#define HX8357B_RDID3   0xDC
++#define HX8357B_RDID4   0xDD
++
++#define HX8357D_SETGAMMA 0xE0
++
++#define HX8357B_SETGAMMA 0xC8
++#define HX8357B_SETPANELRELATED  0xE9
++
++/* Color definitions */
++#define	HX8357_BLACK   0x0000
++#define	HX8357_BLUE    0x001F
++#define	HX8357_RED     0xF800
++#define	HX8357_GREEN   0x07E0
++#define HX8357_CYAN    0x07FF
++#define HX8357_MAGENTA 0xF81F
++#define HX8357_YELLOW  0xFFE0
++#define HX8357_WHITE   0xFFFF
++
++#endif /* __HX8357_H__ */

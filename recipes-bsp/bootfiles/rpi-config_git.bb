@@ -18,6 +18,7 @@ PR = "r4"
 PITFT="${@bb.utils.contains("MACHINE_FEATURES", "pitft", "1", "0", d)}"
 PITFT22="${@bb.utils.contains("MACHINE_FEATURES", "pitft22", "1", "0", d)}"
 PITFT28r="${@bb.utils.contains("MACHINE_FEATURES", "pitft28r", "1", "0", d)}"
+PITFT35="${@bb.utils.contains("MACHINE_FEATURES", "pitft35", "1", "0", d)}"
 
 inherit deploy
 
@@ -95,6 +96,12 @@ do_deploy() {
     if [ "${PITFT28r}" = "1" ]; then
         echo "# Enable PITFT28r display" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "dtoverlay=pitft28-resistive,rotate=90,speed=32000000,txbuflen=32768" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
+
+    # PiTFT35 display support
+    if [ "${PITFT35}" = "1" ]; then
+        echo "# Enable PITFT35 display" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+        echo "dtoverlay=pitft35-resistive,speed=32000000,txbuflen=32768" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi
 
     # UART support

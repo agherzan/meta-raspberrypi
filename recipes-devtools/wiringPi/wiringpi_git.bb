@@ -16,7 +16,7 @@ SRC_URI = "git://git.drogon.net/wiringPi \
 
 COMPATIBLE_MACHINE = "raspberrypi"
 
-CFLAGS_prepend = "-I${S}/wiringPi -I${S}/devLib"
+CFLAGS_prepend = "-I${S}/wiringPi -I${S}/devLib "
 
 EXTRA_OEMAKE += "'INCLUDE_DIR=${D}${includedir}' 'LIB_DIR=${D}${libdir}'"
 EXTRA_OEMAKE += "'DESTDIR=${D}/usr' 'PREFIX=""'"

@@ -116,7 +116,7 @@ do_configure_prepend() {
     if [ ${VC4GRAPHICS} = "1" ]; then
         kernel_configure_variable I2C_BCM2835 y
         kernel_configure_variable DRM y
-        kernel_configure_variable DRM_FBDEV_EMULATION n
+        kernel_configure_variable DRM_FBDEV_EMULATION y
         kernel_configure_variable DRM_VC4 y
         kernel_configure_variable FB_BCM2708 n
     fi

@@ -1,6 +1,6 @@
 inherit linux-kernel-base
 
-def get_dts(d, ver):
+def get_dts(d, ver=None):
     import re
 
     staging_dir = d.getVar("STAGING_KERNEL_BUILDDIR", True)
@@ -32,7 +32,7 @@ def get_dts(d, ver):
     return dts
 
 
-def split_overlays(d, ver, out):
+def split_overlays(d, out, ver=None):
     dts = get_dts(d, ver)
     if out:
         overlays = oe.utils.str_filter_out('\S+\-overlay\.dtb$', dts, d)

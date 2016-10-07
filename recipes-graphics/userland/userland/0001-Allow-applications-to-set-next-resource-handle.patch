@@ -1,4 +1,4 @@
-From a096ab4b7bbdd8f78d93a54a8da1ca3c9470c2ec Mon Sep 17 00:00:00 2001
+From 2b87c1271a5b2fc60a7bcfcaf902f3ef69ccad24 Mon Sep 17 00:00:00 2001
 From: Dom Cobley <dc4@broadcom.com>
 Date: Tue, 9 Jul 2013 09:26:26 -0400
 Subject: [PATCH 01/13] Allow applications to set next resource handle
@@ -56,7 +56,7 @@ index 8378f4a..ec961e0 100644
  #define EGLINTFLUSH_ID                    0x400c
  #define EGLINTGETCOLORDATA_ID             0x400d
 diff --git a/interface/khronos/egl/egl_client.c b/interface/khronos/egl/egl_client.c
-index 472ef0c..234da65 100644
+index 9d617c8..b8bb374 100644
 --- a/interface/khronos/egl/egl_client.c
 +++ b/interface/khronos/egl/egl_client.c
 @@ -162,6 +162,17 @@ static void egl_current_release(CLIENT_PROCESS_STATE_T *process, EGL_CURRENT_T *
@@ -204,5 +204,5 @@ index 8a5734c..51b3580 100644
  
  FN(void, eglIntGetColorData_impl, (EGL_SURFACE_ID_T s, KHRN_IMAGE_FORMAT_T format, uint32_t width, uint32_t height, int32_t stride, uint32_t y_offset, void *data))
 -- 
-2.9.0
+2.10.0
 

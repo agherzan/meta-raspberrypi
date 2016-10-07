@@ -1,4 +1,4 @@
-From 75ce950e68a0260ea5da56a83c27eb46331d819f Mon Sep 17 00:00:00 2001
+From 3a0e094a6aac53c9ddc4b28feb77cfc1a319880d Mon Sep 17 00:00:00 2001
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Date: Tue, 1 Oct 2013 13:19:20 +0200
 Subject: [PATCH 02/13] wayland: Add support for the Wayland winsys
@@ -58,17 +58,17 @@ vc_vchi_dispmanx.h
  create mode 100644 makefiles/cmake/Wayland.cmake
 
 diff --git a/.gitignore b/.gitignore
-index 8df9393..d0d1387 100644
+index 4a88665..5da71a9 100644
 --- a/.gitignore
 +++ b/.gitignore
-@@ -10,3 +10,5 @@
+@@ -13,3 +13,5 @@ build/
  *.lai
  *.la
  *.a
 +
 +*~
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index a12e389..f0fde45 100644
+index d3159c7..58eb8f7 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -19,6 +19,17 @@ include(makefiles/cmake/global_settings.cmake)
@@ -102,12 +102,12 @@ index 358d2b4..4da4448 100644
 +
 +$ BUILD_WAYLAND=1 ./buildme.
 diff --git a/buildme b/buildme
-index 9e9d4d7..4e5d0be 100755
+index d778276..f509864 100755
 --- a/buildme
 +++ b/buildme
 @@ -8,6 +8,10 @@ fi
  
- BUILDSUBDIR=`echo $BUILDTYPE | tr [A-Z] [a-z]`;
+ BUILDSUBDIR=`echo $BUILDTYPE | tr '[A-Z]' '[a-z]'`;
  
 +if [ -n "$BUILD_WAYLAND" ]; then
 +       WAYLAND_VARS="-DBUILD_WAYLAND=TRUE"
@@ -340,7 +340,7 @@ index 4f3ce49..84f6ec0 100644
  /* OpenGL ES 1.1 and 2.0 functions */
  
 diff --git a/interface/khronos/common/linux/khrn_client_platform_linux.c b/interface/khronos/common/linux/khrn_client_platform_linux.c
-index 3320b33..39fc7cc 100644
+index 710d20f..50d60a6 100644
 --- a/interface/khronos/common/linux/khrn_client_platform_linux.c
 +++ b/interface/khronos/common/linux/khrn_client_platform_linux.c
 @@ -37,6 +37,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
@@ -355,7 +355,7 @@ index 3320b33..39fc7cc 100644
  extern VCOS_LOG_CAT_T khrn_client_log;
  
  extern void vc_vchi_khronos_init();
-@@ -462,13 +467,36 @@ EGLDisplay khrn_platform_set_display_id(EGLNativeDisplayType display_id)
+@@ -464,13 +469,36 @@ EGLDisplay khrn_platform_set_display_id(EGLNativeDisplayType display_id)
  	   return EGL_NO_DISPLAY;
  }
  #else
@@ -394,7 +394,7 @@ index 3320b33..39fc7cc 100644
  #endif
  
  #ifdef WANT_X
-@@ -803,22 +831,81 @@ static EGL_DISPMANX_WINDOW_T *check_default(EGLNativeWindowType win)
+@@ -805,22 +833,81 @@ static EGL_DISPMANX_WINDOW_T *check_default(EGLNativeWindowType win)
  void platform_get_dimensions(EGLDisplay dpy, EGLNativeWindowType win,
        uint32_t *width, uint32_t *height, uint32_t *swapchain_count)
  {
@@ -774,7 +774,7 @@ index b723b76..b9bf08c 100644
 -#endif
 +struct wl_dispmanx_client_buffer *allocate_wl_buffer(struct wl_egl_window *window, KHRN_IMAGE_FORMAT_T color);
 diff --git a/interface/khronos/egl/egl_client.c b/interface/khronos/egl/egl_client.c
-index 234da65..024f3ed 100644
+index b8bb374..03fe67b 100644
 --- a/interface/khronos/egl/egl_client.c
 +++ b/interface/khronos/egl/egl_client.c
 @@ -153,6 +153,10 @@ by an attribute value"
@@ -1540,7 +1540,7 @@ index 0000000..8bafc15
 +Libs: -L${libdir} -lwayland-egl
 +Cflags: -I${includedir}
 diff --git a/interface/vmcs_host/CMakeLists.txt b/interface/vmcs_host/CMakeLists.txt
-index 3205cf1..6ef97bd 100755
+index 0b3adc9..f44d01f 100755
 --- a/interface/vmcs_host/CMakeLists.txt
 +++ b/interface/vmcs_host/CMakeLists.txt
 @@ -9,13 +9,24 @@ add_definitions(-fno-strict-aliasing)
@@ -1602,10 +1602,10 @@ index 37fdae1..fe3619a 100755
  }
  #endif
 diff --git a/interface/vmcs_host/vc_vchi_dispmanx.c b/interface/vmcs_host/vc_vchi_dispmanx.c
-index d188068..3e668f5 100755
+index 133e86d..45f4cff 100755
 --- a/interface/vmcs_host/vc_vchi_dispmanx.c
 +++ b/interface/vmcs_host/vc_vchi_dispmanx.c
-@@ -1316,3 +1316,45 @@ static void *dispmanx_notify_func( void *arg ) {
+@@ -1319,3 +1319,45 @@ static void *dispmanx_notify_func( void *arg ) {
     }
     return 0;
  }
@@ -1883,5 +1883,5 @@ index 0000000..ad90d30
 +    set(${_sources} ${${_sources}} PARENT_SCOPE)
 +endfunction()
 -- 
-2.9.0
+2.10.0
 

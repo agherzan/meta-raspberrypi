@@ -1,4 +1,4 @@
-From a00eee4a5464f0add14232e1f9d7a8268c02770e Mon Sep 17 00:00:00 2001
+From 67b00c2b44cec5a7519acfdde43d5ea27c5ff6a8 Mon Sep 17 00:00:00 2001
 From: Khem Raj <raj.khem@gmail.com>
 Date: Thu, 18 Feb 2016 09:04:46 +0000
 Subject: [PATCH 10/13] Fix enum conversion warnings
@@ -95,5 +95,5 @@ index f088296..83e3724 100644
        omx->pixel_y    = mmal->pixel_y;
        omx->layer      = mmal->layer;
 -- 
-2.9.0
+2.10.0
 

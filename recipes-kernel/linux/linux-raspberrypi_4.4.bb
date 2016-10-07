@@ -1,10 +1,9 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-${PV}:"
 
-LINUX_VERSION ?= "4.4.16"
+LINUX_VERSION ?= "4.4.23"
 
-SRCREV = "cff67c7e03f4333149f2a8f6eafd3bc44475114a"
+SRCREV = "c2a1d975537fcac01da80ce34f10bc491620a64e"
 SRC_URI = "git://github.com/raspberrypi/linux.git;protocol=git;branch=rpi-4.4.y \
            file://0001-fix-dtbo-rules.patch \
-           file://0002-vc4-ioctl-rendering-allow.patch \
 "
 require linux-raspberrypi.inc

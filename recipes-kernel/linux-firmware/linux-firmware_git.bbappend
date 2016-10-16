@@ -20,6 +20,7 @@ do_install_append() {
 PACKAGES =+ "${PN}-brcm43430 ${PN}-brcm43430-license"
 
 LICENSE_${PN}-brcm43430 = "Firmware-broadcom_brcm80211"
+LICENSE_${PN}-brcm43430-license = "Firmware-broadcom_brcm80211"
 FILES_${PN}-brcm43430-license = "/lib/firmware/LICENSE.broadcom_brcm80211"
 FILES_${PN}-brcm43430 = " \
     /lib/firmware/brcm/brcmfmac43430-sdio.bin \

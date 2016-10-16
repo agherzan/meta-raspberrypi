@@ -4,7 +4,7 @@ LICENSE_append = " & Firmware-broadcom_brcm80211"
 
 LIC_FILES_CHKSUM_append = " file://${WORKDIR}/LICENSE.broadcom_brcm80211;md5=8cba1397cda6386db37210439a0da3eb"
 
-NO_GENERIC_LICENSE[Firmware-broadcom_brcm80211] = "LICENSE.broadcom_brcm80211"
+NO_GENERIC_LICENSE[Firmware-broadcom_brcm80211] = "${WORKDIR}/LICENSE.broadcom_brcm80211"
 
 SRC_URI_append = " \
     file://brcmfmac43430-sdio.bin \

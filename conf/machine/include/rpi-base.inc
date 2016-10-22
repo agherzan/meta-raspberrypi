@@ -52,3 +52,7 @@ MACHINE_EXTRA_RRECOMMENDS += " kernel-modules"
 SPLASH = "psplash-raspberrypi"
 
 IMAGE_BOOT_FILES ?= "bcm2835-bootfiles/* ${KERNEL_IMAGETYPE};${SDIMG_KERNELIMAGE}"
+
+# The kernel image is installed into the FAT32 boot partition and does not need
+# to also be installed into the rootfs.
+RDEPENDS_kernel-base = ""

@@ -61,7 +61,7 @@ do_bundle_initramfs_append() {
             if test -n "${KERNEL_DEVICETREE}"; then
                 # Add RPi bootloader trailer to kernel image to enable DeviceTree support
                 for type in ${KERNEL_IMAGETYPES} ; do
-                    ${STAGING_BINDIR_NATIVE}/mkknlimg --dtok ${KERNEL_OUTPUT_DIR}/$type.initramfs ${KERNEL_OUTPUT_DIR}/$type.initramfs
+                    ${STAGING_KERNEL_DIR}/scripts/mkknlimg --dtok ${KERNEL_OUTPUT_DIR}/$type.initramfs ${KERNEL_OUTPUT_DIR}/$type.initramfs
                 done
             fi
         fi

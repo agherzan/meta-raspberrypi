@@ -36,6 +36,7 @@ KERNEL_DEVICETREE ?= " \
     overlays/rpi-ft5406.dtbo \
     overlays/w1-gpio.dtbo \
     overlays/w1-gpio-pullup.dtbo \
+    overlays/pi3-disable-bt.dtbo \
     overlays/pi3-miniuart-bt.dtbo \
     overlays/vc4-kms-v3d.dtbo \
     "

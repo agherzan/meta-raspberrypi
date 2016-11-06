@@ -16,7 +16,7 @@ COMPATIBLE_MACHINE = "raspberrypi"
 
 SRCBRANCH = "master"
 SRCFORK = "raspberrypi"
-SRCREV = "2852d9ff5a9038021f1c22d95e8a9e3aad09893f"
+SRCREV = "100f8bb3e74e29d04fb99857183cc34aaa712e3f"
 
 SRC_URI = "\
     git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \
@@ -37,6 +37,8 @@ SRC_URI = "\
 S = "${WORKDIR}/git"
 
 inherit cmake pkgconfig
+
+ASNEEDED = ""
 
 EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS='-Wl,--no-as-needed' \
                  -DVMCS_INSTALL_PREFIX=${exec_prefix} \

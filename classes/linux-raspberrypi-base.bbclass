@@ -15,7 +15,7 @@ def get_dts(d, ver=None):
         ver = get_kernelversion_file(staging_dir)
 
     if ver is not None:
-        min_ver = ver.split('.', 3)
+        min_ver = ver.replace('-', '.').split('.', 3)
     else:
         return dts
 

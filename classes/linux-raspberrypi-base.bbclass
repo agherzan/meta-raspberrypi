@@ -14,21 +14,6 @@ def get_dts(d, ver=None):
         from the kernel staging '''
         ver = get_kernelversion_file(staging_dir)
 
-    if ver is not None:
-        min_ver = ver.split('.', 3)
-    else:
-        return dts
-
-    # Always turn off device tree support for kernel's < 3.18
-    try:
-        if int(min_ver[0]) >= 4:
-            if (int(min_ver[1]) < 4) or (int(min_ver[1]) == 4 and int(min_ver[2]) < 6):
-                dts = ' '.join([(re.sub(r'(.*)\.dtbo$', r'\1-overlay.dtb', x)) for x in dts.split()])
-        elif int(min_ver[1]) < 18:
-            dts = ""
-    except IndexError:
-        min_ver = None
-
     return dts
 
 

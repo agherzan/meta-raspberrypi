@@ -9,6 +9,7 @@ IMAGE_FSTYPES ?= "tar.bz2 ext3 rpi-sdimg"
 
 XSERVER = " \
     xserver-xorg \
+    ${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", "xserver-xorg-extension-glx", "", d)} \
     xf86-input-evdev \
     xf86-input-mouse \
     xf86-input-keyboard \

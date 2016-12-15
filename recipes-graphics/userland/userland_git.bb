@@ -16,7 +16,7 @@ COMPATIBLE_MACHINE = "raspberrypi"
 
 SRCBRANCH = "master"
 SRCFORK = "raspberrypi"
-SRCREV = "100f8bb3e74e29d04fb99857183cc34aaa712e3f"
+SRCREV = "7ade0399c4e46fb6277e3e0ec400711ab54ab504"
 
 SRC_URI = "\
     git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \
@@ -29,10 +29,9 @@ SRC_URI = "\
     file://0007-initialize-front-back-wayland-buffers.patch \
     file://0008-Remove-RPC_FLUSH.patch \
     file://0009-fix-cmake-dependency-race.patch \
-    file://0010-Fix-enum-conversion-warnings.patch \
-    file://0011-Fix-for-framerate-with-nested-composition.patch \
-    file://0012-build-shared-library-for-vchostif.patch \
-    file://0013-implement-buffer-wrapping-interface-for-dispmanx.patch \
+    file://0010-Fix-for-framerate-with-nested-composition.patch \
+    file://0011-build-shared-library-for-vchostif.patch \
+    file://0012-implement-buffer-wrapping-interface-for-dispmanx.patch \
 "
 S = "${WORKDIR}/git"
 

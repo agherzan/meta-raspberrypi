@@ -1,7 +1,7 @@
-From 6e333fef608c5738d2d9a812de29fc8b1edd24cc Mon Sep 17 00:00:00 2001
+From 2a6e3d53a75fe44ec6fa3ae64c8ca5664b614979 Mon Sep 17 00:00:00 2001
 From: "Yann E. MORIN" <yann.morin.1998@free.fr>
 Date: Sat, 24 Jan 2015 22:07:19 +0100
-Subject: [PATCH 05/13] interface: remove faulty assert() to make weston happy
+Subject: [PATCH 05/12] interface: remove faulty assert() to make weston happy
  at runtime
 
 This was removed after a discussion on IRC with the weston guys
@@ -25,5 +25,5 @@ index 45f4cff..5d0368c 100755
              }
           } else {
 -- 
-2.10.0
+2.10.2
 

@@ -1,7 +1,7 @@
-From 028957cc519abf5e52d22966d219973294112e54 Mon Sep 17 00:00:00 2001
+From b5392c39d7407a5226c9314bc01ed82877ff0539 Mon Sep 17 00:00:00 2001
 From: Khem Raj <raj.khem@gmail.com>
 Date: Sat, 6 Feb 2016 13:12:47 -0800
-Subject: [PATCH 09/13] fix cmake dependency race
+Subject: [PATCH 09/12] fix cmake dependency race
 
 Fixes errors like
 
@@ -74,5 +74,5 @@ index f0bae30..8c44c58 100644
  	struct wl_resource *resource;
  	struct wl_dispmanx *dispmanx;
 -- 
-2.10.0
+2.10.2
 

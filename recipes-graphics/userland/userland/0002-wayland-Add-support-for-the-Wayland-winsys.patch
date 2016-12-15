@@ -1,7 +1,7 @@
-From 3a0e094a6aac53c9ddc4b28feb77cfc1a319880d Mon Sep 17 00:00:00 2001
+From e3d2d0007e1c6c32ab7d9a28f1e399d42b511333 Mon Sep 17 00:00:00 2001
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Date: Tue, 1 Oct 2013 13:19:20 +0200
-Subject: [PATCH 02/13] wayland: Add support for the Wayland winsys
+Subject: [PATCH 02/12] wayland: Add support for the Wayland winsys
 
 * Adds EGL_WL_bind_wayland_display extension
 * Adds wayland-egl library
@@ -22,7 +22,7 @@ vc_vchi_dispmanx.h
  README.md                                          |   4 +
  buildme                                            |  10 +-
  .../linux/apps/raspicam/CMakeLists.txt             |   2 +-
- interface/khronos/CMakeLists.txt                   |  52 ++++-
+ interface/khronos/CMakeLists.txt                   |  53 ++++-
  interface/khronos/common/khrn_client.c             |  15 ++
  interface/khronos/common/khrn_client.h             |  10 +
  interface/khronos/common/khrn_client_mangle.h      |   3 +
@@ -47,7 +47,7 @@ vc_vchi_dispmanx.h
  interface/vmcs_host/vc_vchi_dispmanx.h             |  15 ++
  interface/wayland/dispmanx.xml                     | 123 +++++++++++
  makefiles/cmake/Wayland.cmake                      |  72 ++++++
- 30 files changed, 1258 insertions(+), 97 deletions(-)
+ 30 files changed, 1258 insertions(+), 98 deletions(-)
  create mode 100644 interface/khronos/common/linux/khrn_wayland.c
  copy interface/{vmcs_host/vc_vchi_dispmanx.h => khronos/common/linux/khrn_wayland.h} (56%)
  create mode 100644 interface/khronos/ext/egl_wayland.c
@@ -68,10 +68,10 @@ index 4a88665..5da71a9 100644
 +
 +*~
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index d3159c7..58eb8f7 100644
+index 98252c3..d6ae907 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -19,6 +19,17 @@ include(makefiles/cmake/global_settings.cmake)
+@@ -24,6 +24,17 @@ include(makefiles/cmake/global_settings.cmake)
  include(makefiles/cmake/arm-linux.cmake)
  include(makefiles/cmake/vmcs.cmake)
  
@@ -102,7 +102,7 @@ index 358d2b4..4da4448 100644
 +
 +$ BUILD_WAYLAND=1 ./buildme.
 diff --git a/buildme b/buildme
-index d778276..f509864 100755
+index 1061745..d0e6e54 100755
 --- a/buildme
 +++ b/buildme
 @@ -8,6 +8,10 @@ fi
@@ -132,10 +132,10 @@ index d778276..f509864 100755
  
  	if [ "$1" != "" ]; then
 diff --git a/host_applications/linux/apps/raspicam/CMakeLists.txt b/host_applications/linux/apps/raspicam/CMakeLists.txt
-index 2afc145..126211f 100644
+index e6aa6b8..69059cb 100644
 --- a/host_applications/linux/apps/raspicam/CMakeLists.txt
 +++ b/host_applications/linux/apps/raspicam/CMakeLists.txt
-@@ -26,7 +26,7 @@ add_executable(raspividyuv  ${COMMON_SOURCES} RaspiVidYUV.c)
+@@ -28,7 +28,7 @@ add_executable(raspividyuv  ${COMMON_SOURCES} RaspiVidYUV.c)
  
  set (MMAL_LIBS mmal_core mmal_util mmal_vc_client)
  
@@ -145,7 +145,7 @@ index 2afc145..126211f 100644
  target_link_libraries(raspivid   ${MMAL_LIBS} vcos bcm_host)
  target_link_libraries(raspividyuv   ${MMAL_LIBS} vcos bcm_host)
 diff --git a/interface/khronos/CMakeLists.txt b/interface/khronos/CMakeLists.txt
-index 4231af4..7506e5c 100644
+index 9ad615b..3d3571a 100644
 --- a/interface/khronos/CMakeLists.txt
 +++ b/interface/khronos/CMakeLists.txt
 @@ -6,6 +6,12 @@
@@ -161,7 +161,7 @@ index 4231af4..7506e5c 100644
  set(EGL_SOURCE
     egl/egl_client_config.c
     egl/egl_client_context.c
-@@ -55,19 +61,63 @@ set(CLIENT_SOURCE
+@@ -55,12 +61,56 @@ set(CLIENT_SOURCE
     common/khrn_int_hash_asm.s
     common/khrn_client_cache.c)
  
@@ -218,11 +218,13 @@ index 4231af4..7506e5c 100644
  # TODO do we need EGL_static and GLESv2_static now that khrn_static exists?
  add_library(EGL_static STATIC ${EGL_SOURCE})
  add_library(GLESv2_static STATIC ${GLES_SOURCE})
- add_library(khrn_static STATIC
-    ${EGL_SOURCE} ${GLES_SOURCE} ${VG_SOURCE} ${WFC_SOURCE} ${CLIENT_SOURCE})
- 
--target_link_libraries(EGL khrn_client vchiq_arm vcos bcm_host -lm)
-+target_link_libraries(EGL ${EGL_LIBS})
+@@ -72,8 +122,7 @@ include_directories (../../host_applications/linux/libs/sm )
+ set(VCSM_LIBS vcsm)
+ add_definitions(-DKHRONOS_HAVE_VCSM)
+ endif()
+-
+-target_link_libraries(EGL khrn_client vchiq_arm vcos bcm_host ${VCSM_LIBS} -lm)
++target_link_libraries(EGL ${EGL_LIBS} ${VCSM_LIBS})
  target_link_libraries(GLESv2 EGL khrn_client vcos)
  target_link_libraries(WFC EGL)
  target_link_libraries(OpenVG EGL)
@@ -1883,5 +1885,5 @@ index 0000000..ad90d30
 +    set(${_sources} ${${_sources}} PARENT_SCOPE)
 +endfunction()
 -- 
-2.10.0
+2.10.2
 

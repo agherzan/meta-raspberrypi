@@ -8,7 +8,6 @@ SRC_URI_append_rpi = " \
              file://0003-no-timeout-on-get-state.patch \
              file://0004-Properly-handle-drain-requests-while-flushing.patch \
              file://0005-Don-t-abort-gst_omx_video_dec_set_format-if-there-s-.patch \
-             file://0006-omxvideodec-unref-allocator-after-getting-it-from-al.patch \
 "
 
-FILESEXTRAPATHS_prepend := "${THISDIR}/gstreamer1.0-omx-1.2.0:"
+FILESEXTRAPATHS_prepend := "${THISDIR}/gstreamer1.0-omx-1.10:"

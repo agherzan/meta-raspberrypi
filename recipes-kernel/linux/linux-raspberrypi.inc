@@ -32,8 +32,8 @@ KERNEL_MODULE_AUTOLOAD += "${@bb.utils.contains("MACHINE_FEATURES", "pitft28r", 
 # Set programmatically some variables during recipe parsing
 # See http://www.yoctoproject.org/docs/current/bitbake-user-manual/bitbake-user-manual.html#anonymous-python-functions
 python __anonymous () {
-    kerneltype = d.getVar('KERNEL_IMAGETYPE', True)
-    kerneldt = get_dts(d, d.getVar('LINUX_VERSION', True))
+    kerneltype = d.getVar('KERNEL_IMAGETYPE')
+    kerneldt = get_dts(d, d.getVar('LINUX_VERSION'))
     d.setVar("KERNEL_DEVICETREE", kerneldt)
 }
 

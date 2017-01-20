@@ -13,12 +13,13 @@ XSERVER = " \
     ${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", "xf86-video-modesetting", "xf86-video-fbdev", d)} \
     "
 
-# Really supported starting from linux-raspberrypi 3.18.y only
 KERNEL_DEVICETREE ?= " \
     bcm2708-rpi-b.dtb \
     bcm2708-rpi-b-plus.dtb \
     bcm2709-rpi-2-b.dtb \
     bcm2710-rpi-3-b.dtb \
+    bcm2708-rpi-cm.dtb \
+    bcm2710-rpi-cm3.dtb \
     \
     overlays/hifiberry-amp.dtbo \
     overlays/hifiberry-dac.dtbo \

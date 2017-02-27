@@ -51,7 +51,37 @@ MACHINE_EXTRA_RRECOMMENDS += " kernel-modules"
 # Set Raspberrypi splash image
 SPLASH = "psplash-raspberrypi"
 
-IMAGE_BOOT_FILES ?= "bcm2835-bootfiles/* ${KERNEL_IMAGETYPE};${SDIMG_KERNELIMAGE}"
+def make_dtb_boot_files(d):
+    # Generate IMAGE_BOOT_FILES entries for device tree files listed in
+    # KERNEL_DEVICETREE.
+    alldtbs = d.getVar('KERNEL_DEVICETREE')
+    imgtyp = d.getVar('KERNEL_IMAGETYPE')
+
+    def transform(dtb):
+        if dtb.endswith('dtb'):
+            # eg: bcm2708-rpi-b.dtb has:
+            #     DEPLOYDIR file: ${KERNEL_IMAGETYPE}-bcm2708-rpi-b.dtb
+            #     destination: bcm2708-rpi-b.dtb
+            src = '{}-{}'.format(imgtyp, dtb)
+            dst = dtb
+            return '{};{}'.format(src, dst)
+        elif dtb.endswith('dtbo'):
+            # overlay dtb:
+            # eg: overlays/hifiberry-amp.dtbo has:
+            #     DEPLOYDIR file: ${KERNEL_IMAGETYPE}-hifiberry-amp.dtbp
+            #     destination: overlays/hifiberry-amp.dtbo
+            base = os.path.basename(dtb)
+            src = '{}-{}'.format(imgtyp, base)
+            dst = dtb
+            return '{};{}'.format(src, dtb)
+
+    return ' '.join([transform(dtb) for dtb in alldtbs.split(' ') if dtb])
+
+
+IMAGE_BOOT_FILES ?= "bcm2835-bootfiles/* \
+                 ${@make_dtb_boot_files(d)} \
+                 ${KERNEL_IMAGETYPE};${SDIMG_KERNELIMAGE} \
+                 "
 
 # The kernel image is installed into the FAT32 boot partition and does not need
 # to also be installed into the rootfs.

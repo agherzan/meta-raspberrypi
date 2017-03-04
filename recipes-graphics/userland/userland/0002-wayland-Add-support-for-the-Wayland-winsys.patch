@@ -1,7 +1,7 @@
-From e3d2d0007e1c6c32ab7d9a28f1e399d42b511333 Mon Sep 17 00:00:00 2001
+From 5f9e011a6c15b3a05b3be412d7ba5c1077ececf1 Mon Sep 17 00:00:00 2001
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Date: Tue, 1 Oct 2013 13:19:20 +0200
-Subject: [PATCH 02/12] wayland: Add support for the Wayland winsys
+Subject: [PATCH 02/13] wayland: Add support for the Wayland winsys
 
 * Adds EGL_WL_bind_wayland_display extension
 * Adds wayland-egl library
@@ -68,7 +68,7 @@ index 4a88665..5da71a9 100644
 +
 +*~
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 98252c3..d6ae907 100644
+index cfc8ae5..673a5ad 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -24,6 +24,17 @@ include(makefiles/cmake/global_settings.cmake)
@@ -1542,7 +1542,7 @@ index 0000000..8bafc15
 +Libs: -L${libdir} -lwayland-egl
 +Cflags: -I${includedir}
 diff --git a/interface/vmcs_host/CMakeLists.txt b/interface/vmcs_host/CMakeLists.txt
-index 0b3adc9..f44d01f 100755
+index fde18da..6718215 100755
 --- a/interface/vmcs_host/CMakeLists.txt
 +++ b/interface/vmcs_host/CMakeLists.txt
 @@ -9,13 +9,24 @@ add_definitions(-fno-strict-aliasing)
@@ -1551,12 +1551,12 @@ index 0b3adc9..f44d01f 100755
  
 -add_library(vchostif
 -            ${VMCS_TARGET}/vcfilesys.c ${VMCS_TARGET}/vcmisc.c
--            vc_vchi_gencmd.c vc_vchi_filesys.c
+-            vc_vchi_gencmd.c vc_vchi_filesys.c vc_vchi_gpuserv.c
 -            vc_vchi_tvservice.c vc_vchi_cecservice.c
 -            vc_vchi_dispmanx.c vc_service_common.c)
 +set(VCHOSTIF_SOURCE
 +    ${VMCS_TARGET}/vcfilesys.c ${VMCS_TARGET}/vcmisc.c
-+    vc_vchi_gencmd.c vc_vchi_filesys.c
++    vc_vchi_gencmd.c vc_vchi_filesys.c vc_vchi_gpuserv.c
 +    vc_vchi_tvservice.c vc_vchi_cecservice.c
 +    vc_vchi_dispmanx.c vc_service_common.c)
  #            ${VMCS_TARGET}/vmcs_main.c
@@ -1885,5 +1885,5 @@ index 0000000..ad90d30
 +    set(${_sources} ${${_sources}} PARENT_SCOPE)
 +endfunction()
 -- 
-2.10.2
+2.12.0
 

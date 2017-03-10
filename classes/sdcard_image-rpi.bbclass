@@ -107,7 +107,7 @@ IMAGE_CMD_rpi-sdimg () {
 		DT_ROOT="${@split_overlays(d, 1)}"
 
 		# Copy board device trees to root folder
-		for DTB in ${DT_ROOT}; do
+		for DTB in $DT_ROOT; do
 			DTB_BASE_NAME=`basename ${DTB} .dtb`
 
 			mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${DTB_BASE_NAME}.dtb ::${DTB_BASE_NAME}.dtb
@@ -115,7 +115,7 @@ IMAGE_CMD_rpi-sdimg () {
 
 		# Copy device tree overlays to dedicated folder
 		mmd -i ${WORKDIR}/boot.img overlays
-		for DTB in ${DT_OVERLAYS}; do
+		for DTB in $DT_OVERLAYS; do
 				DTB_EXT=${DTB##*.}
 				DTB_BASE_NAME=`basename ${DTB} ."${DTB_EXT}"`
 

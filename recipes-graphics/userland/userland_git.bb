@@ -10,7 +10,7 @@ PR = "r5"
 PROVIDES = "virtual/libgles2 \
             virtual/egl"
 
-RPROVIDES_${PN} += "libgles2 libgl"
+RPROVIDES_${PN} += "libgles2 egl"
 
 COMPATIBLE_MACHINE = "raspberrypi"
 

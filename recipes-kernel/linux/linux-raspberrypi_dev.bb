@@ -1,9 +1,10 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-4.9:"
 
 LINUX_VERSION ?= "4.10.0-rc8"
+LINUX_RPI_DEV_BRANCH ?= "rpi-4.10.y"
 
 SRCREV = "${AUTOREV}"
-SRC_URI = "git://github.com/raspberrypi/linux.git;protocol=git;branch=rpi-4.10.y \
+SRC_URI = "git://github.com/raspberrypi/linux.git;protocol=git;branch=${LINUX_RPI_DEV_BRANCH} \
 "
 require linux-raspberrypi.inc
 

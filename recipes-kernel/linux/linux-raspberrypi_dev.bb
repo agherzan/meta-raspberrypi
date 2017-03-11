@@ -1,10 +1,11 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-4.9:"
+FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-dev:"
 
 LINUX_VERSION ?= "4.10"
 LINUX_RPI_DEV_BRANCH ?= "rpi-4.10.y"
 
 SRCREV = "${AUTOREV}"
 SRC_URI = "git://github.com/raspberrypi/linux.git;protocol=git;branch=${LINUX_RPI_DEV_BRANCH} \
+           file://0001-build-arm64-Add-rules-for-.dtbo-files-for-dts-overla.patch \
 "
 require linux-raspberrypi.inc
 

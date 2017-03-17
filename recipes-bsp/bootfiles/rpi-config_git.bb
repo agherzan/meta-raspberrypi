@@ -110,6 +110,15 @@ do_deploy() {
         echo "# Enable VC4 Graphics" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "dtoverlay=vc4-kms-v3d,${VC4_CMA_SIZE}" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi
+    
+    # Recently the default clock rate for uart changed to 48 MHz. This is
+    # setup by boot firmware. This update has not been aligned in u-boot yet.
+    # Linux should be able to handle this since the firmware patches the dtb
+    # file.
+    #
+    # Override the default with the previous default which is 3 MHz. Until
+    # this has been also updated in u-boot.
+    sed -i '/#init_uart_clock/ c\init_uart_clock=3000000' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
 }
 
 do_deploy_append_raspberrypi3-64() {

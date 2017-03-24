@@ -29,7 +29,8 @@ Contents:
     3.L. Enable SPI bus
     3.M. Enable I2C
     3.N. Enable PiTFT support
-    3.O. Enable UART support
+    3.O. Misc. display
+    3.P. Enable UART support
 4. Extra apps
     4.A. omxplayer
 5. Board Configuration
@@ -241,9 +242,15 @@ List of currently supported models:
     - pitft22
     - pitft28r
 
-3.O. Enable UART
-===============
+3.O. Misc. display
+==================
+If you would like to use the Waveshare "C" 1024×600, 7 inch Capacitive Touch
+Screen LCD, HDMI interface (http://www.waveshare.com/7inch-HDMI-LCD-C.htm)
+Rev 2.1, please set the following in your local.conf
+WAVESHARE_1024X600_C_2.1 = "1"
 
+3.P. Enable UART
+===============
 RaspberryPi 1, 2 and CM will have UART console enabled by default.
 
 RaspberryPi 3 does not have the UART enabled by default because this needs a

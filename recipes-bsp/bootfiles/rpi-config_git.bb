@@ -112,7 +112,7 @@ do_deploy() {
     fi
 
     # Waveshare "C" 1024x600 7" Rev2.1 IPS capacitive touch (http://www.waveshare.com/7inch-HDMI-LCD-C.htm)
-    if [ "${WAVESHARE_1024X600_C_2.1}" = "1" ]; then
+    if [ "${WAVESHARE_1024X600_C_2_1}" = "1" ]; then
         echo "# Waveshare \"C\" 1024x600 7\" Rev2.1 IPS capacitive touch screen" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "max_usb_current=1" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "hdmi_group=2" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt

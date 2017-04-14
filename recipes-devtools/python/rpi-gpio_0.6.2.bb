@@ -10,8 +10,8 @@ SRC_URI = "\
           http://pypi.python.org/packages/source/R/RPi.GPIO/${SRCNAME}-${PV}.tar.gz \
           file://0001-Remove-nested-functions.patch \
           "
-SRC_URI[md5sum] = "254d0443a436eb241367c487274e7197"
-SRC_URI[sha256sum] = "54e5fb06d9ea1a1389a497fb5a06dfa950c86303b0f4ba89b68c55999d1df064"
+SRC_URI[md5sum] = "9db86fd5f3bae872de9dbb068ee0b096"
+SRC_URI[sha256sum] = "82acff0ef6bbe3cdf6f4dbdd73d96add5294bb94baf7f51c1d901861af3c2392"
 
 S = "${WORKDIR}/${SRCNAME}-${PV}"
 

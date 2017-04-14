@@ -78,6 +78,7 @@ b. Add needed layer to bblayers.conf:
 c. Set MACHINE in local.conf to one of the supported boards:
     - raspberrypi
     - raspberrypi0
+    - raspberrypi0-wifi
     - raspberrypi2
     - raspberrypi3
     - raspberrypi-cm (dummy alias for raspberrypi)
@@ -251,10 +252,10 @@ WAVESHARE_1024X600_C_2_1 = "1"
 
 3.P. Enable UART
 ===============
-RaspberryPi 1, 2 and CM will have UART console enabled by default.
+RaspberryPi 0, 1, 2 and CM will have UART console enabled by default.
 
-RaspberryPi 3 does not have the UART enabled by default because this needs a
-fixed core frequency and enable_uart wil set it to the minimum. Certain
+RaspberryPi 0 WiFi and 3 does not have the UART enabled by default because this
+needs a fixed core frequency and enable_uart wil set it to the minimum. Certain
 operations - 60fps h264 decode, high quality deinterlace - which aren't
 performed on the ARM may be affected, and we wouldn't want to do that to users
 who don't want to use the serial port. Users who want serial console support on

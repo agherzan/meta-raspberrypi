@@ -16,7 +16,7 @@ COMPATIBLE_MACHINE = "raspberrypi"
 
 SRCBRANCH = "master"
 SRCFORK = "raspberrypi"
-SRCREV = "cdb5da59f939eb4078e90ed0e3c231c498ba9957"
+SRCREV = "f0642e3b58d8a140a3f7621630c15fbfa794b19d"
 
 SRC_URI = "\
     git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \

@@ -1,4 +1,4 @@
-From 5f9e011a6c15b3a05b3be412d7ba5c1077ececf1 Mon Sep 17 00:00:00 2001
+From 61a9d792ed774af43e592aa8fdb2a18488696d0f Mon Sep 17 00:00:00 2001
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Date: Tue, 1 Oct 2013 13:19:20 +0200
 Subject: [PATCH 02/13] wayland: Add support for the Wayland winsys
@@ -102,7 +102,7 @@ index 358d2b4..4da4448 100644
 +
 +$ BUILD_WAYLAND=1 ./buildme.
 diff --git a/buildme b/buildme
-index 1061745..d0e6e54 100755
+index b8fd440..a780bb6 100755
 --- a/buildme
 +++ b/buildme
 @@ -8,6 +8,10 @@ fi
@@ -117,7 +117,7 @@ index 1061745..d0e6e54 100755
  	# Native compile on the Raspberry Pi
  	mkdir -p build/raspberry/$BUILDSUBDIR
 @@ -32,9 +36,13 @@ elif [ "$1" = "--native" ]; then
- 	make -j 6 $*
+ 	make -j `nproc` $*
  else
  	# Cross compile on a more capable machine
 +	if [ -n "$BUILD_WAYLAND" ]; then
@@ -128,7 +128,7 @@ index 1061745..d0e6e54 100755
  	pushd build/arm-linux/$BUILDSUBDIR
 -	cmake -DCMAKE_TOOLCHAIN_FILE=../../../makefiles/cmake/toolchains/arm-linux-gnueabihf.cmake -DCMAKE_BUILD_TYPE=$BUILDTYPE ../../..
 +	cmake -DCMAKE_TOOLCHAIN_FILE=../../../makefiles/cmake/toolchains/arm-linux-gnueabihf.cmake -DCMAKE_BUILD_TYPE=$BUILDTYPE $WAYLAND_VARS ../../..
- 	make -j 6
+ 	make -j `nproc`
  
  	if [ "$1" != "" ]; then
 diff --git a/host_applications/linux/apps/raspicam/CMakeLists.txt b/host_applications/linux/apps/raspicam/CMakeLists.txt
@@ -1604,7 +1604,7 @@ index 37fdae1..fe3619a 100755
  }
  #endif
 diff --git a/interface/vmcs_host/vc_vchi_dispmanx.c b/interface/vmcs_host/vc_vchi_dispmanx.c
-index 133e86d..45f4cff 100755
+index 7a6cdcd..eab146e 100755
 --- a/interface/vmcs_host/vc_vchi_dispmanx.c
 +++ b/interface/vmcs_host/vc_vchi_dispmanx.c
 @@ -1319,3 +1319,45 @@ static void *dispmanx_notify_func( void *arg ) {
@@ -1885,5 +1885,5 @@ index 0000000..ad90d30
 +    set(${_sources} ${${_sources}} PARENT_SCOPE)
 +endfunction()
 -- 
-2.12.0
+2.12.2
 

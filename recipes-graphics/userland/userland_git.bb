@@ -33,6 +33,7 @@ SRC_URI = "\
     file://0011-build-shared-library-for-vchostif.patch \
     file://0012-implement-buffer-wrapping-interface-for-dispmanx.patch \
     file://0013-Implement-triple-buffering-for-wayland.patch \
+    file://0014-GLES2-gl2ext.h-Define-GL_R8_EXT-and-GL_RG8_EXT.patch \
 "
 S = "${WORKDIR}/git"
 

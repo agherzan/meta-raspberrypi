@@ -41,8 +41,9 @@ Yocto BSP layer for the Raspberry Pi boards - http://www.raspberrypi.org/ .
     5.A. Audio Routing
 6. Source code and mirrors
 7. Contribution
-    7.A. Mailing List
-    7.B. Github Issues
+    7.A. Mailing list
+    7.B. Patches and pull requests
+    7.C. Github Issues
 8. Maintainers
 ```
 
@@ -268,14 +269,15 @@ The main communication tool we use is a mailing list:
 
 Feel free to ask any kind of questions but always prepend your email subject with "[meta-raspberrypi]". This is because we use the 'yocto' mailing list and not a perticular 'meta-raspberrypi' mailing list.
 
-To contribute to this layer you should send the patches for review to the above specified mailing list.
-The patches should be compliant with the openembedded patch guidelines: http://www.openembedded.org/wiki/Commit_Patch_Message_Guidelines
+#### 7.B. Patches and pull requests
+All the contributions should be compliant with the openembedded patch guidelines: http://www.openembedded.org/wiki/Commit_Patch_Message_Guidelines
 
+To contribute to this project you should send pull requests to the github mirror (https://github.com/agherzan/meta-raspberrypi). **Additionally** you can send the patches for review to the above specified mailing list.
 
-When creating patches, please use something like:
+When creating patches for the mailing list, please use something like:
 `git format-patch -s --subject-prefix='meta-raspberrypi][PATCH' origin`
 
-When sending patches to mailing list, please use something like:
+When sending patches to the mailing list, please use something like:
 `git send-email --to yocto@yoctoproject.org <generated patch>`
 
 #### 7.B. Github issues

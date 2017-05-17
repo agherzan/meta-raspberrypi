@@ -1,7 +1,7 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-dev:"
 
-LINUX_VERSION ?= "4.10"
-LINUX_RPI_DEV_BRANCH ?= "rpi-4.10.y"
+LINUX_VERSION ?= "4.11"
+LINUX_RPI_DEV_BRANCH ?= "rpi-4.11.y"
 
 SRCREV = "${AUTOREV}"
 SRC_URI = "git://github.com/raspberrypi/linux.git;protocol=git;branch=${LINUX_RPI_DEV_BRANCH} \

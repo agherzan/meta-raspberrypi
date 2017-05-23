@@ -20,16 +20,17 @@ Accommodate the values above to your own needs (ex: ext3 / ext4).
 
 ## GPU memory
 
-| Variable       | Details                                                             |
-|----------------|---------------------------------------------------------------------|
-| `GPU_MEM`      | GPU memory in megabyte. Sets the memory split between the ARM and   |
-|                | GPU. ARM gets the remaining memory. Min 16. Default 64.             |
-| `GPU_MEM_256`  | GPU memory in megabyte for the 256MB Raspberry Pi. Ignored by the   |
-|                | 512MB RP. Overrides gpu_mem. Max 192. Default not set.              |
-| `GPU_MEM_512`  | GPU memory in megabyte for the 512MB Raspberry Pi. Ignored by the   |
-|                | 256MB RP. Overrides gpu_mem. Max 448. Default not set.              |
-| `GPU_MEM_1024` | GPU memory in megabyte for the 1024MB Raspberry Pi. Ignored by the  |
-|                | 256MB/512MB RP. Overrides gpu_mem. Max 944. Default not set.        |
+* `GPU_MEM`: GPU memory in megabyte. Sets the memory split between the ARM and
+  GPU. ARM gets the remaining memory. Min 16. Default 64.
+
+* `GPU_MEM_256`: GPU memory in megabyte for the 256MB Raspberry Pi. Ignored by
+  the 512MB RP. Overrides gpu_mem. Max 192. Default not set.
+
+* `GPU_MEM_512`: GPU memory in megabyte for the 512MB Raspberry Pi. Ignored by
+  the 256MB RP. Overrides gpu_mem. Max 448. Default not set.
+
+* `GPU_MEM_1024`: GPU memory in megabyte for the 1024MB Raspberry Pi. Ignored by
+  the 256MB/512MB RP. Overrides gpu_mem. Max 944. Default not set.
 
 ## Add purchased license codecs
 

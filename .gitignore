@@ -4,3 +4,4 @@ build*
 *.orig
 *.rej
 *.log
+docs/_build

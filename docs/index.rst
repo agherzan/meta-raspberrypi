@@ -11,6 +11,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   readme
    layer-contents
    extra-build-config
    extra-apps

@@ -120,19 +120,6 @@ To build an initramfs image:
 * Set the meta-rasberrypi variable (in raspberrypi.conf for example)
   - `KERNEL_INITRAMFS = "-initramfs"`
 
-## Device tree support
-
-Device tree for RPi is only supported when using linux-raspberrypi 3.18+
-kernels.
-
-* Set `KERNEL_DEVICETREE` (in conf/machine/raspberrypi.conf)
-  - the trailer is added to the kernel image before kernel install task. While
-    creating the SDCard image, this modified kernel is put on boot partition (as
-    kernel.img) as well as DeviceTree blobs (.dtb files).
-
-NOTE: `KERNEL_DEVICETREE` is default enabled for kernel >= 3.18 and always
-disabled for older kernel versions.
-
 ## Enable SPI bus
 
 When using device tree kernels, set this variable to enable the SPI bus:

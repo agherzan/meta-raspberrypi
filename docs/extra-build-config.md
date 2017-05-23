@@ -8,13 +8,13 @@ specific to it. For the rest please check:
 ## Compressed deployed files
 
 1. Overwrite IMAGE_FSTYPES in local.conf
-  * `IMAGE_FSTYPES = "tar.bz2 ext3.xz"`
+    * `IMAGE_FSTYPES = "tar.bz2 ext3.xz"`
 
 2. Overwrite SDIMG_ROOTFS_TYPE in local.conf
-  * `SDIMG_ROOTFS_TYPE = "ext3.xz"`
+    * `SDIMG_ROOTFS_TYPE = "ext3.xz"`
 
 3. Overwrite SDIMG_COMPRESSION in local.conf
-  * `SDIMG_COMPRESSION = "xz"`
+    * `SDIMG_COMPRESSION = "xz"`
 
 Accommodate the values above to your own needs (ex: ext3 / ext4).
 
@@ -36,22 +36,22 @@ Accommodate the values above to your own needs (ex: ext3 / ext4).
 
 To add you own licenses use variables `KEY_DECODE_MPG2` and `KEY_DECODE_WVC1` in
 local.conf. Example:
-```
-KEY_DECODE_MPG2 = "12345678"
-KEY_DECODE_WVC1 = "12345678"
-```
+
+    KEY_DECODE_MPG2 = "12345678"
+    KEY_DECODE_WVC1 = "12345678"
 
 You can supply more licenses separated by comma. Example:
-```
-KEY_DECODE_WVC1 = "0x12345678,0xabcdabcd,0x87654321"
-```
+
+    KEY_DECODE_WVC1 = "0x12345678,0xabcdabcd,0x87654321"
+
 
 ## Disable overscan
 
 By default the GPU adds a black border around the video output to compensate for
 TVs which cut off part of the image. To disable this set this variable in
 local.conf:
-`DISABLE_OVERSCAN = "1"`
+
+    DISABLE_OVERSCAN = "1"
 
 ## Set overclocking options
 
@@ -59,23 +59,24 @@ The Raspberry PI can be overclocked. As of now overclocking up to the "Turbo
 Mode" is officially supported by the raspbery and does not void warranty. Check
 the config.txt for a detailed description of options and modes. Example turbo
 mode:
-```
-ARM_FREQ = "1000"
-CORE_FREQ = "500"
-SDRAM_FREQ = "500"
-OVER_VOLTAGE = "6"
-```
+
+    ARM_FREQ = "1000"
+    CORE_FREQ = "500"
+    SDRAM_FREQ = "500"
+    OVER_VOLTAGE = "6"
 
 ## Video camera support with V4L2 drivers
 
 Set this variable to enable support for the video camera (Linux 3.12.4+
-required)
-`VIDEO_CAMERA = "1"`
+required):
+
+    VIDEO_CAMERA = "1"
 
 ## Enable offline compositing support
 
 Set this variable to enable support for dispmanx offline compositing:
-`DISPMANX_OFFLINE = "1"`
+
+    DISPMANX_OFFLINE = "1"
 
 This will enable the firmware to fall back to off-line compositing of Dispmanx
 elements. Normally the compositing is done on-line, during scanout, but cannot
@@ -91,12 +92,14 @@ See: <http://wayland.freedesktop.org/raspberrypi.html>
 
 To add the kdbg over console (kgdboc) parameter to the kernel command line, set
 this variable in local.conf:
-`ENABLE_KGDB = "1"`
+
+    ENABLE_KGDB = "1"
 
 ## Boot to U-Boot
 
 To have u-boot load kernel image, set in your local.conf:
-`KERNEL_IMAGETYPE = "uImage"`
+
+    KERNEL_IMAGETYPE = "uImage"
 
 This will make kernel.img be u-boot image which will load uImage. By default,
 kernel.img is the actual kernel image (ex. Image).
@@ -133,12 +136,14 @@ disabled for older kernel versions.
 ## Enable SPI bus
 
 When using device tree kernels, set this variable to enable the SPI bus:
-`ENABLE_SPI_BUS = "1"`
+
+    ENABLE_SPI_BUS = "1"
 
 ## Enable I2C
 
 When using device tree kernels, set this variable to enable I2C:
-`ENABLE_I2C = "1"`
+
+    ENABLE_I2C = "1"
 
 ## Enable PiTFT support
 
@@ -154,7 +159,8 @@ and specified as well (dtoverlay=<driver> in config.txt).
 
 Below is a list of currently supported PiTFT models in meta-raspberrypi, the
 modelname should be added as a MACHINE_FEATURES in local.conf like below:
-`MACHINE_FEATURES += "pitft <modelname>"`
+
+    MACHINE_FEATURES += "pitft <modelname>"
 
 List of currently supported models:
 * pitft22
@@ -166,7 +172,8 @@ List of currently supported models:
 If you would like to use the Waveshare "C" 1024×600, 7 inch Capacitive Touch
 Screen LCD, HDMI interface (<http://www.waveshare.com/7inch-HDMI-LCD-C.htm>) Rev
 2.1, please set the following in your local.conf:
-`WAVESHARE_1024X600_C_2_1 = "1"`
+
+    WAVESHARE_1024X600_C_2_1 = "1"
 
 ## Enable UART
 
@@ -177,7 +184,9 @@ needs a fixed core frequency and enable_uart wil set it to the minimum. Certain
 operations - 60fps h264 decode, high quality deinterlace - which aren't
 performed on the ARM may be affected, and we wouldn't want to do that to users
 who don't want to use the serial port. Users who want serial console support on
-RaspberryPi3 will have to explicitely set in local.conf: `ENABLE_UART = "1"`.
+RaspberryPi3 will have to explicitely set in local.conf:
+
+    ENABLE_UART = "1"
 
 Ref.:
 * <https://github.com/raspberrypi/firmware/issues/553>

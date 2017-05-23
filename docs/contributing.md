@@ -20,10 +20,12 @@ To contribute to this project you should send pull requests to the github mirror
 the patches for review to the above specified mailing list.
 
 When creating patches for the mailing list, please use something like:
-`git format-patch -s --subject-prefix='meta-raspberrypi][PATCH' origin`
+
+    git format-patch -s --subject-prefix='meta-raspberrypi][PATCH' origin
 
 When sending patches to the mailing list, please use something like:
-`git send-email --to yocto@yoctoproject.org <generated patch>`
+
+    git send-email --to yocto@yoctoproject.org <generated patch>
 
 ## Github issues
 

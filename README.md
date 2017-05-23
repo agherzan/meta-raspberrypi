@@ -1,6 +1,6 @@
 # meta-raspberrypi
 
-Yocto BSP layer for the Raspberry Pi boards - http://www.raspberrypi.org/ .
+Yocto BSP layer for the Raspberry Pi boards - <http://www.raspberrypi.org/>.
 
 [![Build Status](https://yocto-ci.resin.io/job/meta-raspberrypi1/badge/icon)](https://yocto-ci.resin.io/job/meta-raspberrypi1)
 [![Build Status](https://yocto-ci.resin.io/job/meta-raspberrypi2/badge/icon)](https://yocto-ci.resin.io/job/meta-raspberrypi2)
@@ -9,15 +9,17 @@ Yocto BSP layer for the Raspberry Pi boards - http://www.raspberrypi.org/ .
 
 ## Quick links
 
-* Git repository web frontend: http://git.yoctoproject.org/cgit/cgit.cgi/meta-raspberrypi/
-* Mailing list (yocto mailing list): yocto@yoctoproject.org
-* Issues management (Github Issues): https://github.com/agherzan/meta-raspberrypi/issues
+* Git repository web frontend:
+  <http://git.yoctoproject.org/cgit/cgit.cgi/meta-raspberrypi/>
+* Mailing list (yocto mailing list): <yocto@yoctoproject.org>
+* Issues management (Github Issues):
+  <https://github.com/agherzan/meta-raspberrypi/issues>
 
 ## Description
 
 This is the general hardware specific BSP overlay for the RaspberryPi device.
 
-More information can be found at: http://www.raspberrypi.org/ (Official Site)
+More information can be found at: <http://www.raspberrypi.org/> (Official Site)
 
 The core BSP part of meta-raspberrypi should work with different
 OpenEmbedded/Yocto distributions and layer stacks, such as:

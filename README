@@ -320,11 +320,12 @@ Feel free to ask any kind of questions but always prepend your email subject
 with "[meta-raspberrypi]". This is because we use the 'yocto' mailing list and
 not a perticular 'meta-raspberrypi' mailing list.
 
-To contribute to this layer you should send the patches for review to the
-above specified mailing list.
-The patches should be compliant with the openembedded patch guidelines:
-http://www.openembedded.org/wiki/Commit_Patch_Message_Guidelines
+7.B. Patches and pull requests
+==============================
 
+To contribute to this project you should send pull requests to the github mirror
+(<https://github.com/agherzan/meta-raspberrypi>). **Additionally** you can send
+the patches for review to the above specified mailing list.
 
 When creating patches, please use something like:
 
@@ -334,7 +335,7 @@ When sending patches to mailing list, please use something like:
 
     git send-email --to yocto@yoctoproject.org <generated patch>
 
-7.B. Github issues
+7.C. Github issues
 ==================
 In order to manage and trace the meta-raspberrypi issues, we use github issues:
     https://github.com/agherzan/meta-raspberrypi/issues

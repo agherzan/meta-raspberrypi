@@ -1,4 +1,4 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-dev:"
+FILESEXTRAPATHS_prepend := "${THISDIR}/linux-raspberrypi:"
 
 LINUX_VERSION ?= "4.11"
 LINUX_RPI_DEV_BRANCH ?= "rpi-4.11.y"

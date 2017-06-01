@@ -1,3 +1,10 @@
+python __anonymous() {
+    if "linux-raspberrypi-dev" not in d.getVar("PREFERRED_PROVIDER_virtual/kernel"):
+        msg = "Skipping linux-raspberrypi-dev as it is not the preferred " + \
+              "provider of virtual/kernel."
+        raise bb.parse.SkipRecipe(msg)
+}
+
 FILESEXTRAPATHS_prepend := "${THISDIR}/linux-raspberrypi:"
 
 LINUX_VERSION ?= "4.11"

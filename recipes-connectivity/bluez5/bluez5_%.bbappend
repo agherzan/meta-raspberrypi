@@ -1,6 +1,6 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
-SRC_URI_append_raspberrypi3 = " \
+SRC_URI_append = " \
     file://BCM43430A1.hcd \
     file://0001-bcm43xx-Add-bcm43xx-3wire-variant.patch \
     file://0002-bcm43xx-The-UART-speed-must-be-reset-after-the-firmw.patch \
@@ -9,7 +9,7 @@ SRC_URI_append_raspberrypi3 = " \
     file://brcm43438.service \
     "
 
-do_install_append_raspberrypi3() {
+do_install_append() {
     install -d ${D}/lib/firmware/brcm/
     install -m 0644 ${WORKDIR}/BCM43430A1.hcd ${D}/lib/firmware/brcm/BCM43430A1.hcd
 
@@ -19,8 +19,8 @@ do_install_append_raspberrypi3() {
     fi
 }
 
-FILES_${PN}_append_raspberrypi3 = " \
+FILES_${PN}_append = " \
     /lib/firmware/brcm/BCM43430A1.hcd \
     "
 
-SYSTEMD_SERVICE_${PN}_append_raspberrypi3 = " brcm43438.service"
+SYSTEMD_SERVICE_${PN}_append = " brcm43438.service"

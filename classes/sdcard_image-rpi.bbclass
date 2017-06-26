@@ -72,6 +72,10 @@ SDIMG = "${IMGDEPLOYDIR}/${IMAGE_NAME}.rootfs.rpi-sdimg"
 # Additional files and/or directories to be copied into the vfat partition from the IMAGE_ROOTFS.
 FATPAYLOAD ?= ""
 
+# SD card vfat partition image name
+SDIMG_VFAT = "${IMGDEPLOYDIR}/${IMAGE_NAME}.vfat"
+SDIMG_LINK_VFAT = "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.vfat"
+
 IMAGE_CMD_rpi-sdimg () {
 
 	# Align partitions
@@ -144,6 +148,16 @@ IMAGE_CMD_rpi-sdimg () {
 	# Add stamp file
 	echo "${IMAGE_NAME}" > ${WORKDIR}/image-version-info
 	mcopy -i ${WORKDIR}/boot.img -v ${WORKDIR}/image-version-info ::
+
+        # Deploy vfat partition (for u-boot case only)
+        case "${KERNEL_IMAGETYPE}" in
+        "uImage")
+                cp ${WORKDIR}/boot.img ${SDIMG_VFAT}
+                ln -sf ${SDIMG_VFAT} ${SDIMG_LINK_VFAT}
+                ;;
+        *)
+                ;;
+        esac
 
 	# Burn Partitions
 	dd if=${WORKDIR}/boot.img of=${SDIMG} conv=notrunc seek=1 bs=$(expr ${IMAGE_ROOTFS_ALIGNMENT} \* 1024) && sync && sync

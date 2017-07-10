@@ -95,6 +95,12 @@ this variable in local.conf:
 
     ENABLE_KGDB = "1"
 
+## Disable rpi boot logo
+
+To disable rpi boot logo, set this variable in local.conf:
+
+    DISABLE_RPI_BOOT_LOGO = "1"
+
 ## Boot to U-Boot
 
 To have u-boot load kernel image, set in your local.conf:

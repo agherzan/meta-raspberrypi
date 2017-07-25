@@ -1,4 +1,4 @@
-From e3df3fec01aefac3ec301f6f3d5ec3e91652b9c5 Mon Sep 17 00:00:00 2001
+From eb9d0eb386b9b3df519a299887b45962c03e732c Mon Sep 17 00:00:00 2001
 From: Khem Raj <raj.khem@gmail.com>
 Date: Mon, 10 Aug 2015 02:38:27 -0700
 Subject: [PATCH 04/13] wayland-egl: Add bcm_host to dependencies
@@ -24,5 +24,5 @@ index 8bafc15..fd259c9 100644
  Libs: -L${libdir} -lwayland-egl
  Cflags: -I${includedir}
 -- 
-2.9.0
+2.12.0
 

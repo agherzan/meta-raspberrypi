@@ -10,13 +10,13 @@ PR = "r5"
 PROVIDES = "virtual/libgles2 \
             virtual/egl"
 
-RPROVIDES_${PN} += "libgles2 libgl"
+RPROVIDES_${PN} += "libgles2 egl"
 
 COMPATIBLE_MACHINE = "raspberrypi"
 
 SRCBRANCH = "master"
 SRCFORK = "raspberrypi"
-SRCREV = "0147f98bdd4fdc822d25d8a70cf5adc5adb89096"
+SRCREV = "50d3cb5f4ee95a9513bb9f94d661947e9e6ac085"
 
 SRC_URI = "\
     git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \
@@ -29,18 +29,25 @@ SRC_URI = "\
     file://0007-initialize-front-back-wayland-buffers.patch \
     file://0008-Remove-RPC_FLUSH.patch \
     file://0009-fix-cmake-dependency-race.patch \
-    file://0010-Fix-enum-conversion-warnings.patch \
-    file://0011-Fix-for-framerate-with-nested-composition.patch \
-    file://0012-build-shared-library-for-vchostif.patch \
-    file://0013-implement-buffer-wrapping-interface-for-dispmanx.patch \
+    file://0010-Fix-for-framerate-with-nested-composition.patch \
+    file://0011-build-shared-library-for-vchostif.patch \
+    file://0012-implement-buffer-wrapping-interface-for-dispmanx.patch \
+    file://0013-Implement-triple-buffering-for-wayland.patch \
+    file://0014-GLES2-gl2ext.h-Define-GL_R8_EXT-and-GL_RG8_EXT.patch \
+    file://0015-EGL-glplatform.h-define-EGL_CAST.patch \
 "
 S = "${WORKDIR}/git"
 
 inherit cmake pkgconfig
 
+ASNEEDED = ""
+
 EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS='-Wl,--no-as-needed' \
                  -DVMCS_INSTALL_PREFIX=${exec_prefix} \
 "
+
+EXTRA_OECMAKE_append_aarch64 = " -DARM64=ON "
+
 
 PACKAGECONFIG ?= "${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)}"
 

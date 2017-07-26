@@ -1,7 +1,7 @@
 SUMMARY = "U-boot boot scripts for Raspberry Pi"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384361b4de20420"
-COMPATIBLE_MACHINE = "rpi"
+COMPATIBLE_MACHINE = "^rpi$"
 
 DEPENDS = "u-boot-mkimage-native"
 

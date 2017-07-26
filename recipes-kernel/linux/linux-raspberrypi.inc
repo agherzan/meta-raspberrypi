@@ -10,7 +10,7 @@ SRC_URI += " \
         file://defconfig \
         "
 
-COMPATIBLE_MACHINE = "raspberrypi"
+COMPATIBLE_MACHINE = "^rpi$"
 
 PE = "1"
 PV = "${LINUX_VERSION}+git${SRCPV}"

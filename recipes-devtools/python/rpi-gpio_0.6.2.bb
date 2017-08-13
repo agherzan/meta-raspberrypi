@@ -17,5 +17,5 @@ S = "${WORKDIR}/${SRCNAME}-${PV}"
 
 inherit distutils
 
-COMPATIBLE_MACHINE = "raspberrypi"
+COMPATIBLE_MACHINE = "^rpi$"
 

@@ -1,23 +1,18 @@
-From 4ed727aa9e528f130fdc8798df771037a1f22fc9 Mon Sep 17 00:00:00 2001
-From: Andrea Galbusera <gizero@gmail.com>
-Date: Mon, 3 Apr 2017 14:48:14 +0200
-Subject: [PATCH] =?UTF-8?q?Add=20initial=20cross=20compile=20support=20(re?=
- =?UTF-8?q?base=20from=20Petter=20Mab=C3=A4cker=20<petter@technux.se>=20ve?=
- =?UTF-8?q?rsion)?=
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From ca25788e2563bad0d554deb9f4300d1e7d062825 Mon Sep 17 00:00:00 2001
+From: Aurelian Zanoschi <aurelian17@gmail.com>
+Date: Mon, 31 Jul 2017 20:25:15 +0300
+Subject: [PATCH] Add initial cross compile support
 
 ---
  devLib/Makefile             | 54 +++++++++++++++++++++++++--------------------
- examples/Gertboard/Makefile | 20 +++++++++++------
- examples/Makefile           | 20 +++++++++++------
- examples/PiFace/Makefile    | 20 +++++++++++------
+ examples/Gertboard/Makefile | 22 +++++++++++-------
+ examples/Makefile           | 22 +++++++++++-------
+ examples/PiFace/Makefile    | 22 +++++++++++-------
  examples/PiGlow/Makefile    |  4 ++--
  examples/q2w/Makefile       |  4 ++--
  gpio/Makefile               | 29 ++++++++++++------------
- wiringPi/Makefile           | 50 +++++++++++++++++++++++------------------
- 8 files changed, 116 insertions(+), 85 deletions(-)
+ wiringPi/Makefile           | 52 ++++++++++++++++++++++++-------------------
+ 8 files changed, 120 insertions(+), 89 deletions(-)
 
 diff --git a/devLib/Makefile b/devLib/Makefile
 index cf665d6..040c03a 100644
@@ -132,11 +127,12 @@ index 1939ad6..98d1415 100644
 -CC	= gcc
 -INCLUDE	= -I/usr/local/include
 -CFLAGS	= $(DEBUG) -Wall $(INCLUDE) -Winline -pipe
-+DESTDIR?=/usr
-+PREFIX?=/local
- 
+-
 -LDFLAGS	= -L/usr/local/lib
 -LDLIBS    = -lwiringPi -lwiringPiDev -lpthread -lm
++DESTDIR?=/usr
++PREFIX?=/local
++
 +INCLUDE_DIR?=$(DESTDIR)$(PREFIX)/include
 +LIB_DIR?=$(DESTDIR)$(PREFIX)/lib
 +
@@ -164,11 +160,12 @@ index 6d87885..8623816 100644
 -CC	= gcc
 -INCLUDE	= -I/usr/local/include
 -CFLAGS	= $(DEBUG) -Wall $(INCLUDE) -Winline -pipe
-+DESTDIR?=/usr
-+PREFIX?=/local
- 
+-
 -LDFLAGS	= -L/usr/local/lib
 -LDLIBS    = -lwiringPi -lwiringPiDev -lpthread -lm -lcrypt -lrt
++DESTDIR?=/usr
++PREFIX?=/local
++
 +INCLUDE_DIR?=$(DESTDIR)$(PREFIX)/include
 +LIB_DIR?=$(DESTDIR)$(PREFIX)/lib
 +
@@ -196,11 +193,12 @@ index f937c14..ad030b3 100644
 -CC	= gcc
 -INCLUDE	= -I/usr/local/include
 -CFLAGS	= $(DEBUG) -Wall $(INCLUDE) -Winline -pipe
-+DESTDIR?=/usr
-+PREFIX?=/local
- 
+-
 -LDFLAGS	= -L/usr/local/lib
 -LDLIBS    = -lwiringPi -lwiringPiDev -lpthread -lm
++DESTDIR?=/usr
++PREFIX?=/local
++
 +INCLUDE_DIR?=$(DESTDIR)$(PREFIX)/include
 +LIB_DIR?=$(DESTDIR)$(PREFIX)/lib
 +
@@ -305,10 +303,10 @@ index f41a005..22753ee 100644
  
  .PHONY:	depend
 diff --git a/wiringPi/Makefile b/wiringPi/Makefile
-index e1868b9..e39f75a 100644
+index e1868b9..750d290 100644
 --- a/wiringPi/Makefile
 +++ b/wiringPi/Makefile
-@@ -25,19 +25,23 @@ VERSION=$(shell cat ../VERSION)
+@@ -25,21 +25,25 @@ VERSION=$(shell cat ../VERSION)
  DESTDIR?=/usr
  PREFIX?=/local
  
@@ -336,19 +334,22 @@ index e1868b9..e39f75a 100644
 +CC	?= gcc
 +INCLUDE	?= -I.
  DEFS	= -D_GNU_SOURCE
- CFLAGS	= $(DEBUG) $(DEFS) -Wformat=2 -Wall -Wextra -Winline $(INCLUDE) -pipe -fPIC
+-CFLAGS	= $(DEBUG) $(DEFS) -Wformat=2 -Wall -Wextra -Winline $(INCLUDE) -pipe -fPIC
++CFLAGS	= $(DEBUG) $(DEFS) $(INCLUDE) -Wformat=2 -Wall -Wextra -Winline -pipe -fPIC
+ 
+ LIBS    = -lm -lpthread -lrt -lcrypt
  
 @@ -78,17 +82,17 @@ $(STATIC):	$(OBJ)
  
  $(DYNAMIC):	$(OBJ)
  	$Q echo "[Link (Dynamic)]"
 -	$Q $(CC) -shared -Wl,-soname,libwiringPi.so$(WIRINGPI_SONAME_SUFFIX) -o libwiringPi.so.$(VERSION) $(LIBS) $(OBJ)
-+	$Q $(CC) $(LDFLAGS) -shared -Wl,-soname,$(BASE_NAME).so.$(DYN_VERS_MAJ) -o $(BASE_NAME).so $(LIBS) $(OBJ)
++	$Q $(CC) $(LDFLAGS) -shared -Wl,-soname,$(BASE_NAME).so.$(DYN_VERS_MAJ) -o $(BASE_NAME).so $(OBJ) $(LIBS)
  
  .c.o:
  	$Q echo [Compile] $<
 -	$Q $(CC) -c $(CFLAGS) $< -o $@
-+	$Q $(CC) -c $(CFLAGS) -fPIC $< -o $@
++	$Q $(CC) $(CFLAGS) $(LIBS) -c $< -o $@
  
  
  .PHONY:	clean

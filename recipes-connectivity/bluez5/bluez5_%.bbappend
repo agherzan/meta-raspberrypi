@@ -25,6 +25,7 @@ BCM_BT_FIRMWARE =  " \
 
 BCM_BT_SERVICE =  " brcm43438.service"
 
+# for raspberrypi3
 SRC_URI_append_raspberrypi3 = " ${BCM_BT_SOURCES}"
 
 do_install_append_raspberrypi3() {
@@ -34,3 +35,14 @@ do_install_append_raspberrypi3() {
 FILES_${PN}_append_raspberrypi3 = " ${BCM_BT_FIRMWARE}"
 
 SYSTEMD_SERVICE_${PN}_append_raspberrypi3 = " ${BCM_BT_SERVICE}"
+
+# for raspberrypi0-wifi
+SRC_URI_append_raspberrypi0-wifi = " ${BCM_BT_SOURCES}"
+
+do_install_append_raspberrypi0-wifi() {
+    enable_bcm_bluetooth
+}
+
+FILES_${PN}_append_raspberrypi0-wifi = " ${BCM_BT_FIRMWARE}"
+
+SYSTEMD_SERVICE_${PN}_append_raspberrypi0-wifi = " ${BCM_BT_SERVICE}"

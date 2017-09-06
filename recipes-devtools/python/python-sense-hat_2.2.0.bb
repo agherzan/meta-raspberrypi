@@ -4,16 +4,12 @@ SECTION = "devel/python"
 LICENSE = "BSD"
 LIC_FILES_CHKSUM = "file://LICENCE.txt;md5=d80fe312e1ff5fbd97369b093bf21cda"
 
-SRCNAME = "sense-hat"
+inherit setuptools pypi
 
-SRC_URI = "https://pypi.python.org/packages/source/s/${SRCNAME}/${SRCNAME}-${PV}.tar.gz"
+PYPI_PACKAGE = "sense-hat"
 
-SRC_URI[md5sum] = "71217f15ea963040f06e2f50722186ca"
-SRC_URI[sha256sum] = "c6c76707c0ea514e4b0f1f96f1b5b79755875891aae037df7434b6aad7b9dbca"
-
-S = "${WORKDIR}/${SRCNAME}-${PV}"
-
-inherit setuptools
+SRC_URI[md5sum] = "69929250cb72349a8a82edf2584b1d83"
+SRC_URI[sha256sum] = "f000998d042d96ed722d459312e1bebd0107f9f3015cd34b3e4fabcab9c800af"
 
 DEPENDS += " \
     jpeg \

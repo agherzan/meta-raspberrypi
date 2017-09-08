@@ -1,5 +1,4 @@
 require linux-rpi.inc
-inherit linux-raspberrypi-base
 
 DESCRIPTION = "Linux Kernel for Raspberry Pi"
 SECTION = "kernel"

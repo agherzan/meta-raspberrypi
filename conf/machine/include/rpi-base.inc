@@ -87,6 +87,10 @@ IMAGE_BOOT_FILES ?= "bcm2835-bootfiles/* \
                     '${KERNEL_IMAGETYPE} u-boot.bin;${SDIMG_KERNELIMAGE} boot.scr', \
                     '${KERNEL_IMAGETYPE};${SDIMG_KERNELIMAGE}', d)} \
                  "
+do_image_wic[depends] += " \
+    bcm2835-bootfiles:do_deploy \
+    ${@bb.utils.contains('RPI_USE_U_BOOT', '1', 'u-boot:do_deploy', '',d)} \
+    "
 
 # The kernel image is installed into the FAT32 boot partition and does not need
 # to also be installed into the rootfs.

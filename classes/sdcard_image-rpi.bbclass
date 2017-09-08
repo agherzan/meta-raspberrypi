@@ -55,7 +55,7 @@ do_image_rpi_sdimg[depends] = " \
 			dosfstools-native:do_populate_sysroot \
 			virtual/kernel:do_deploy \
 			${IMAGE_BOOTLOADER}:do_deploy \
-			${@bb.utils.contains('KERNEL_IMAGETYPE', 'uImage', 'u-boot:do_deploy', '',d)} \
+			${@bb.utils.contains('RPI_USE_U_BOOT', '1', 'u-boot:do_deploy', '',d)} \
 			"
 
 # SD card image name
@@ -136,16 +136,13 @@ IMAGE_CMD_rpi-sdimg () {
 			mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${DTB_BASE_NAME}.${DTB_EXT} ::overlays/${DTB_BASE_NAME}.${DTB_EXT}
 		done
 	fi
-	case "${KERNEL_IMAGETYPE}" in
-	"uImage")
+        if [ "${RPI_USE_U_BOOT}" = "1" ]; then
 		mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/u-boot.bin ::${SDIMG_KERNELIMAGE}
-		mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}${KERNEL_INITRAMFS}-${MACHINE}.bin ::uImage
+		mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}${KERNEL_INITRAMFS}-${MACHINE}.bin ::${KERNEL_IMAGETYPE}
 		mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/boot.scr ::boot.scr
-		;;
-	*)
+	else
 		mcopy -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}${KERNEL_INITRAMFS}-${MACHINE}.bin ::${SDIMG_KERNELIMAGE}
-		;;
-	esac
+	fi
 
 	if [ -n ${FATPAYLOAD} ] ; then
 		echo "Copying payload into VFAT"
@@ -160,14 +157,10 @@ IMAGE_CMD_rpi-sdimg () {
 	mcopy -i ${WORKDIR}/boot.img -v ${WORKDIR}/image-version-info ::
 
         # Deploy vfat partition (for u-boot case only)
-        case "${KERNEL_IMAGETYPE}" in
-        "uImage")
+        if [ "${RPI_USE_U_BOOT}" = "1" ]; then
                 cp ${WORKDIR}/boot.img ${IMGDEPLOYDIR}/${SDIMG_VFAT}
                 ln -sf ${SDIMG_VFAT} ${SDIMG_LINK_VFAT}
-                ;;
-        *)
-                ;;
-        esac
+        fi
 
 	# Burn Partitions
 	dd if=${WORKDIR}/boot.img of=${SDIMG} conv=notrunc seek=1 bs=$(expr ${IMAGE_ROOTFS_ALIGNMENT} \* 1024) && sync && sync

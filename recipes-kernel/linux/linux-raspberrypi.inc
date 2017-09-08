@@ -41,6 +41,11 @@ KERNEL_INITRAMFS ?= '${@base_conditional("INITRAMFS_IMAGE_BUNDLE", "1", "1", "",
 
 KERNEL_MODULE_AUTOLOAD += "${@bb.utils.contains("MACHINE_FEATURES", "pitft28r", "stmpe-ts", "", d)}"
 
+# A LOADADDR is needed when building a uImage format kernel. This value is not
+# set by default in rpi-4.8.y and later branches so we need to provide it
+# manually. This value unused if KERNEL_IMAGETYPE is not uImage.
+KERNEL_EXTRA_ARGS += "LOADADDR=0x00008000"
+
 # Set a variable in .configure
 # $1 - Configure variable to be set
 # $2 - value [n/y/value]

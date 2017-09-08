@@ -1,5 +1,4 @@
 inherit image_types
-inherit linux-raspberrypi-base
 
 #
 # Create an image that can by written onto a SD card using dd.
@@ -75,6 +74,17 @@ FATPAYLOAD ?= ""
 # SD card vfat partition image name
 SDIMG_VFAT = "${IMAGE_NAME}.vfat"
 SDIMG_LINK_VFAT = "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.vfat"
+
+def split_overlays(d, out, ver=None):
+    dts = d.getVar("KERNEL_DEVICETREE")
+    if out:
+        overlays = oe.utils.str_filter_out('\S+\-overlay\.dtb$', dts, d)
+        overlays = oe.utils.str_filter_out('\S+\.dtbo$', overlays, d)
+    else:
+        overlays = oe.utils.str_filter('\S+\-overlay\.dtb$', dts, d) + \
+                   " " + oe.utils.str_filter('\S+\.dtbo$', dts, d)
+
+    return overlays
 
 IMAGE_CMD_rpi-sdimg () {
 

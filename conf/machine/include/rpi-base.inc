@@ -83,9 +83,9 @@ def make_dtb_boot_files(d):
 
 IMAGE_BOOT_FILES ?= "bcm2835-bootfiles/* \
                  ${@make_dtb_boot_files(d)} \
-                 ${@bb.utils.contains('KERNEL_IMAGETYPE', 'uImage', '${KERNEL_IMAGETYPE}', '${KERNEL_IMAGETYPE};${SDIMG_KERNELIMAGE}', d)} \
-                 ${@bb.utils.contains('KERNEL_IMAGETYPE', 'uImage', 'u-boot.bin;${SDIMG_KERNELIMAGE}', '', d)} \
-                 ${@bb.utils.contains('KERNEL_IMAGETYPE', 'uImage', 'boot.scr;boot.scr', '', d)} \
+                 ${@bb.utils.contains('KERNEL_IMAGETYPE', 'uImage', \
+                    '${KERNEL_IMAGETYPE} u-boot.bin;${SDIMG_KERNELIMAGE} boot.scr', \
+                    '${KERNEL_IMAGETYPE};${SDIMG_KERNELIMAGE}', d)} \
                  "
 
 # The kernel image is installed into the FAT32 boot partition and does not need

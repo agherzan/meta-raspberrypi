@@ -30,14 +30,6 @@ UDEV_GE_141 ?= "1"
 
 KERNEL_MODULE_AUTOLOAD += "${@bb.utils.contains("MACHINE_FEATURES", "pitft28r", "stmpe-ts", "", d)}"
 
-# Set programmatically some variables during recipe parsing
-# See http://www.yoctoproject.org/docs/current/bitbake-user-manual/bitbake-user-manual.html#anonymous-python-functions
-python __anonymous () {
-    kerneltype = d.getVar('KERNEL_IMAGETYPE')
-    kerneldt = get_dts(d, d.getVar('LINUX_VERSION'))
-    d.setVar("KERNEL_DEVICETREE", kerneldt)
-}
-
 do_compile_append_raspberrypi3-64() {
     cc_extra=$(get_cc_option)
     oe_runmake dtbs CC="${KERNEL_CC} $cc_extra " LD="${KERNEL_LD}" ${KERNEL_EXTRA_ARGS}

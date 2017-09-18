@@ -38,6 +38,11 @@ python __anonymous () {
     d.setVar("KERNEL_DEVICETREE", kerneldt)
 }
 
+do_compile_append_raspberrypi3-64() {
+    cc_extra=$(get_cc_option)
+    oe_runmake dtbs CC="${KERNEL_CC} $cc_extra " LD="${KERNEL_LD}" ${KERNEL_EXTRA_ARGS}
+}
+
 do_install_prepend() {
     install -d ${D}/lib/firmware
 }

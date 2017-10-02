@@ -12,6 +12,7 @@ inherit kernel siteinfo
 require recipes-kernel/linux/linux-yocto.inc
 
 KCONFIG_MODE = "--alldefconfig"
+KBUILD_DEFCONFIG_raspberrypi0-wifi ?= "bcmrpi_defconfig"
 KBUILD_DEFCONFIG_raspberrypi ?= "bcmrpi_defconfig"
 KBUILD_DEFCONFIG_raspberrypi2 ?= "bcm2709_defconfig"
 KBUILD_DEFCONFIG_raspberrypi3 ?= "bcm2709_defconfig"

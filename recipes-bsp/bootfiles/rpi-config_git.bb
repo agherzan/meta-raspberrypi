@@ -133,9 +133,6 @@ do_deploy_append_raspberrypi3-64() {
     echo "# have a properly sized image" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     echo "disable_overscan=1" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
 
-    echo "# for sound over HDMI" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
-    echo "hdmi_drive=2" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
-
     echo "# Enable audio (loads snd_bcm2835)" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     echo "dtparam=audio=on" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
 

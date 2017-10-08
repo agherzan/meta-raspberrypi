@@ -146,7 +146,6 @@ do_configure_prepend() {
         kernel_configure_variable DRM y
         kernel_configure_variable DRM_FBDEV_EMULATION y
         kernel_configure_variable DRM_VC4 y
-        kernel_configure_variable FB_BCM2708 n
     fi
 
     # Keep this the last line

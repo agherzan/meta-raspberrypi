@@ -10,8 +10,8 @@ BCM_BT_SOURCES =  " \
     "
 
 enable_bcm_bluetooth() {
-    install -d ${D}/lib/firmware/brcm/
-    install -m 0644 ${WORKDIR}/BCM43430A1.hcd ${D}/lib/firmware/brcm/BCM43430A1.hcd
+    install -d ${D}${nonarch_base_libdir}/firmware/brcm/
+    install -m 0644 ${WORKDIR}/BCM43430A1.hcd ${D}${nonarch_base_libdir}/firmware/brcm/BCM43430A1.hcd
 
     if ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
         install -d ${D}${systemd_unitdir}/system
@@ -20,7 +20,7 @@ enable_bcm_bluetooth() {
 }
 
 BCM_BT_FIRMWARE =  " \
-    /lib/firmware/brcm/BCM43430A1.hcd \
+    ${nonarch_base_libdir}/firmware/brcm/BCM43430A1.hcd \
     "
 
 BCM_BT_SERVICE =  " brcm43438.service"

@@ -1,0 +1,51 @@
+MACHINE ??= "raspberrypi3"
+
+DL_DIR ?= "${TOPDIR}/downloads"
+SSTATE_DIR ?= "${TOPDIR}/sstate-cache"
+TMPDIR = "${TOPDIR}/tmp"
+
+DISTRO ?= "poky"
+DISTRO_FEATURES_append = " pam egl gles"
+DISTRO_FEATURES_remove = " x11 wayland vulkan"
+
+PACKAGE_CLASSES ?= "package_ipk"
+
+# SDK target architecture
+#SDKMACHINE ?= "x86_64"
+
+EXTRA_IMAGE_FEATURES ?= "debug-tweaks dev-pkgs tools-sdk tools-profile tools-testapps"
+
+USER_CLASSES ?= "buildstats image-mklibs image-prelink"
+
+OE_TERMINAL = "auto"
+
+PATCHRESOLVE = "noop"
+
+BB_DISKMON_DIRS = "\
+    STOPTASKS,${TMPDIR},1G,100K \
+    STOPTASKS,${DL_DIR},1G,100K \
+    STOPTASKS,${SSTATE_DIR},1G,100K \
+    STOPTASKS,/tmp,100M,100K \
+    ABORT,${TMPDIR},100M,1K \
+    ABORT,${DL_DIR},100M,1K \
+    ABORT,${SSTATE_DIR},100M,1K \
+    ABORT,/tmp,10M,1K"
+
+CONF_VERSION = "1"
+
+BB_NUMBER_THREADS ?= "${@oe.utils.cpu_count()}"
+PARALLEL_MAKE ?= "-j ${@oe.utils.cpu_count()}"
+
+RM_OLD_IMAGE = "1"
+# INHERIT += "rm_work"
+
+LICENSE_FLAGS_WHITELIST = "commercial"
+
+ENABLE_UART = "1"
+ENABLE_RPI3_SERIAL_CONSOLE = "1"
+ENABLE_SPI_BUS = "1"
+ENABLE_I2C = "1"
+
+GPU_MEM = "128"
+VIDEO_CAMERA = "1"
+

@@ -1,7 +1,7 @@
-From 61a9d792ed774af43e592aa8fdb2a18488696d0f Mon Sep 17 00:00:00 2001
+From 15fb270f438f4ef1413192b5ce1e0dc784b45d9e Mon Sep 17 00:00:00 2001
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Date: Tue, 1 Oct 2013 13:19:20 +0200
-Subject: [PATCH 02/13] wayland: Add support for the Wayland winsys
+Subject: [PATCH 02/15] wayland: Add support for the Wayland winsys
 
 * Adds EGL_WL_bind_wayland_display extension
 * Adds wayland-egl library
@@ -17,7 +17,7 @@ TODO: wl_dispmanx_server_buffer should probably be defined in a
 private header that can be included from EGL and vc_* instead of in
 vc_vchi_dispmanx.h
 ---
- .gitignore                                         |   2 +
+ .gitignore                                         |   1 +
  CMakeLists.txt                                     |  11 +
  README.md                                          |   4 +
  buildme                                            |  10 +-
@@ -47,7 +47,7 @@ vc_vchi_dispmanx.h
  interface/vmcs_host/vc_vchi_dispmanx.h             |  15 ++
  interface/wayland/dispmanx.xml                     | 123 +++++++++++
  makefiles/cmake/Wayland.cmake                      |  72 ++++++
- 30 files changed, 1258 insertions(+), 98 deletions(-)
+ 30 files changed, 1257 insertions(+), 98 deletions(-)
  create mode 100644 interface/khronos/common/linux/khrn_wayland.c
  copy interface/{vmcs_host/vc_vchi_dispmanx.h => khronos/common/linux/khrn_wayland.h} (56%)
  create mode 100644 interface/khronos/ext/egl_wayland.c
@@ -58,14 +58,13 @@ vc_vchi_dispmanx.h
  create mode 100644 makefiles/cmake/Wayland.cmake
 
 diff --git a/.gitignore b/.gitignore
-index 4a88665..5da71a9 100644
+index 63570f1..1459436 100644
 --- a/.gitignore
 +++ b/.gitignore
-@@ -13,3 +13,5 @@ build/
- *.lai
- *.la
- *.a
-+
+@@ -30,3 +30,4 @@ build/
+ *.pts
+ *.ppm
+ *.mkv
 +*~
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index cfc8ae5..673a5ad 100644
@@ -808,16 +807,16 @@ index b8bb374..03fe67b 100644
  /*
  TODO: do an RPC call to make sure the Khronos vll is loaded (and that it stays loaded until eglTerminate)
  Also affects global image (and possibly others?)
-@@ -451,6 +444,9 @@ EGLAPI const char EGLAPIENTRY * eglQueryString(EGLDisplay dpy, EGLint name)
+@@ -450,6 +443,9 @@ EGLAPI const char EGLAPIENTRY * eglQueryString(EGLDisplay dpy, EGLint name)
+ #ifdef EGL_KHR_fence_sync
              "EGL_KHR_fence_sync "
  #endif
- #endif
++#endif
 +#if EGL_WL_bind_wayland_display
 +            "EGL_WL_bind_wayland_display "
-+#endif
+ #endif
              ;
           break;
-       case EGL_VENDOR:
 @@ -655,8 +651,7 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreateWindowSurface(EGLDisplay dpy, EGLConfig c
                                  false,
                                  EGL_NO_TEXTURE,
@@ -1885,5 +1884,5 @@ index 0000000..ad90d30
 +    set(${_sources} ${${_sources}} PARENT_SCOPE)
 +endfunction()
 -- 
-2.12.2
+2.15.0
 

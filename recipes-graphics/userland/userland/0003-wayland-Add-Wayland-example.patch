@@ -1,7 +1,7 @@
-From 08679675740d92f022e0fd46207a42589c9f6c51 Mon Sep 17 00:00:00 2001
+From b0437cf318a26c62119ad60649430903f58bbab4 Mon Sep 17 00:00:00 2001
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Date: Tue, 1 Oct 2013 13:19:20 +0200
-Subject: [PATCH 03/13] wayland: Add Wayland example
+Subject: [PATCH 03/15] wayland: Add Wayland example
 
 ---
  .../linux/apps/hello_pi/CMakeLists.txt             |   1 +
@@ -862,5 +862,5 @@ index 8225dd5..0be6ce7 100755
 -
 +make -C hello_wayland
 -- 
-2.12.0
+2.15.0
 

@@ -17,6 +17,7 @@ IMAGE_INSTALL_append = " \
 
 # toolbox
 IMAGE_INSTALL_append += " \
+  ntp \
   python-modules \
   python3-modules \
   nano \

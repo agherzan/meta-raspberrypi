@@ -167,9 +167,6 @@ To build an initramfs image:
   - `INITRAMFS_IMAGE = "<a name for your initramfs image>"`
   - `INITRAMFS_IMAGE_BUNDLE = "1"`
 
-* Set the meta-rasberrypi variable (in raspberrypi.conf for example)
-  - `KERNEL_INITRAMFS = "-initramfs"`
-
 ## Enable SPI bus
 
 When using device tree kernels, set this variable to enable the SPI bus:

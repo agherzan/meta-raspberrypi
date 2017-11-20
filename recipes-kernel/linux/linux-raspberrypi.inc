@@ -38,8 +38,6 @@ UDEV_GE_141 ?= "1"
 # Enable OABI compat for people stuck with obsolete userspace
 ARM_KEEP_OABI ?= "1"
 
-KERNEL_INITRAMFS ?= '${@oe.utils.conditional("INITRAMFS_IMAGE_BUNDLE", "1", "1", "", d)}'
-
 KERNEL_MODULE_AUTOLOAD += "${@bb.utils.contains("MACHINE_FEATURES", "pitft28r", "stmpe-ts", "", d)}"
 
 # A LOADADDR is needed when building a uImage format kernel. This value is not
@@ -162,7 +160,7 @@ do_configure_prepend() {
         kernel_configure_variable ROOT_NFS y
         kernel_configure_variable CMDLINE "\"${CMDLINE_NFSROOT_USB}\""
     fi
-    if [ ! -z "${KERNEL_INITRAMFS}" ]; then
+    if [ "${@oe.utils.conditional('INITRAMFS_IMAGE_BUNDLE', '1', 'True', 'False', d)}" ]; then
         kernel_configure_variable BLK_DEV_INITRD y
         kernel_configure_variable INITRAMFS_SOURCE ""
         kernel_configure_variable RD_GZIP y

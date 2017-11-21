@@ -1,6 +1,10 @@
 # Base this image on rpi-basic-image
 include rpi-basic-image.bb
 
+IMAGE_FEATURES += " package-management"
+
+IMAGE_LINGUAS = "en-us"
+
 COMPATIBLE_MACHINE = "^rpi$"
 
 OMXPLAYER_rpi = "omxplayer"
@@ -17,7 +21,6 @@ IMAGE_INSTALL_append = " \
 
 # toolbox
 IMAGE_INSTALL_append += " \
-  ntp \
   python-modules \
   python3-modules \
   nano \
@@ -69,7 +72,7 @@ IMAGE_INSTALL_append += " \
   hostapd \
   dnsmasq \
   iptables \
-  rfkill \
+  ntp \
   crda \
   iw \
 "
@@ -86,5 +89,17 @@ IMAGE_INSTALL_append += " \
   lttng-modules \
   lttng-ust \
   babeltrace \
+"
+
+set_date_and_time() {
+  ln -sf /usr/share/zoneinfo/CET ${IMAGE_ROOTFS}/etc/localtime
+  echo "server 3.pool.ntp.org iburst" >> ${IMAGE_ROOTFS}/etc/ntp.conf
+  echo "server 2.pool.ntp.org iburst" >> ${IMAGE_ROOTFS}/etc/ntp.conf
+  echo "server 1.pool.ntp.org iburst" >> ${IMAGE_ROOTFS}/etc/ntp.conf
+  echo "server 0.pool.ntp.org iburst" >> ${IMAGE_ROOTFS}/etc/ntp.conf
+}
+
+ROOTFS_POSTPROCESS_COMMAND += " \
+  set_date_and_time ; \
 "
 

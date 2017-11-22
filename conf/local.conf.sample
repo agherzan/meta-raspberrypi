@@ -13,7 +13,7 @@ PACKAGE_CLASSES ?= "package_ipk"
 # SDK target architecture
 #SDKMACHINE ?= "x86_64"
 
-EXTRA_IMAGE_FEATURES ?= "debug-tweaks dev-pkgs tools-sdk tools-profile tools-testapps"
+EXTRA_IMAGE_FEATURES ?= "debug-tweaks dev-pkgs tools-sdk tools-profile tools-debug tools-testapps"
 
 USER_CLASSES ?= "buildstats image-mklibs image-prelink"
 

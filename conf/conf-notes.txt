@@ -1,0 +1,7 @@
+Some custom targets are
+
+    rpi-basic-image
+    rpi-hwup-image
+    rpi-test-image
+    rpi-av-image
+

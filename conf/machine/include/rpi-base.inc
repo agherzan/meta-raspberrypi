@@ -49,9 +49,9 @@ KERNEL_DEVICETREE ?= " \
 #
 # * When u-boot is enabled use the "uImage" format and the "bootm" command
 #   within u-boot to load the kernel.
-KERNEL_BOOTCMD ??= "bootm"
-KERNEL_IMAGETYPE_UBOOT ??= "uImage"
-KERNEL_IMAGETYPE ??= "${@bb.utils.contains('RPI_USE_U_BOOT', '1', '${KERNEL_IMAGETYPE_UBOOT}', 'zImage', d)}"
+KERNEL_BOOTCMD ?= "bootm"
+KERNEL_IMAGETYPE_UBOOT ?= "uImage"
+KERNEL_IMAGETYPE ?= "${@bb.utils.contains('RPI_USE_U_BOOT', '1', '${KERNEL_IMAGETYPE_UBOOT}', 'zImage', d)}"
 
 MACHINE_FEATURES += "apm usbhost keyboard vfat ext2 screen touchscreen alsa bluetooth wifi sdio"
 

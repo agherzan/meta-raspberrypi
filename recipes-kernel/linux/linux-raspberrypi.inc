@@ -161,10 +161,6 @@ do_compile_append_raspberrypi3-64() {
     oe_runmake dtbs CC="${KERNEL_CC} $cc_extra " LD="${KERNEL_LD}" ${KERNEL_EXTRA_ARGS}
 }
 
-do_install_prepend() {
-    install -d ${D}${nonarch_base_libdir}/firmware
-}
-
 do_deploy_append() {
     # Deploy cmdline.txt
     install -d ${DEPLOYDIR}/bcm2835-bootfiles

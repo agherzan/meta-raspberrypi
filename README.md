@@ -33,12 +33,12 @@ OpenEmbedded/Yocto distributions and layer stacks, such as:
 This layer depends on:
 
 * URI: git://git.yoctoproject.org/poky
-  * branch: master
+  * branch: pyro
   * revision: HEAD
 
 * URI: git://git.openembedded.org/meta-openembedded
   * layers: meta-oe, meta-multimedia, meta-networking, meta-python
-  * branch: master
+  * branch: pyro
   * revision: HEAD
 
 ## Quick Start

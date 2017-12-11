@@ -5,8 +5,6 @@ vcos, openmaxil, vchiq_arm, bcm_host, WFC, OpenVG."
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENCE;md5=0448d6488ef8cc380632b1569ee6d196"
 
-PR = "r5"
-
 PROVIDES = "virtual/libgles2 \
             virtual/egl"
 
@@ -17,6 +15,10 @@ COMPATIBLE_MACHINE = "^rpi$"
 SRCBRANCH = "master"
 SRCFORK = "raspberrypi"
 SRCREV = "bc3c52a51315399a9f31ed24049eb4bc81fd1c60"
+
+# Use the date of the above commit as the package version. Update this when
+# SRCREV is changed.
+PV = "20171114"
 
 SRC_URI = "\
     git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \

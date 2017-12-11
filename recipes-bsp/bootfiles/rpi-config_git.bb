@@ -127,6 +127,9 @@ do_deploy() {
         echo "hdmi_cvt 1024 600 60 6 0 0 0" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "hdmi_drive=1" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi
+
+    # Append extra config if the user has provided any
+    echo "${RPI_EXTRA_CONFIG}" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
 }
 
 do_deploy_append_raspberrypi3-64() {

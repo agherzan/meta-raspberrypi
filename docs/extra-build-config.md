@@ -186,3 +186,19 @@ RaspberryPi3 will have to explicitely set in local.conf:
 Ref.:
 * <https://github.com/raspberrypi/firmware/issues/553>
 * <https://github.com/RPi-Distro/repo/issues/22>
+
+## Manual additions to config.txt
+
+The `RPI_EXTRA_CONFIG` variable can be used to manually add additional lines to
+the `config.txt` file if there is not a specific option above for the
+configuration you need. To add multiple lines you must include `\n` separators.
+If double-quotes are needed in the lines you are adding you can use single
+quotes around the whole string.
+
+For example, to add a comment containing a double-quote and a configuration
+option:
+
+    RPI_EXTRA_CONFIG = ' \n \
+        # Raspberry Pi 7\" display/touch screen \n \
+        lcd_rotate=2 \n \
+        '

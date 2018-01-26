@@ -36,6 +36,8 @@ FILES_${PN}_append_raspberrypi3 = " ${BCM_BT_FIRMWARE}"
 
 SYSTEMD_SERVICE_${PN}_append_raspberrypi3 = " ${BCM_BT_SERVICE}"
 
+RDEPENDS_${PN}_append_raspberrypi3 = " udev-rules-rpi"
+
 # for raspberrypi0-wifi
 SRC_URI_append_raspberrypi0-wifi = " ${BCM_BT_SOURCES}"
 
@@ -46,3 +48,5 @@ do_install_append_raspberrypi0-wifi() {
 FILES_${PN}_append_raspberrypi0-wifi = " ${BCM_BT_FIRMWARE}"
 
 SYSTEMD_SERVICE_${PN}_append_raspberrypi0-wifi = " ${BCM_BT_SERVICE}"
+
+RDEPENDS_${PN}_append_raspebrrypi0-wifi = " udev-rules-rpi"

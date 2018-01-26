@@ -6,7 +6,7 @@ After=dev-ttyAMA0.device
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/hciattach -n /dev/ttyAMA0 bcm43xx 921600 noflow -
+ExecStart=/usr/bin/hciattach -n /dev/serial1 bcm43xx 921600 noflow -
 
 [Install]
 WantedBy=multi-user.target

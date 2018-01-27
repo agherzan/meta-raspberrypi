@@ -1,7 +1,7 @@
-From 15fb270f438f4ef1413192b5ce1e0dc784b45d9e Mon Sep 17 00:00:00 2001
+From 5608ec8002be8370e78c9dbb1e07cee4cfb18b58 Mon Sep 17 00:00:00 2001
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Date: Tue, 1 Oct 2013 13:19:20 +0200
-Subject: [PATCH 02/15] wayland: Add support for the Wayland winsys
+Subject: [PATCH 02/16] wayland: Add support for the Wayland winsys
 
 * Adds EGL_WL_bind_wayland_display extension
 * Adds wayland-egl library
@@ -89,13 +89,13 @@ index cfc8ae5..673a5ad 100644
  
  # Global include paths
 diff --git a/README.md b/README.md
-index 358d2b4..4da4448 100644
+index 94b93b8..50b90b1 100644
 --- a/README.md
 +++ b/README.md
-@@ -4,3 +4,7 @@ EGL, mmal, GLESv2, vcos, openmaxil, vchiq_arm, bcm_host, WFC, OpenVG.
- 
- Use buildme to build. It requires cmake to be installed and an arm cross compiler. It is set up to use this one:
+@@ -6,3 +6,7 @@ Use buildme to build. It requires cmake to be installed and an arm cross compile
  https://github.com/raspberrypi/tools/tree/master/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian
+ 
+ Note that this repository does not contain the source for the edid_parser and vcdbg binaries due to licensing restrictions.
 +
 +To build support for the Wayland winsys in EGL, execute the buildme script like this:
 +
@@ -1884,5 +1884,5 @@ index 0000000..ad90d30
 +    set(${_sources} ${${_sources}} PARENT_SCOPE)
 +endfunction()
 -- 
-2.15.0
+2.16.1
 

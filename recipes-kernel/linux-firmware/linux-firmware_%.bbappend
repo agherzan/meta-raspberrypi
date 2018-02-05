@@ -21,6 +21,6 @@ do_install_append_rpi() {
     install -m 0644 $_firmware ${WORKDIR}/brcmfmac43430-sdio.txt ${D}${nonarch_base_libdir}/firmware/brcm
 }
 
-FILES_${PN}-bcm43430_rpi += " \
+FILES_${PN}-bcm43430_append_rpi = " \
     ${nonarch_base_libdir}/firmware/brcm/brcmfmac43430-sdio.txt \
 "

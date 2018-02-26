@@ -1,9 +1,9 @@
-RPIFW_DATE ?= "20171029"
-RPIFW_SRC_URI ?= "https://github.com/raspberrypi/firmware/archive/1.${RPIFW_DATE}.tar.gz"
-RPIFW_S ?= "${WORKDIR}/firmware-1.${RPIFW_DATE}"
+RPIFW_DATE ?= "20180209"
+RPIFW_SRC_URI ?= "https://github.com/raspberrypi/firmware/archive/b1a7f4aea6cbd380319c2849ecc5988f9a4dba70.tar.gz"
+RPIFW_S ?= "${WORKDIR}/firmware-b1a7f4aea6cbd380319c2849ecc5988f9a4dba70"
 
 SRC_URI = "${RPIFW_SRC_URI}"
-SRC_URI[md5sum] = "4d27c1888a7bab3097471906e7b4a319"
-SRC_URI[sha256sum] = "46ce28c8d87ef22bdcc57ac1836ca3f04d1ec6f46580ff5a30bf76b3c0822117"
+SRC_URI[md5sum] = "08ed10d92ee064711d73790557267f84"
+SRC_URI[sha256sum] = "0ad8b66c02ba14917dfdc15f11d702da650c473681d100efb3f8d47aee9b8ece"
 PV = "${RPIFW_DATE}"
 

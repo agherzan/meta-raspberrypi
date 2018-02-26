@@ -1,5 +1,10 @@
-# Base this image on rpi-hwup-image
-include rpi-hwup-image.bb
+# Base this image on core-image-minimal
+include recipes-core/images/core-image-minimal.bb
+
+# Include modules in rootfs
+IMAGE_INSTALL += " \
+	kernel-modules \
+	"
 
 SPLASH = "psplash-raspberrypi"
 

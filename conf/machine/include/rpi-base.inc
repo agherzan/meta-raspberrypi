@@ -6,6 +6,7 @@ SOC_FAMILY = "rpi"
 include conf/machine/include/soc-family.inc
 
 IMAGE_FSTYPES ?= "tar.bz2 ext3 rpi-sdimg"
+WKS_FILE ?= "sdimage-raspberrypi.wks"
 
 XSERVER = " \
     xserver-xorg \

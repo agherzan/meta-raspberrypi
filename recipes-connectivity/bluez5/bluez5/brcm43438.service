@@ -2,7 +2,7 @@
 Description=Broadcom BCM43438 bluetooth HCI
 ConditionPathIsDirectory=/proc/device-tree/soc/gpio@7e200000/bt_pins
 Before=bluetooth.service
-After=dev-ttyAMA0.device
+After=dev-serial1.device
 
 [Service]
 Type=simple

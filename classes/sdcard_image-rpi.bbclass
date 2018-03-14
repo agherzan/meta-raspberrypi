@@ -183,7 +183,7 @@ IMAGE_CMD_rpi-sdimg () {
 		bzip2 -k9 "${SDIMG}"
 		;;
 	"xz")
-		xz -k "${SDIMG}"
+		xz -T -k "${SDIMG}"
 		;;
 	esac
 }

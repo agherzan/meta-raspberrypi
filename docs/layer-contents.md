@@ -13,12 +13,10 @@
 
 ## Images
 
-* rpi-hwup-image
-  * Hardware up image
-
-* rpi-basic-image
-  * Based on rpi-hwup-image with some added features (ex: splash)
-
 * rpi-test-image
-  * Image based on rpi-basic-image which includes most of the packages in this
+  * Image based on core-image-base which includes most of the packages in this
     layer and some media samples.
+
+For other uses it's recommended to base images on `core-image-minimal` or
+`core-image-base` as appropriate. The old image names (`rpi-hwup-image` and
+`rpi-basic-image`) are deprecated.

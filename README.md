@@ -47,7 +47,7 @@ This layer depends on:
 1. source poky/oe-init-build-env rpi-build
 2. Add this layer to bblayers.conf and the dependencies above
 3. Set MACHINE in local.conf to one of the supported boards
-4. bitbake rpi-hwup-image
+4. bitbake core-image-base
 5. dd to a SD card the generated sdimg file (use xzcat if rpi-sdimg.xz is used)
 6. Boot your RPI.
 

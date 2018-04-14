@@ -2,6 +2,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
 BCM_BT_SOURCES =  " \
     file://BCM43430A1.hcd \
+    file://BCM4345C0.hcd \
     file://0001-bcm43xx-Add-bcm43xx-3wire-variant.patch \
     file://0002-bcm43xx-The-UART-speed-must-be-reset-after-the-firmw.patch \
     file://0003-Increase-firmware-load-timeout-to-30s.patch \
@@ -12,6 +13,7 @@ BCM_BT_SOURCES =  " \
 enable_bcm_bluetooth() {
     install -d ${D}${nonarch_base_libdir}/firmware/brcm/
     install -m 0644 ${WORKDIR}/BCM43430A1.hcd ${D}${nonarch_base_libdir}/firmware/brcm/BCM43430A1.hcd
+    install -m 0644 ${WORKDIR}/BCM4345C0.hcd ${D}${nonarch_base_libdir}/firmware/brcm/BCM4345C0.hcd
 
     if ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
         install -d ${D}${systemd_unitdir}/system
@@ -21,6 +23,7 @@ enable_bcm_bluetooth() {
 
 BCM_BT_FIRMWARE =  " \
     ${nonarch_base_libdir}/firmware/brcm/BCM43430A1.hcd \
+    ${nonarch_base_libdir}/firmware/brcm/BCM4345C0.hcd \
     "
 
 BCM_BT_SERVICE =  " brcm43438.service"

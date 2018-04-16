@@ -15,6 +15,8 @@ S = "${WORKDIR}/git"
 
 PR = "r5"
 
+INHIBIT_DEFAULT_DEPS = "1"
+
 PITFT="${@bb.utils.contains("MACHINE_FEATURES", "pitft", "1", "0", d)}"
 PITFT22="${@bb.utils.contains("MACHINE_FEATURES", "pitft22", "1", "0", d)}"
 PITFT28r="${@bb.utils.contains("MACHINE_FEATURES", "pitft28r", "1", "0", d)}"
@@ -23,7 +25,8 @@ PITFT35r="${@bb.utils.contains("MACHINE_FEATURES", "pitft35r", "1", "0", d)}"
 VC4GRAPHICS="${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", "1", "0", d)}"
 VC4DTBO_raspberrypi3-64 ?= "vc4-fkms-v3d"
 VC4DTBO ?= "vc4-kms-v3d"
-inherit deploy
+
+inherit deploy nopackages
 
 do_deploy() {
     install -d ${DEPLOYDIR}/bcm2835-bootfiles
@@ -185,7 +188,7 @@ do_deploy_append_raspberrypi3-64() {
     echo "device_tree=bcm2710-rpi-3-b.dtb" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
 }
 
-addtask deploy before do_package after do_install
+addtask deploy before do_build after do_install
 do_deploy[dirs] += "${DEPLOYDIR}/bcm2835-bootfiles"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"

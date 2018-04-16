@@ -32,9 +32,6 @@ CMDLINE_append += ' ${@oe.utils.conditional("DISABLE_RPI_BOOT_LOGO", "1", "logo.
 CMDLINE_DEBUG ?= ""
 CMDLINE_append = " ${CMDLINE_DEBUG}"
 
-# Quirk for udev greater or equal 141
-UDEV_GE_141 ?= "1"
-
 # Enable OABI compat for people stuck with obsolete userspace
 ARM_KEEP_OABI ?= "1"
 
@@ -102,11 +99,8 @@ do_configure_prepend() {
     CONF_SED_SCRIPT=""
 
     # oabi / eabi support
-    kernel_configure_variable AEABI y
     if [ "${ARM_KEEP_OABI}" = "1" ] ; then
         kernel_configure_variable OABI_COMPAT y
-    else
-        kernel_configure_variable OABI_COMPAT n
     fi
 
     # Set cmdline
@@ -114,39 +108,6 @@ do_configure_prepend() {
 
     # Localversion
     kernel_configure_variable LOCALVERSION "\"\""
-    kernel_configure_variable LOCALVERSION_AUTO n
-
-    # Udev quirks
-    # Newer versions of udev mandate that sysfs doesn't have deprecated entries
-    if [ "${UDEV_GE_141}" = "1" ] ; then
-        kernel_configure_variable SYSFS_DEPRECATED n
-        kernel_configure_variable SYSFS_DEPRECATED_V2 n
-        kernel_configure_variable HOTPLUG y
-        kernel_configure_variable UEVENT_HELPER_PATH "\"\""
-        kernel_configure_variable UNIX y
-        kernel_configure_variable SYSFS y
-        kernel_configure_variable PROC_FS y
-        kernel_configure_variable TMPFS y
-        kernel_configure_variable INOTIFY_USER y
-        kernel_configure_variable SIGNALFD y
-        kernel_configure_variable TMPFS_POSIX_ACL y
-        kernel_configure_variable BLK_DEV_BSG y
-        kernel_configure_variable DEVTMPFS y
-        kernel_configure_variable DEVTMPFS_MOUNT y
-    fi
-
-    # Newer inits like systemd need cgroup support
-    if [ "${KERNEL_ENABLE_CGROUPS}" = "1" ] ; then
-        kernel_configure_variable CGROUP_SCHED y
-        kernel_configure_variable CGROUPS y
-        kernel_configure_variable CGROUP_NS y
-        kernel_configure_variable CGROUP_FREEZER y
-        kernel_configure_variable CGROUP_DEVICE y
-        kernel_configure_variable CPUSETS y
-        kernel_configure_variable PROC_PID_CPUSET y
-        kernel_configure_variable CGROUP_CPUACCT y
-        kernel_configure_variable RESOURCE_COUNTERS y
-    fi
 
     # root-over-nfs-over-usb-eth support. Limited, but should cover some cases
     # Enable this by setting a proper CMDLINE_NFSROOT_USB.
@@ -163,9 +124,6 @@ do_configure_prepend() {
         kernel_configure_variable CMDLINE "\"${CMDLINE_NFSROOT_USB}\""
     fi
     if [ ! -z "${KERNEL_INITRAMFS}" ]; then
-        kernel_configure_variable BLK_DEV_INITRD y
-        kernel_configure_variable INITRAMFS_SOURCE ""
-        kernel_configure_variable RD_GZIP y
         kernel_configure_variable OVERLAY_FS y
         kernel_configure_variable SQUASHFS y
         kernel_configure_variable UBIFS_FS y

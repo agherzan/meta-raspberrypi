@@ -39,8 +39,16 @@ do_deploy() {
     if [ -n "${DISABLE_OVERSCAN}" ]; then
         sed -i '/#disable_overscan=/ c\disable_overscan=${DISABLE_OVERSCAN}' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi
+    if [ -n "${DISABLE_SPLASH}" ]; then
+        sed -i '/#disable_splash=/ c\disable_splash=${DISABLE_SPLASH}' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
+
+    # Set overclocking options
     if [ -n "${ARM_FREQ}" ]; then
         sed -i '/#arm_freq=/ c\arm_freq=${ARM_FREQ}' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
+    if [ -n "${GPU_FREQ}" ]; then
+        sed -i '/#gpu_freq=/ c\gpu_freq=${GPU_FREQ}' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi
     if [ -n "${CORE_FREQ}" ]; then
         sed -i '/#core_freq=/ c\core_freq=${CORE_FREQ}' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
@@ -66,6 +74,40 @@ do_deploy() {
         sed -i '/#gpu_mem_1024=/ c\gpu_mem_1024=${GPU_MEM_1024}' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi
 
+    # Set boot delay
+    if [ -n "${BOOT_DELAY}" ]; then
+        sed -i '/#boot_delay=/ c\boot_delay=${BOOT_DELAY}' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
+    if [ -n "${BOOT_DELAY_MS}" ]; then
+        sed -i '/#boot_delay_ms=/ c\boot_delay_ms=${BOOT_DELAY_MS}' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
+
+    # Set HDMI and composite video options
+    if [ -n "${HDMI_FORCE_HOTPLUG}" ]; then
+        sed -i '/#hdmi_force_hotplug=/ c\hdmi_force_hotplug=${HDMI_FORCE_HOTPLUG}' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
+    if [ -n "${HDMI_DRIVE}" ]; then
+        sed -i '/#hdmi_drive=/ c\hdmi_drive=${HDMI_DRIVE}' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
+    if [ -n "${HDMI_GROUP}" ]; then
+        sed -i '/#hdmi_group=/ c\hdmi_group=${HDMI_GROUP}' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
+    if [ -n "${HDMI_MODE}" ]; then
+        sed -i '/#hdmi_mode=/ c\hdmi_mode=${HDMI_MODE}' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
+    if [ -n "${CONFIG_HDMI_BOOST}" ]; then
+        sed -i '/#config_hdmi_boost=/ c\config_hdmi_boost=${CONFIG_HDMI_BOOST}' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
+    if [ -n "${SDTV_MODE}" ]; then
+        sed -i '/#sdtv_mode=/ c\sdtv_mode=${SDTV_MODE}' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
+    if [ -n "${SDTV_ASPECT}" ]; then
+        sed -i '/#sdtv_aspect=/ c\sdtv_aspect=${SDTV_ASPECT}' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
+    if [ -n "${DISPLAY_ROTATE}" ]; then
+        sed -i '/#display_rotate=/ c\display_rotate=${DISPLAY_ROTATE}' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
+
     # Video camera support
     if [ -n "${VIDEO_CAMERA}" ]; then
         echo "# Enable video camera" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
@@ -84,6 +126,7 @@ do_deploy() {
         echo "dtparam=spi=on" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi
 
+    # I2C support
     if [ -n "${ENABLE_I2C}" ] || [ "${PITFT}" = "1" ]; then
         echo "# Enable I2C" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "dtparam=i2c1=on" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
@@ -95,12 +138,10 @@ do_deploy() {
         echo "# Enable PITFT22 display" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "dtoverlay=pitft22,rotate=270,speed=32000000,txbuflen=32768" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi
-
     if [ "${PITFT28r}" = "1" ]; then
         echo "# Enable PITFT28r display" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "dtoverlay=pitft28-resistive,rotate=90,speed=32000000,txbuflen=32768" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi
-
     if [ "${PITFT35r}" = "1" ]; then
         echo "# Enable PITFT35r display" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "dtoverlay=pitft35-resistive,rotate=90,speed=42000000,fps=20" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt

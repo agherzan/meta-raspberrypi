@@ -32,9 +32,6 @@ CMDLINE_append += ' ${@oe.utils.conditional("DISABLE_RPI_BOOT_LOGO", "1", "logo.
 CMDLINE_DEBUG ?= ""
 CMDLINE_append = " ${CMDLINE_DEBUG}"
 
-# Enable OABI compat for people stuck with obsolete userspace
-ARM_KEEP_OABI ?= "1"
-
 KERNEL_INITRAMFS ?= '${@oe.utils.conditional("INITRAMFS_IMAGE_BUNDLE", "1", "1", "", d)}'
 
 KERNEL_MODULE_AUTOLOAD += "${@bb.utils.contains("MACHINE_FEATURES", "pitft28r", "stmpe-ts", "", d)}"
@@ -97,11 +94,6 @@ do_configure_prepend() {
 
     mv -f ${B}/.config ${B}/.config.patched
     CONF_SED_SCRIPT=""
-
-    # oabi / eabi support
-    if [ "${ARM_KEEP_OABI}" = "1" ] ; then
-        kernel_configure_variable OABI_COMPAT y
-    fi
 
     # Localversion
     kernel_configure_variable LOCALVERSION "\"\""

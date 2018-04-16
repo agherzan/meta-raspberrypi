@@ -3,9 +3,11 @@ LICENSE = "Proprietary"
 
 LIC_FILES_CHKSUM = "file://LICENCE.broadcom;md5=4a4d169737c0786fb9482bb6d30401d1"
 
-inherit deploy
+inherit deploy nopackages
 
 include recipes-bsp/common/firmware.inc
+
+INHIBIT_DEFAULT_DEPS = "1"
 
 RDEPENDS_${PN} = "rpi-config"
 
@@ -32,7 +34,7 @@ do_deploy() {
     touch ${DEPLOYDIR}/${PN}/${PN}-${PV}.stamp
 }
 
-addtask deploy before do_package after do_install
+addtask deploy before do_build after do_install
 do_deploy[dirs] += "${DEPLOYDIR}/${PN}"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"

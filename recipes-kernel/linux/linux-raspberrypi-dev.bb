@@ -7,8 +7,8 @@ python __anonymous() {
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/linux-raspberrypi:"
 
-LINUX_VERSION ?= "4.15"
-LINUX_RPI_DEV_BRANCH ?= "rpi-4.15.y"
+LINUX_VERSION ?= "4.16"
+LINUX_RPI_DEV_BRANCH ?= "rpi-4.16.y"
 
 SRCREV = "${AUTOREV}"
 SRC_URI = " \

@@ -11,8 +11,10 @@ LINUX_VERSION ?= "4.15"
 LINUX_RPI_DEV_BRANCH ?= "rpi-4.15.y"
 
 SRCREV = "${AUTOREV}"
-SRC_URI = "git://github.com/raspberrypi/linux.git;protocol=git;branch=${LINUX_RPI_DEV_BRANCH} \
-"
+SRC_URI = " \
+    git://github.com/raspberrypi/linux.git;protocol=git;branch=${LINUX_RPI_DEV_BRANCH} \
+    file://0001-menuconfig-check-lxdiaglog.sh-Allow-specification-of.patch \
+    "
 require linux-raspberrypi.inc
 
 # Disable version check so that we don't have to edit this recipe every time

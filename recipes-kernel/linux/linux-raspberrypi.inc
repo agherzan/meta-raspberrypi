@@ -103,9 +103,6 @@ do_configure_prepend() {
         kernel_configure_variable OABI_COMPAT y
     fi
 
-    # Set cmdline
-    kernel_configure_variable CMDLINE "\"${CMDLINE}\""
-
     # Localversion
     kernel_configure_variable LOCALVERSION "\"\""
 

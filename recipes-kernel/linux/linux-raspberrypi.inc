@@ -111,10 +111,6 @@ do_configure_prepend() {
         kernel_configure_variable SQUASHFS y
         kernel_configure_variable UBIFS_FS y
     fi
-    # Activate CONFIG_LEGACY_PTYS
-    kernel_configure_variable LEGACY_PTYS y
-    # this module is built externally via drbd-utils
-    kernel_configure_variable BLK_DEV_DRBD n
 
     # Activate the configuration options for VC4
     VC4GRAPHICS="${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", "1", "0", d)}"

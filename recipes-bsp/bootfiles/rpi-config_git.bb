@@ -172,6 +172,12 @@ do_deploy() {
         echo "hdmi_drive=1" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi
 
+    # DWC2 USB peripheral support
+    if [ "${ENABLE_DWC2_PERIPHERAL}" = "1" ]; then
+        echo "# Enable USB peripheral mode" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+        echo "dtoverlay=dwc2,dr_mode=peripheral" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
+    
     # Append extra config if the user has provided any
     echo "${RPI_EXTRA_CONFIG}" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
 }

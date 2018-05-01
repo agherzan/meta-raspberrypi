@@ -221,13 +221,21 @@ needs a fixed core frequency and enable_uart wil set it to the minimum. Certain
 operations - 60fps h264 decode, high quality deinterlace - which aren't
 performed on the ARM may be affected, and we wouldn't want to do that to users
 who don't want to use the serial port. Users who want serial console support on
-RaspberryPi3 will have to explicitely set in local.conf:
+RaspberryPi3 will have to explicitly set in local.conf:
 
     ENABLE_UART = "1"
 
 Ref.:
 * <https://github.com/raspberrypi/firmware/issues/553>
 * <https://github.com/RPi-Distro/repo/issues/22>
+
+## Enable USB Peripheral (Gadget) support
+
+The standard USB driver only supports host mode operations.  Users who
+want to use gadget modules like g_ether should set the following in
+local.conf:
+
+    ENABLE_DWC2_PERIPHERAL = "1"
 
 ## Manual additions to config.txt
 

@@ -6,6 +6,7 @@ SOC_FAMILY = "rpi"
 include conf/machine/include/soc-family.inc
 
 IMAGE_FSTYPES ?= "tar.bz2 ext3 rpi-sdimg"
+WKS_FILE ?= "sdimage-raspberrypi.wks"
 
 XSERVER = " \
     xserver-xorg \
@@ -19,6 +20,7 @@ KERNEL_DEVICETREE ?= " \
     bcm2708-rpi-b-plus.dtb \
     bcm2709-rpi-2-b.dtb \
     bcm2710-rpi-3-b.dtb \
+    bcm2710-rpi-3-b-plus.dtb \
     bcm2708-rpi-cm.dtb \
     bcm2710-rpi-cm3.dtb \
     \

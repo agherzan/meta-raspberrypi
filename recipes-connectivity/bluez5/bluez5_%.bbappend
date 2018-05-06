@@ -52,4 +52,4 @@ FILES_${PN}_append_raspberrypi0-wifi = " ${BCM_BT_FIRMWARE}"
 
 SYSTEMD_SERVICE_${PN}_append_raspberrypi0-wifi = " ${BCM_BT_SERVICE}"
 
-RDEPENDS_${PN}_append_raspebrrypi0-wifi = " udev-rules-rpi"
+RDEPENDS_${PN}_append_raspberrypi0-wifi = " udev-rules-rpi"

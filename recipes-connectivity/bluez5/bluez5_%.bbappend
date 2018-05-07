@@ -1,8 +1,6 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
 BCM_BT_SOURCES =  " \
-    file://BCM43430A1.hcd \
-    file://BCM4345C0.hcd \
     file://0001-bcm43xx-Add-bcm43xx-3wire-variant.patch \
     file://0002-bcm43xx-The-UART-speed-must-be-reset-after-the-firmw.patch \
     file://0003-Increase-firmware-load-timeout-to-30s.patch \
@@ -11,20 +9,11 @@ BCM_BT_SOURCES =  " \
     "
 
 enable_bcm_bluetooth() {
-    install -d ${D}${nonarch_base_libdir}/firmware/brcm/
-    install -m 0644 ${WORKDIR}/BCM43430A1.hcd ${D}${nonarch_base_libdir}/firmware/brcm/BCM43430A1.hcd
-    install -m 0644 ${WORKDIR}/BCM4345C0.hcd ${D}${nonarch_base_libdir}/firmware/brcm/BCM4345C0.hcd
-
     if ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
         install -d ${D}${systemd_unitdir}/system
         install -m 0644 ${WORKDIR}/brcm43438.service ${D}${systemd_unitdir}/system
     fi
 }
-
-BCM_BT_FIRMWARE =  " \
-    ${nonarch_base_libdir}/firmware/brcm/BCM43430A1.hcd \
-    ${nonarch_base_libdir}/firmware/brcm/BCM4345C0.hcd \
-    "
 
 BCM_BT_SERVICE =  " brcm43438.service"
 
@@ -35,11 +24,9 @@ do_install_append_raspberrypi3() {
     enable_bcm_bluetooth
 }
 
-FILES_${PN}_append_raspberrypi3 = " ${BCM_BT_FIRMWARE}"
-
 SYSTEMD_SERVICE_${PN}_append_raspberrypi3 = " ${BCM_BT_SERVICE}"
 
-RDEPENDS_${PN}_append_raspberrypi3 = " udev-rules-rpi"
+RDEPENDS_${PN}_append_raspberrypi3 = " udev-rules-rpi bluez-firmware-raspbian"
 
 # for raspberrypi0-wifi
 SRC_URI_append_raspberrypi0-wifi = " ${BCM_BT_SOURCES}"
@@ -48,8 +35,6 @@ do_install_append_raspberrypi0-wifi() {
     enable_bcm_bluetooth
 }
 
-FILES_${PN}_append_raspberrypi0-wifi = " ${BCM_BT_FIRMWARE}"
-
 SYSTEMD_SERVICE_${PN}_append_raspberrypi0-wifi = " ${BCM_BT_SERVICE}"
 
-RDEPENDS_${PN}_append_raspberrypi0-wifi = " udev-rules-rpi"
+RDEPENDS_${PN}_append_raspberrypi0-wifi = " udev-rules-rpi bluez-firmware-raspbian"

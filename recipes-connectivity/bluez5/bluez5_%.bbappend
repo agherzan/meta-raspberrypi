@@ -8,14 +8,20 @@ BCM_BT_SOURCES =  " \
     file://brcm43438.service \
     "
 
+BCM_BT_SERVICE = "brcm43438.service"
+
 enable_bcm_bluetooth() {
     if ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
         install -d ${D}${systemd_unitdir}/system
-        install -m 0644 ${WORKDIR}/brcm43438.service ${D}${systemd_unitdir}/system
+        install -m 0644 ${WORKDIR}/${BCM_BT_SERVICE} ${D}${systemd_unitdir}/system
     fi
 }
 
-BCM_BT_SERVICE =  " brcm43438.service"
+BCM_BT_RDEPENDS = "\
+    udev-rules-rpi \
+    bluez-firmware-raspbian \
+    pi-bluetooth \
+"
 
 # for raspberrypi3
 SRC_URI_append_raspberrypi3 = " ${BCM_BT_SOURCES}"
@@ -26,7 +32,7 @@ do_install_append_raspberrypi3() {
 
 SYSTEMD_SERVICE_${PN}_append_raspberrypi3 = " ${BCM_BT_SERVICE}"
 
-RDEPENDS_${PN}_append_raspberrypi3 = " udev-rules-rpi bluez-firmware-raspbian"
+RDEPENDS_${PN}_append_raspberrypi3 = " ${BCM_BT_RDEPENDS}"
 
 # for raspberrypi0-wifi
 SRC_URI_append_raspberrypi0-wifi = " ${BCM_BT_SOURCES}"
@@ -37,4 +43,4 @@ do_install_append_raspberrypi0-wifi() {
 
 SYSTEMD_SERVICE_${PN}_append_raspberrypi0-wifi = " ${BCM_BT_SERVICE}"
 
-RDEPENDS_${PN}_append_raspberrypi0-wifi = " udev-rules-rpi bluez-firmware-raspbian"
+RDEPENDS_${PN}_append_raspberrypi0-wifi = " ${BCM_BT_RDEPENDS}"

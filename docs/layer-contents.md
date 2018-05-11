@@ -23,12 +23,12 @@ For other uses it's recommended to base images on `core-image-minimal` or
 `core-image-base` as appropriate. The old image names (`rpi-hwup-image` and
 `rpi-basic-image`) are deprecated.
 
-## WiFi firmware blobs
+## WiFi and Bluetooth Firmware
 
-Be aware that the WiFi firmwares for the supported boards are not provided by
-`linux-firmware` but by a custom recipe which only packages the needed blobs
-for these boards. This is because the upstream `linux-firmware` doesn't support
-or has outdated files for the blobs we need. The recipe
-`linux-firmware-raspbian` is based on a fork of `linux-firmware` which
-includes everything we need in order to fully support the WiFi hardware. All
-machines define `MACHINE_EXTRA_RRECOMMENDS` accordingly.
+Be aware that the WiFi and Bluetooth firmware for the supported boards
+is not available in the base version of `linux-firmware` from OE-Core
+(poky). The files are added from Raspbian repositories in this layer's
+bbappends to that recipe. All machines define
+`MACHINE_EXTRA_RRECOMMENDS` to include the required wireless firmware;
+raspberrypi3 supports 3, 3B, and 3B+ and so include multiple firmware
+packages.

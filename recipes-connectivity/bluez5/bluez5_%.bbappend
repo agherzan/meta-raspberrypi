@@ -19,7 +19,6 @@ enable_bcm_bluetooth() {
 
 BCM_BT_RDEPENDS = "\
     udev-rules-rpi \
-    bluez-firmware-raspbian \
     pi-bluetooth \
 "
 

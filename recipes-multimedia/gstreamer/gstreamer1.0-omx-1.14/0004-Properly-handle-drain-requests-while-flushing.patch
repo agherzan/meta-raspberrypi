@@ -10,11 +10,11 @@ the drain request, leaving the decoder input thread waiting forever.
  omx/gstomx.c | 7 +++++++
  1 file changed, 7 insertions(+)
 
-diff --git a/omx/gstomx.c b/omx/gstomx.c
-index 45732c3..784a5d7 100644
---- a/omx/gstomx.c
-+++ b/omx/gstomx.c
-@@ -737,6 +737,13 @@ gst_omx_component_new (GstObject * parent, const gchar * core_name,
+Index: gst-omx-1.14.0/omx/gstomx.c
+===================================================================
+--- gst-omx-1.14.0.orig/omx/gstomx.c
++++ gst-omx-1.14.0/omx/gstomx.c
+@@ -837,6 +837,13 @@ gst_omx_component_new (GstObject * paren
  
    g_mutex_lock (&comp->lock);
    gst_omx_component_handle_messages (comp);

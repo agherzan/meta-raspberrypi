@@ -1,5 +1,5 @@
-GSTREAMER_1_0_OMX_TARGET_rpi = "rpi"
-GSTREAMER_1_0_OMX_CORE_NAME_rpi = "${libdir}/libopenmaxil.so"
+GSTREAMER_1_0_OMX_TARGET_rpi = "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", "bellagio", "rpi", d)}"
+GSTREAMER_1_0_OMX_CORE_NAME_rpi = "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", "", "${libdir}/libomxil-bellagio.so.0", d)}"
 
 
 # How to make this RPI specific?

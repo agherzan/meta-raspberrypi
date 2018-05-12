@@ -9,4 +9,4 @@ PACKAGECONFIG_GL_rpi = "egl gles2"
 
 PACKAGECONFIG_append_rpi = " hls libmms faad"
 
-PACKAGECONFIG[dispmanx] = "--enable-dispmanx,--disable-dispmanx,userland"
+PACKAGECONFIG[dispmanx] = "--enable-dispmanx,,userland"

@@ -14,11 +14,11 @@ COMPATIBLE_MACHINE = "^rpi$"
 
 SRCBRANCH = "master"
 SRCFORK = "raspberrypi"
-SRCREV = "11389772c79685442e0ab8aa9be8ad0e32703f68"
+SRCREV = "2448644657e5fbfd82299416d218396ee1115ece"
 
 # Use the date of the above commit as the package version. Update this when
 # SRCREV is changed.
-PV = "20180219"
+PV = "20180511"
 
 SRC_URI = "\
     git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \
@@ -38,6 +38,7 @@ SRC_URI = "\
     file://0014-GLES2-gl2ext.h-Define-GL_R8_EXT-and-GL_RG8_EXT.patch \
     file://0015-EGL-glplatform.h-define-EGL_CAST.patch \
     file://0016-Allow-multiple-wayland-compositor-state-data-per-pro.patch \
+    file://0017-khronos-backport-typedef-for-EGL_EXT_image_dma_buf_i.patch \
 "
 S = "${WORKDIR}/git"
 

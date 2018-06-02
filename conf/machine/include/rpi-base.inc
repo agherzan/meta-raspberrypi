@@ -43,6 +43,7 @@ KERNEL_DEVICETREE ?= " \
     overlays/pi3-disable-bt.dtbo \
     overlays/pi3-miniuart-bt.dtbo \
     overlays/vc4-kms-v3d.dtbo \
+    overlays/at86rf233.dtbo \
     "
 
 # By default:

@@ -178,6 +178,12 @@ do_deploy() {
         echo "dtoverlay=dwc2,dr_mode=peripheral" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi
 
+    # AT86RF23X support
+    if [ "${ENABLE_AT86RF}" = "1" ]; then
+        echo "# Enable AT86RF23X" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+        echo "dtoverlay=at86rf233,speed=3000000" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+    fi
+
     # Append extra config if the user has provided any
     echo "${RPI_EXTRA_CONFIG}" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
 }

@@ -1,4 +1,4 @@
-From 97cb9405f281f54d4083f3126d441c8b44eafb89 Mon Sep 17 00:00:00 2001
+From 81d1f8bc102b23bdfa63a01f252f3e4c74ae7da9 Mon Sep 17 00:00:00 2001
 From: Paul Barker <pbarker@toganlabs.com>
 Date: Thu, 7 Sep 2017 19:14:20 +0000
 Subject: [PATCH] Don't require internet connection during build
@@ -11,6 +11,7 @@ The following issues break offline builds:
 
 Signed-off-by: Paul Barker <pbarker@toganlabs.com>
 Upstream-status: Inappropriate
+
 ---
  Makefile        | 6 ++----
  Makefile.ffmpeg | 2 +-
@@ -51,6 +52,3 @@ index 22d495c..8651724 100644
  
  .PHONY : copy
  copy:
--- 
-2.7.4
-

@@ -8,7 +8,7 @@ LICENSE_append_rpi = "\
 "
 
 LIC_FILES_CHKSUM_append_rpi = "\
-    file://LICENCE.cypress;md5=cbc5f665d04f741f1e006d2096236ba7 \
+    file://LICENCE.cypress;md5=48cd9436c763bf873961f9ed7b5c147b \
 "
 NO_GENERIC_LICENSE[Firmware-cypress] = "LICENCE.cypress"
 

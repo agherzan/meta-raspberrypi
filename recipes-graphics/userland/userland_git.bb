@@ -39,6 +39,7 @@ SRC_URI = "\
     file://0015-EGL-glplatform.h-define-EGL_CAST.patch \
     file://0016-Allow-multiple-wayland-compositor-state-data-per-pro.patch \
     file://0017-khronos-backport-typedef-for-EGL_EXT_image_dma_buf_i.patch \
+    file://0018-Add-EGL_IMG_context_priority-related-defines.patch \
 "
 S = "${WORKDIR}/git"
 

@@ -38,6 +38,7 @@ SRC_URI = "\
     file://0014-GLES2-gl2ext.h-Define-GL_R8_EXT-and-GL_RG8_EXT.patch \
     file://0015-EGL-glplatform.h-define-EGL_CAST.patch \
     file://0016-Allow-multiple-wayland-compositor-state-data-per-pro.patch \
+    file://0017-khronos-backport-typedef-for-EGL_EXT_image_dma_buf_i.patch \
 "
 S = "${WORKDIR}/git"
 

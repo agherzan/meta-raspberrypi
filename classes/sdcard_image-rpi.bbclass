@@ -75,6 +75,7 @@ SDIMG = "${IMGDEPLOYDIR}/${IMAGE_NAME}.rootfs.rpi-sdimg"
 FATPAYLOAD ?= ""
 
 # SD card vfat partition image name
+SDIMG_VFAT_DEPLOY ?= "${RPI_USE_U_BOOT}"
 SDIMG_VFAT = "${IMAGE_NAME}.vfat"
 SDIMG_LINK_VFAT = "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.vfat"
 
@@ -161,8 +162,8 @@ IMAGE_CMD_rpi-sdimg () {
     echo "${IMAGE_NAME}" > ${WORKDIR}/image-version-info
     mcopy -i ${WORKDIR}/boot.img -v ${WORKDIR}/image-version-info ::
 
-    # Deploy vfat partition (for u-boot case only)
-    if [ "${RPI_USE_U_BOOT}" = "1" ]; then
+    # Deploy vfat partition
+    if [ "${SDIMG_VFAT_DEPLOY}" = "1" ]; then
         cp ${WORKDIR}/boot.img ${IMGDEPLOYDIR}/${SDIMG_VFAT}
         ln -sf ${SDIMG_VFAT} ${SDIMG_LINK_VFAT}
     fi

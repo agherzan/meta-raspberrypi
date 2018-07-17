@@ -76,23 +76,18 @@ def make_dtb_boot_files(d):
     imgtyp = d.getVar('KERNEL_IMAGETYPE')
 
     def transform(dtb):
+        base = os.path.basename(dtb)
         if dtb.endswith('dtb'):
             # eg: whatever/bcm2708-rpi-b.dtb has:
-            #     DEPLOYDIR file: ${KERNEL_IMAGETYPE}-bcm2708-rpi-b.dtb
+            #     DEPLOYDIR file: bcm2708-rpi-b.dtb
             #     destination: bcm2708-rpi-b.dtb
-            base = os.path.basename(dtb)
-            src = '{}-{}'.format(imgtyp, base)
-            dst = base
-            return '{};{}'.format(src, dst)
+            return base
         elif dtb.endswith('dtbo'):
             # overlay dtb:
             # eg: overlays/hifiberry-amp.dtbo has:
-            #     DEPLOYDIR file: ${KERNEL_IMAGETYPE}-hifiberry-amp.dtbo
+            #     DEPLOYDIR file: hifiberry-amp.dtbo
             #     destination: overlays/hifiberry-amp.dtbo
-            base = os.path.basename(dtb)
-            src = '{}-{}'.format(imgtyp, base)
-            dst = dtb
-            return '{};{}'.format(src, dtb)
+            return '{};{}'.format(base, dtb)
 
     return ' '.join([transform(dtb) for dtb in alldtbs.split(' ') if dtb])
 

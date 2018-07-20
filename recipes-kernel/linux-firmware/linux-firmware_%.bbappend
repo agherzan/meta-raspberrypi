@@ -3,15 +3,6 @@
 # https://github.com/RPi-Distro/firmware-nonfree
 # https://github.com/RPi-Distro/bluez-firmware
 
-LICENSE_append_rpi = "\
-    & Firmware-cypress \
-"
-
-LIC_FILES_CHKSUM_append_rpi = "\
-    file://LICENCE.cypress;md5=48cd9436c763bf873961f9ed7b5c147b \
-"
-NO_GENERIC_LICENSE[Firmware-cypress] = "LICENCE.cypress"
-
 SRC_URI_append_rpi = " \
     git://github.com/RPi-Distro/firmware-nonfree;destsuffix=raspbian-nf;name=raspbian-nf \
     git://github.com/RPi-Distro/bluez-firmware;destsuffix=raspbian-bluez;name=raspbian-bluez \
@@ -41,7 +32,6 @@ do_install_append_rpi() {
 # the roll-up package which precedes them.
 PACKAGES_prepend_rpi = "\
     ${PN}-bcm43455 \
-    ${PN}-cypress-license \
     ${PN}-bcm43430a1-hcd \
     ${PN}-bcm4345c0-hcd \
 "
@@ -57,11 +47,6 @@ FILES_${PN}-bcm43455 = " \
 "
 
 RDEPENDS_${PN}-bcm43455 += "${PN}-broadcom-license"
-
-# For additional Cypress
-FILES_${PN}-cypress-license = "\
-  ${nonarch_base_libdir}/firmware/LICENCE.cypress \
-"
 
 LICENSE_${PN}-bcm43430a1-hcd = "Firmware-cypress"
 LICENSE_${PN}-bcm4345c0-hcd = "Firmware-cypress"

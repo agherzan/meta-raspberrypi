@@ -10,7 +10,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=94d55d512a9ba36caa9b7df079bae19f"
 DEPENDS = "libpcre libav virtual/egl boost freetype dbus openssl libssh libomxil coreutils-native curl-native"
 PR = "r4"
 
-SRCREV_default = "b8ff59dccd9307f10dad71bec2525a95bd6c603b"
+SRCREV_default = "7f3faf6cadac913013248de759462bcff92f0102"
 
 # omxplayer builds its own copy of ffmpeg from source instead of using the
 # system's ffmpeg library. This isn't ideal but it's ok for now. We do however
@@ -31,12 +31,23 @@ SRC_URI = "git://github.com/popcornmix/omxplayer.git;protocol=git;branch=master 
            file://use-native-pkg-config.patch \
            file://0005-Don-t-require-internet-connection-during-build.patch \
            file://0006-Prevent-ffmpeg-configure-compile-race-condition.patch \
+           file://0001-Specify-cc-cxx-and-ld-variables-from-environment.patch \
+           file://0001-openssl-Support-version-1.1.0.patch;patchdir=ffmpeg \
+           file://0001-swresample-arm-avoid-conditional-branch-to-PLT-in-TH.patch;patchdir=ffmpeg \
+           file://0001-rtmpdh-Stop-using-OpenSSL-provided-DH-functions-to-s.patch;patchdir=ffmpeg \
            "
 S = "${WORKDIR}/git"
 
 COMPATIBLE_MACHINE ?= "null"
-COMPATIBLE_MACHINE_rpi_aarch64 = "null"
-COMPATIBLE_MACHINE_rpi = "(.*)"
+COMPATIBLE_HOST_rpi = "${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', 'null', '(.*)', d)}"
+
+def cpu(d):
+    for arg in (d.getVar('TUNE_CCARGS') or '').split():
+        if arg.startswith('-mcpu='):
+            return arg[6:]
+    return 'generic'
+
+export CPU = "${@cpu(d)}"
 
 inherit autotools-brokensep pkgconfig
 

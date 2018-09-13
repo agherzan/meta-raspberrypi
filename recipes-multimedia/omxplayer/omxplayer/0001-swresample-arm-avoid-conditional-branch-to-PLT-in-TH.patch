@@ -1,0 +1,75 @@
+From 6616f39fec0aa6270a707c8d0eb0f78c4b616eb9 Mon Sep 17 00:00:00 2001
+From: Rahul Chaudhry <rahulchaudhry@chromium.org>
+Date: Wed, 18 Apr 2018 16:40:28 -0700
+Subject: [PATCH] swresample/arm: avoid conditional branch to PLT in THUMB-2.
+
+On Wed, Apr 18, 2018 at 3:46 PM, Michael Niedermayer
+<michael@niedermayer.cc> wrote:
+> please make sure this works on apple based arm (unless you know it works)
+> (ive tested qemu linux based)
+>
+> Also please add a commit message
+
+If by 'apple based arm' you mean llvm/clang assembler, then yes, I've verified
+that the assembly works with armv7a-cros-linux-gnueabi-clang (version 7.0.0).
+
+Updated patch with new commit message is attached.
+
+Thanks,
+Rahul
+>From 2e3318acf266b519e98b680102a07196d6ddbf93 Mon Sep 17 00:00:00 2001
+From: Rahul Chaudhry <rahulchaudhry@chromium.org>
+Date: Wed, 18 Apr 2018 16:29:39 -0700
+Subject: [PATCH] swresample/arm: remove unintentional relocation.
+
+Branch to global symbol results in reference to PLT, and when compiling
+for THUMB-2 - in a R_ARM_THM_JUMP19 relocation. Some linkers don't
+support this relocation (ld.gold), while others can end up truncating
+the relocation to fit (ld.bfd).
+
+Convert this branch through PLT into a direct branch that the assembler
+can resolve locally.
+
+See https://github.com/android-ndk/ndk/issues/337 for background.
+
+The current workaround is to disable neon during gstreamer build,
+which is not optimal and can be reverted after this patch:
+https://github.com/freedesktop/gstreamer-cerbero/commit/41556c415739fbc3a72c7eaee7e70a565b719b2f
+---
+ libswresample/arm/audio_convert_neon.S | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/libswresample/arm/audio_convert_neon.S b/libswresample/arm/audio_convert_neon.S
+index 1f88316dde..7729514701 100644
+--- a/libswresample/arm/audio_convert_neon.S
++++ b/libswresample/arm/audio_convert_neon.S
+@@ -22,6 +22,7 @@
+ #include "libavutil/arm/asm.S"
+ 
+ function swri_oldapi_conv_flt_to_s16_neon, export=1
++_swri_oldapi_conv_flt_to_s16_neon:
+         subs            r2,  r2,  #8
+         vld1.32         {q0},     [r1,:128]!
+         vcvt.s32.f32    q8,  q0,  #31
+@@ -66,6 +67,7 @@ function swri_oldapi_conv_flt_to_s16_neon, export=1
+ endfunc
+ 
+ function swri_oldapi_conv_fltp_to_s16_2ch_neon, export=1
++_swri_oldapi_conv_fltp_to_s16_2ch_neon:
+         ldm             r1,  {r1, r3}
+         subs            r2,  r2,  #8
+         vld1.32         {q0},     [r1,:128]!
+@@ -133,8 +135,8 @@ function swri_oldapi_conv_fltp_to_s16_nch_neon, export=1
+         cmp             r3,  #2
+         itt             lt
+         ldrlt           r1,  [r1]
+-        blt             X(swri_oldapi_conv_flt_to_s16_neon)
+-        beq             X(swri_oldapi_conv_fltp_to_s16_2ch_neon)
++        blt             _swri_oldapi_conv_flt_to_s16_neon
++        beq             _swri_oldapi_conv_fltp_to_s16_2ch_neon
+ 
+         push            {r4-r8, lr}
+         cmp             r3,  #4
+-- 
+2.19.0
+

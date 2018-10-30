@@ -17,6 +17,7 @@ XSERVER = " \
 RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/at86rf233.dtbo \
     overlays/dwc2.dtbo \
+    overlays/gpio-key.dtbo \
     overlays/hifiberry-amp.dtbo \
     overlays/hifiberry-dac.dtbo \
     overlays/hifiberry-dacplus.dtbo \

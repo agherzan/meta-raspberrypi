@@ -8,8 +8,8 @@ SRC_URI_append_rpi = " \
     git://github.com/RPi-Distro/bluez-firmware;destsuffix=raspbian-bluez;name=raspbian-bluez \
 "
 
-SRCREV_raspbian-nf = "86e88fbf0345da49555d0ec34c80b4fbae7d0cd3"
-SRCREV_raspbian-bluez = "e28cd7ee8615de33aa7ec2b41d556af61a4a2707"
+SRCREV_raspbian-nf = "b518de45ced519e8f7a499f4778100173402ae43"
+SRCREV_raspbian-bluez = "ade2bae1aaaebede09abb8fb546f767a0e4c7804"
 SRCREV_FORMAT_rpi = "default+raspbian-nf+raspbian-bluez"
 
 do_install_append_rpi() {

@@ -15,6 +15,7 @@ XSERVER = " \
     "
 
 RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
+    overlays/at86rf233.dtbo \
     overlays/dwc2.dtbo \
     overlays/hifiberry-amp.dtbo \
     overlays/hifiberry-dac.dtbo \
@@ -24,18 +25,17 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/iqaudio-dac.dtbo \
     overlays/iqaudio-dacplus.dtbo \
     overlays/lirc-rpi.dtbo \
+    overlays/pi3-disable-bt.dtbo \
+    overlays/pi3-miniuart-bt.dtbo \
     overlays/pitft22.dtbo \
     overlays/pitft28-resistive.dtbo \
     overlays/pitft35-resistive.dtbo \
     overlays/pps-gpio.dtbo \
     overlays/rpi-ft5406.dtbo \
     overlays/rpi-poe.dtbo \
-    overlays/w1-gpio.dtbo \
-    overlays/w1-gpio-pullup.dtbo \
-    overlays/pi3-disable-bt.dtbo \
-    overlays/pi3-miniuart-bt.dtbo \
     overlays/vc4-kms-v3d.dtbo \
-    overlays/at86rf233.dtbo \
+    overlays/w1-gpio-pullup.dtbo \
+    overlays/w1-gpio.dtbo \
     "
 
 RPI_KERNEL_DEVICETREE ?= " \

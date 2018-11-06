@@ -15,21 +15,11 @@ Signed-off-by: Andrei Gherzan <andrei@gherzan.ro>
  Makefile.ffmpeg | 5 ++---
  1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/Makefile.ffmpeg b/Makefile.ffmpeg
-index d712f6c..0dbe87c 100644
---- a/Makefile.ffmpeg
-+++ b/Makefile.ffmpeg
-@@ -241,7 +241,8 @@ configure:
- 			--disable-decoder=idf \
- 			--disable-decoder=hevc \
- 			--enable-decoder=opus \
--			--cross-prefix=$(HOST)-
-+			--cross-prefix=$(HOST)- \
-+			--disable-stripping
- 
- .PHONY : clean
- clean:
-@@ -254,5 +255,3 @@ checkout:
+Index: git/Makefile.ffmpeg
+===================================================================
+--- git.orig/Makefile.ffmpeg
++++ git/Makefile.ffmpeg
+@@ -252,5 +252,3 @@ checkout:
  .PHONY : install
  install:
  	cd ffmpeg; make -j9 DESTDIR="$(WORK)/ffmpeg_compiled" install

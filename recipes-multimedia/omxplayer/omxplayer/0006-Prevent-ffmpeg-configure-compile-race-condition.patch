@@ -13,11 +13,11 @@ Upstream-status: Pending
  Makefile.ffmpeg | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Makefile.ffmpeg b/Makefile.ffmpeg
-index 8651724..619c49a 100644
---- a/Makefile.ffmpeg
-+++ b/Makefile.ffmpeg
-@@ -6,7 +6,7 @@ FFMPEG_EXTRA_CFLAGS?=-mfpu=vfp -mfloat-abi=$(FLOAT) -mno-apcs-stack-check -mstru
+Index: git/Makefile.ffmpeg
+===================================================================
+--- git.orig/Makefile.ffmpeg
++++ git/Makefile.ffmpeg
+@@ -5,7 +5,7 @@ FFMPEG_EXTRA_CFLAGS?=-mfpu=vfp -mfloat-a
  WORK=$(PWD)
  
  .PHONY : all
@@ -26,12 +26,12 @@ index 8651724..619c49a 100644
  
  .PHONY : copy
  copy:
-@@ -14,7 +14,7 @@ copy:
+@@ -13,7 +13,7 @@ copy:
  	$(HOST)-strip *.so*
  
  .PHONY : compile
 -compile: 
 +compile: configure
- 	+$(MAKE) -C ffmpeg
+ 	+$(MAKE) -j$(shell nproc) -C ffmpeg
  
  .PHONY : configure

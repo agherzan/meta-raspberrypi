@@ -12,14 +12,14 @@ Signed-off-by: Andrei Gherzan <andrei@gherzan.ro>
  Makefile.ffmpeg | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/Makefile.ffmpeg b/Makefile.ffmpeg
-index e120d47..22d495c 100644
---- a/Makefile.ffmpeg
-+++ b/Makefile.ffmpeg
-@@ -245,7 +245,8 @@ configure:
+Index: git/Makefile.ffmpeg
+===================================================================
+--- git.orig/Makefile.ffmpeg
++++ git/Makefile.ffmpeg
+@@ -242,7 +242,8 @@ configure:
+ 			--disable-decoder=idf \
  			--disable-decoder=hevc \
  			--enable-decoder=opus \
- 			--cross-prefix=$(HOST)- \
 -			--disable-stripping
 +			--disable-stripping \
 +			--pkg-config=pkg-config

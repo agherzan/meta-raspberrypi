@@ -23,7 +23,6 @@ SRCREV_ffmpeg = "afa34cb36edca0ff809b7e58474bbce12271ecba"
 
 SRC_URI = "git://github.com/popcornmix/omxplayer.git;protocol=git;branch=master \
            git://source.ffmpeg.org/ffmpeg;branch=release/3.1;protocol=git;depth=1;name=ffmpeg;destsuffix=git/ffmpeg \
-           file://0001-Remove-Makefile.include-which-includes-hardcoded.patch \
            file://0002-Libraries-and-headers-from-ffmpeg-are-installed-in-u.patch \
            file://0003-Remove-strip-step-in-Makefile.patch \
            file://0004-Add-FFMPEG_EXTRA_CFLAGS-and-FFMPEG_EXTRA_LDFLAGS.patch \
@@ -35,10 +34,11 @@ SRC_URI = "git://github.com/popcornmix/omxplayer.git;protocol=git;branch=master 
            file://0001-openssl-Support-version-1.1.0.patch;patchdir=ffmpeg \
            file://0001-swresample-arm-avoid-conditional-branch-to-PLT-in-TH.patch;patchdir=ffmpeg \
            file://0001-rtmpdh-Stop-using-OpenSSL-provided-DH-functions-to-s.patch;patchdir=ffmpeg \
+           file://cross-crompile-ffmpeg.patch \
            "
 S = "${WORKDIR}/git"
 
-COMPATIBLE_MACHINE ?= "null"
+COMPATIBLE_HOST ?= "null"
 COMPATIBLE_HOST_rpi = "${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', 'null', '(.*)', d)}"
 
 def cpu(d):

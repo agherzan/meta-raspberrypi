@@ -14,7 +14,7 @@ Index: git/Makefile.ffmpeg
 ===================================================================
 --- git.orig/Makefile.ffmpeg
 +++ git/Makefile.ffmpeg
-@@ -23,13 +23,16 @@ configure:
+@@ -22,12 +22,15 @@ configure:
  	CFLAGS="$(CFLAGS) ${INCLUDES}" \
  	LDFLAGS="" \
    ./configure \
@@ -23,7 +23,6 @@ Index: git/Makefile.ffmpeg
 +			--cxx="${CXX}" \
  			--extra-cflags="$(FFMPEG_EXTRA_CFLAGS)" \
  			--extra-ldflags="$(FFMPEG_EXTRA_LDFLAGS)" \
- 			--enable-cross-compile \
  			--enable-shared \
  			--disable-static \
  			--arch=arm \
@@ -32,7 +31,7 @@ Index: git/Makefile.ffmpeg
  			--target-os=linux \
  			--disable-hwaccels \
  			--enable-parsers \
-@@ -44,7 +47,7 @@ configure:
+@@ -42,7 +45,7 @@ configure:
  			--enable-gpl \
  			--enable-version3 \
  			--enable-protocols \

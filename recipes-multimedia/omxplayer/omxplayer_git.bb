@@ -8,6 +8,8 @@ LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=94d55d512a9ba36caa9b7df079bae19f"
 
 DEPENDS = "libpcre libav virtual/egl boost freetype dbus openssl libssh libomxil coreutils-native curl-native"
+DEPENDS += "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", " userland-nogl", "", d)}"
+
 PR = "r4"
 
 SRCREV_default = "7f3faf6cadac913013248de759462bcff92f0102"
@@ -35,11 +37,11 @@ SRC_URI = "git://github.com/popcornmix/omxplayer.git;protocol=git;branch=master 
            file://0001-swresample-arm-avoid-conditional-branch-to-PLT-in-TH.patch;patchdir=ffmpeg \
            file://0001-rtmpdh-Stop-using-OpenSSL-provided-DH-functions-to-s.patch;patchdir=ffmpeg \
            file://cross-crompile-ffmpeg.patch \
+           file://0001-Fix-build-with-vc4-driver.patch \
            "
 S = "${WORKDIR}/git"
 
-COMPATIBLE_HOST ?= "null"
-COMPATIBLE_HOST_rpi = "${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', 'null', '(.*)', d)}"
+COMPATIBLE_MACHINE = "^rpi$"
 
 def cpu(d):
     for arg in (d.getVar('TUNE_CCARGS') or '').split():
@@ -66,11 +68,13 @@ export FFMPEG_EXTRA_CFLAGS  = "${TUNE_CCARGS} ${TOOLCHAIN_OPTIONS}"
 export FFMPEG_EXTRA_LDFLAGS  = "${TUNE_CCARGS} ${TOOLCHAIN_OPTIONS}"
 
 # Needed in top Makefile
+
 export LDFLAGS = "-L${S}/ffmpeg_compiled/usr/lib \
                   -L${STAGING_DIR_HOST}/lib \
                   -L${STAGING_DIR_HOST}/usr/lib \
                  "
-export INCLUDES = "-isystem${STAGING_DIR_HOST}/usr/include/interface/vcos/pthreads \
+export INCLUDES = "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", " -D__GBM__", "", d)} \
+                   -isystem${STAGING_DIR_HOST}/usr/include/interface/vcos/pthreads \
                    -isystem${STAGING_DIR_HOST}/usr/include/freetype2 \
                    -isystem${STAGING_DIR_HOST}/usr/include/interface/vmcs_host/linux \
                    -isystem${STAGING_DIR_HOST}/usr/include/dbus-1.0 \
@@ -102,3 +106,4 @@ FILES_${PN} = "${bindir}/omxplayer* \
 FILES_${PN}-dev += "${libdir}/omxplayer/*.so"
 
 RDEPENDS_${PN} += "bash procps"
+RDEPENDS_${PN} += "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", " userland-nogl", "", d)}"

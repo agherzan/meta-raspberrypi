@@ -158,13 +158,14 @@ command (eg. bootz) to be used.
 
 To build an initramfs image:
 
-* Set this 3 kernel variables (in linux-raspberrypi.inc for example)
+* Set this 3 kernel variables (in kernel's do_configure_prepend in linux-raspberrypi.inc after the line kernel_configure_variable LOCALVERSION "\"\""
+)
   - kernel_configure_variable BLK_DEV_INITRD y
   - kernel_configure_variable INITRAMFS_SOURCE ""
   - kernel_configure_variable RD_GZIP y
 
-* Set the yocto variables (in linux-raspberrypi.inc for example)
-  - `INITRAMFS_IMAGE = "<a name for your initramfs image>"`
+* Set the yocto variables (e.g. in local.conf)
+  - `INITRAMFS_IMAGE = "<name for your initramfs image>"`
   - `INITRAMFS_IMAGE_BUNDLE = "1"`
 
 ## Enable SPI bus

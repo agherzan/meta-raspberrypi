@@ -167,6 +167,9 @@ To build an initramfs image:
 * Set the yocto variables (e.g. in local.conf)
   - `INITRAMFS_IMAGE = "<name for your initramfs image>"`
   - `INITRAMFS_IMAGE_BUNDLE = "1"`
+  - `BOOT_SPACE = "1073741"`
+  - `INITRAMFS_MAXSIZE = "315400"`
+  - `IMAGE_FSTYPES_pn-${INITRAMFS_IMAGE} = "${INITRAMFS_FSTYPES}"`
 
 ## Enable SPI bus
 

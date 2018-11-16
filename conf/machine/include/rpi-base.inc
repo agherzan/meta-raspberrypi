@@ -26,6 +26,7 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/iqaudio-dac.dtbo \
     overlays/iqaudio-dacplus.dtbo \
     overlays/lirc-rpi.dtbo \
+    overlays/mcp2515-can0.dtbo \
     overlays/pi3-disable-bt.dtbo \
     overlays/pi3-miniuart-bt.dtbo \
     overlays/pitft22.dtbo \

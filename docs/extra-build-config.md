@@ -246,6 +246,15 @@ When using device tree kernels, set this variable to enable the 802.15.4 hat:
 
 See: <https://openlabs.co/OSHW/Raspberry-Pi-802.15.4-radio>
 
+## Enable CAN with Pican2
+
+In order to use Pican2 CAN module, set the following variables:
+
+	ENABLE_SPI_BUS = "1"
+	ENABLE_CAN = "1"
+
+See: <http://skpang.co.uk/catalog/pican2-canbus-board-for-raspberry-pi-23-p-1475.html>
+
 ## Manual additions to config.txt
 
 The `RPI_EXTRA_CONFIG` variable can be used to manually add additional lines to

@@ -7,8 +7,7 @@ SECTION = "console/utils"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=94d55d512a9ba36caa9b7df079bae19f"
 
-DEPENDS = "libpcre libav virtual/egl boost freetype dbus openssl libssh libomxil coreutils-native curl-native"
-DEPENDS += "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", " userland-nogl", "", d)}"
+DEPENDS = "libpcre libav virtual/egl boost freetype dbus openssl libssh libomxil coreutils-native curl-native userland"
 
 PR = "r4"
 
@@ -105,5 +104,4 @@ FILES_${PN} = "${bindir}/omxplayer* \
 
 FILES_${PN}-dev += "${libdir}/omxplayer/*.so"
 
-RDEPENDS_${PN} += "bash procps"
-RDEPENDS_${PN} += "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", " userland-nogl", "", d)}"
+RDEPENDS_${PN} += "bash procps userland"

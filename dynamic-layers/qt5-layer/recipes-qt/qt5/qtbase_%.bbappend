@@ -15,3 +15,4 @@ do_configure_prepend_rpi() {
         echo "QT_QPA_DEFAULT_PLATFORM = eglfs" >> ${S}/mkspecs/oe-device-extra.pri
     fi
 }
+RDEPENDS_${PN}_append_rpi = " userland"

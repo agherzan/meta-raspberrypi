@@ -1,4 +1,4 @@
-DEPENDS_append_rpi = "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", " userland-nogl", "", d)}"
+DEPENDS_append_rpi = " userland"
 GSTREAMER_1_0_OMX_TARGET_rpi = "rpi"
 GSTREAMER_1_0_OMX_CORE_NAME_rpi = "${libdir}/libopenmaxil.so"
 # How to make this RPI specific?
@@ -6,4 +6,4 @@ EXTRA_OECONF_append_rpi  = " CFLAGS="$CFLAGS -I${STAGING_DIR_TARGET}/usr/include
 #examples only build with GL but not GLES, so disable it for RPI
 EXTRA_OECONF_append_rpi = " --disable-examples"
 
-RDEPENDS_${PN}_append_rpi = "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", " userland-nogl", "", d)}"
+RDEPENDS_${PN}_append_rpi = " userland"

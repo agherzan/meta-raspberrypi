@@ -1,7 +1,7 @@
-From 59ba66c2ea17f7a57124b9fd6c9bdff4325ff5c9 Mon Sep 17 00:00:00 2001
+From 14c22987dfa9fec02794856cd15b2d64b4b81c32 Mon Sep 17 00:00:00 2001
 From: Khem Raj <raj.khem@gmail.com>
 Date: Sat, 6 Feb 2016 11:09:18 -0800
-Subject: [PATCH 08/16] Remove RPC_FLUSH
+Subject: [PATCH 08/18] Remove RPC_FLUSH
 
 Origins from buildroot
 
@@ -23,5 +23,5 @@ index f9b7287..b04ffef 100644
        }
  #endif
 -- 
-2.16.1
+2.19.1
 

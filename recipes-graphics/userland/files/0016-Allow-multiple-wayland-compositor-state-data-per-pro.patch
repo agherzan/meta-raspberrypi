@@ -1,7 +1,7 @@
-From 6b4c4d469d435bfcfb464356b6ccc9421c6b8fd5 Mon Sep 17 00:00:00 2001
+From bff03f92c0d8bae113e0c7234c719f8385808b38 Mon Sep 17 00:00:00 2001
 From: Jeff Wannamaker <jeff_wannamaker@cable.comcast.com>
 Date: Sat, 27 Jan 2018 12:28:31 -0500
-Subject: [PATCH 16/16] Allow multiple wayland compositor state data per
+Subject: [PATCH 16/18] Allow multiple wayland compositor state data per
  process
 
 When eglBindWaylandDisplayWL is called store the wl_global
@@ -15,8 +15,8 @@ Signed-off-by: Jeff Wannamaker <jeff_wannamaker@cable.comcast.com>
 Signed-off-by: Khem Raj <raj.khem@gmail.com>
 ---
  interface/khronos/common/khrn_client.c |  2 +-
- interface/khronos/common/khrn_client.h | 11 +++++++-
- interface/khronos/ext/egl_wayland.c    | 50 ++++++++++++++++++++++++++++++----
+ interface/khronos/common/khrn_client.h | 11 +++++-
+ interface/khronos/ext/egl_wayland.c    | 50 ++++++++++++++++++++++----
  3 files changed, 55 insertions(+), 8 deletions(-)
 
 diff --git a/interface/khronos/common/khrn_client.c b/interface/khronos/common/khrn_client.c
@@ -141,5 +141,5 @@ index 9ef89cd..abd5ab3 100644
     CLIENT_UNLOCK();
  
 -- 
-2.16.1
+2.19.1
 

@@ -1,14 +1,14 @@
-From df8b9633a45069bdd1bf256d974636ef11aa39cb Mon Sep 17 00:00:00 2001
+From fedd7668152049c15ed58c7058e5f4a9c1fac7cb Mon Sep 17 00:00:00 2001
 From: Khem Raj <raj.khem@gmail.com>
 Date: Sat, 2 Apr 2016 10:54:59 -0700
-Subject: [PATCH 12/16] implement buffer wrapping interface for dispmanx
+Subject: [PATCH 12/18] implement buffer wrapping interface for dispmanx
 
 Courtesy: Zan Dobersek
 
 Signed-off-by: Khem Raj <raj.khem@gmail.com>
 ---
- interface/khronos/ext/egl_wayland.c | 42 +++++++++++++++++++++++++++++++++++++
- interface/wayland/dispmanx.xml      | 10 +++++++++
+ interface/khronos/ext/egl_wayland.c | 42 +++++++++++++++++++++++++++++
+ interface/wayland/dispmanx.xml      | 10 +++++++
  2 files changed, 52 insertions(+)
 
 diff --git a/interface/khronos/ext/egl_wayland.c b/interface/khronos/ext/egl_wayland.c
@@ -88,5 +88,5 @@ index c18626d..11ed1ef 100644
  
  </protocol>
 -- 
-2.16.1
+2.19.1
 

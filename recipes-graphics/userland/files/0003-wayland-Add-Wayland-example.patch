@@ -1,16 +1,16 @@
-From 20ac7c6af4e826b5c536b6a7c8b2d1d266ced81e Mon Sep 17 00:00:00 2001
+From 976cc9355fe18487cd84e313e76f397ab47a4bf8 Mon Sep 17 00:00:00 2001
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Date: Tue, 1 Oct 2013 13:19:20 +0200
-Subject: [PATCH 03/16] wayland: Add Wayland example
+Subject: [PATCH 03/18] wayland: Add Wayland example
 
 ---
- .../linux/apps/hello_pi/CMakeLists.txt             |   1 +
- .../apps/hello_pi/hello_wayland/CMakeLists.txt     |   8 +
- .../apps/hello_pi/hello_wayland/Djenne_128_128.raw |   3 +
- .../linux/apps/hello_pi/hello_wayland/Makefile     |   5 +
- .../hello_wayland/cube_texture_and_coords.h        | 100 ++++
- .../linux/apps/hello_pi/hello_wayland/triangle.c   | 666 +++++++++++++++++++++
- host_applications/linux/apps/hello_pi/rebuild.sh   |   3 +-
+ .../linux/apps/hello_pi/CMakeLists.txt        |   1 +
+ .../hello_pi/hello_wayland/CMakeLists.txt     |   8 +
+ .../hello_pi/hello_wayland/Djenne_128_128.raw |   3 +
+ .../apps/hello_pi/hello_wayland/Makefile      |   5 +
+ .../hello_wayland/cube_texture_and_coords.h   | 100 +++
+ .../apps/hello_pi/hello_wayland/triangle.c    | 666 ++++++++++++++++++
+ .../linux/apps/hello_pi/rebuild.sh            |   3 +-
  7 files changed, 785 insertions(+), 1 deletion(-)
  create mode 100644 host_applications/linux/apps/hello_pi/hello_wayland/CMakeLists.txt
  create mode 100644 host_applications/linux/apps/hello_pi/hello_wayland/Djenne_128_128.raw
@@ -862,5 +862,5 @@ index 8225dd5..0be6ce7 100755
 -
 +make -C hello_wayland
 -- 
-2.16.1
+2.19.1
 

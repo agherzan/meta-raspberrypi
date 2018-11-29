@@ -12,7 +12,6 @@ do_configure_prepend_rpi() {
     # Add the appropriate EGLFS_DEVICE_INTEGRATION
     if [ "${@d.getVar('OE_QTBASE_EGLFS_DEVICE_INTEGRATION')}" != "" ]; then
         echo "EGLFS_DEVICE_INTEGRATION = ${OE_QTBASE_EGLFS_DEVICE_INTEGRATION}" > ${S}/mkspecs/oe-device-extra.pri
-        echo "QT_QPA_DEFAULT_PLATFORM = eglfs" >> ${S}/mkspecs/oe-device-extra.pri
     fi
 }
 RDEPENDS_${PN}_append_rpi = " userland"

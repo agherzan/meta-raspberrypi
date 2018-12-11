@@ -13,9 +13,6 @@ specific to it. For the rest please check:
 2. Overwrite SDIMG_ROOTFS_TYPE in local.conf
     * `SDIMG_ROOTFS_TYPE = "ext3.xz"`
 
-3. Overwrite SDIMG_COMPRESSION in local.conf
-    * `SDIMG_COMPRESSION = "xz"`
-
 Accommodate the values above to your own needs (ex: ext3 / ext4).
 
 ## GPU memory

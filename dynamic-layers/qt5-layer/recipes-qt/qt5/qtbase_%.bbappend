@@ -3,7 +3,7 @@ PACKAGECONFIG_GL_rpi = "${@bb.utils.contains('DISTRO_FEATURES', 'x11 opengl', 'g
                                                                        '', d), d)}"
 #PACKAGECONFIG_GL_rpi = "${@bb.utils.any_distro_features('x11 wayland', '', 'eglfs', d)}"
 PACKAGECONFIG_FONTS_rpi = "fontconfig"
-PACKAGECONFIG_append_rpi = " libinput examples tslib xkb xkbcommon-evdev"
+PACKAGECONFIG_append_rpi = " libinput examples tslib xkb xkbcommon"
 PACKAGECONFIG_remove_rpi = "tests"
 
 OE_QTBASE_EGLFS_DEVICE_INTEGRATION_rpi = "${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', 'eglfs_kms', 'eglfs_brcm', d)}"

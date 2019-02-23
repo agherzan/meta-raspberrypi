@@ -1,4 +1,5 @@
 PACKAGECONFIG_append_rpi = " gbm"
+PROVIDES_append_rpi = " virtual/libgbm"
 
 do_install_append_rpi() {
     if [ "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", "1", "0", d)}" = "0" ]; then

@@ -1,0 +1,45 @@
+From 8e0a58c8eea7ed70071cac139655700fdfa16445 Mon Sep 17 00:00:00 2001
+From: Andrei Gherzan <andrei@gherzan.ro>
+Date: Wed, 22 May 2019 18:32:07 +0100
+Subject: [PATCH] Allow enable DRI without DRI drivers
+
+Upstream-status: Pending
+Signed-off-by: Andrei Gherzan <andrei@gherzan.ro>
+---
+ meson.build       | 2 +-
+ meson_options.txt | 6 ++++++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/meson.build b/meson.build
+index 53d02e3..9a8578f 100644
+--- a/meson.build
++++ b/meson.build
+@@ -119,7 +119,7 @@ with_dri_r200 = _drivers.contains('r200')
+ with_dri_nouveau = _drivers.contains('nouveau')
+ with_dri_swrast = _drivers.contains('swrast')
+ 
+-with_dri = _drivers.length() != 0 and _drivers != ['']
++with_dri = get_option('dri') or (_drivers.length() != 0 and _drivers != [''])
+ 
+ _drivers = get_option('gallium-drivers')
+ if _drivers.contains('auto')
+diff --git a/meson_options.txt b/meson_options.txt
+index ccf7065..5174320 100644
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -34,6 +34,12 @@ option(
+   choices : ['auto', 'true', 'false'],
+   description : 'enable support for dri3'
+ )
++option(
++  'dri',
++  type : 'boolean',
++  value : false,
++  description : 'enable support for dri'
++)
+ option(
+   'dri-drivers',
+   type : 'array',
+-- 
+2.17.1
+

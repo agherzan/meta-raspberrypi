@@ -1,7 +1,9 @@
-From cfb432fcd8868c7a4f32010c61e47e2bf0ff80c6 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?Enrique=20Oca=C3=B1a=20Gonz=C3=A1lez?= <eocanha@igalia.com>
-Date: Mon, 25 May 2015 14:53:35 +0200
+From 160181edf5fc73288abfe99fa04de4a550cd9c65 Mon Sep 17 00:00:00 2001
+From: Khem Raj <raj.khem@gmail.com>
+Date: Thu, 11 Feb 2016 12:53:20 -0800
 Subject: [PATCH] Don't try to acquire buffer when src pad isn't active
+
+From: =?UTF-8?q?Enrique=20Oca=C3=B1a=20Gonz=C3=A1lez?= <eocanha@igalia.com>
 
 This solves a race condition when setting the pipeline from PAUSE to
 NULL while the decoder loop is still running. Without this patch, the
@@ -29,11 +31,11 @@ arrive:
  1 file changed, 5 insertions(+)
 
 diff --git a/omx/gstomxvideodec.c b/omx/gstomxvideodec.c
-index d12ee8f..fb0100a 100644
+index abe6e30..c4dc33f 100644
 --- a/omx/gstomxvideodec.c
 +++ b/omx/gstomxvideodec.c
-@@ -1250,6 +1250,11 @@ gst_omx_video_dec_loop (GstOMXVideoDec * self)
-   GstClockTimeDiff deadline;
+@@ -1598,6 +1598,11 @@ gst_omx_video_dec_loop (GstOMXVideoDec * self)
+   GstOMXAcquireBufferReturn acq_return;
    OMX_ERRORTYPE err;
  
 +  if (!gst_pad_is_active(GST_VIDEO_DECODER_SRC_PAD (self))) {

@@ -1,4 +1,4 @@
-From 02e49cba402a783fa1b30e445b83a5c280949c1e Mon Sep 17 00:00:00 2001
+From 21f776bff596bc0bd09708efa6497f8bdcd065c0 Mon Sep 17 00:00:00 2001
 From: Khem Raj <raj.khem@gmail.com>
 Date: Sat, 13 Feb 2016 11:42:29 -0800
 
@@ -7,10 +7,10 @@ Date: Sat, 13 Feb 2016 11:42:29 -0800
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/omx/gstomxvideodec.c b/omx/gstomxvideodec.c
-index fb0100a..bad6335 100644
+index c4dc33f..ba5304f 100644
 --- a/omx/gstomxvideodec.c
 +++ b/omx/gstomxvideodec.c
-@@ -1713,9 +1713,9 @@ gst_omx_video_dec_stop (GstVideoDecoder * decoder)
+@@ -2021,9 +2021,9 @@ gst_omx_video_dec_stop (GstVideoDecoder * decoder)
    g_cond_broadcast (&self->drain_cond);
    g_mutex_unlock (&self->drain_lock);
  

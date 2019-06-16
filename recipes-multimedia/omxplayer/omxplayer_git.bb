@@ -80,6 +80,8 @@ export INCLUDES = "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", " -D_
                   "
 export DIST = "${D}"
 
+ARM_INSTRUCTION_SET = "arm"
+
 do_compile() {
     # Needed for compiler test in ffmpeg's configure
     mkdir -p tmp

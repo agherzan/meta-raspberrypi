@@ -19,6 +19,7 @@ KBUILD_DEFCONFIG_raspberrypi ?= "bcmrpi_defconfig"
 KBUILD_DEFCONFIG_raspberrypi2 ?= "bcm2709_defconfig"
 KBUILD_DEFCONFIG_raspberrypi3 ?= "bcm2709_defconfig"
 KBUILD_DEFCONFIG_raspberrypi3-64 ?= "bcmrpi3_defconfig"
+KBUILD_DEFCONFIG_raspberrypi4 ?= "bcm2711_defconfig"
 
 # CMDLINE for raspberrypi
 SERIAL = "${@oe.utils.conditional("ENABLE_UART", "1", "console=serial0,115200", "", d)}"

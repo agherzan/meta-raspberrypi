@@ -7,8 +7,6 @@ inherit deploy nopackages
 
 include recipes-bsp/common/raspberrypi-tools.inc
 
-SRC_URI_append = " file://0001-armstubs-makefile-external-toolchain.patch"
-
 COMPATIBLE_MACHINE = "^rpi$"
 
 S = "${RPITOOLS_S}/armstubs"

@@ -191,6 +191,17 @@ do_deploy() {
 
     # Append extra config if the user has provided any
     printf "${RPI_EXTRA_CONFIG}\n" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+
+    # Handle setup with armstub file
+    if [ -n "${ARMSTUB}" ]; then
+        echo "\n# ARM stub configuration" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+        echo "armstub=${ARMSTUB}" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+        case "${ARMSTUB}" in
+            *-gic.bin)
+                echo  "enable_gic=1" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+                ;;
+        esac
+    fi
 }
 
 do_deploy_append_raspberrypi3-64() {

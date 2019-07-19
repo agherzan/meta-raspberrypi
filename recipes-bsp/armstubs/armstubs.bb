@@ -17,6 +17,7 @@ export OBJCOPY8="${OBJCOPY}"
 export OBJDUMP8="${OBJDUMP} -maarch64"
 
 do_compile() {
+    [ -z "${ARMSTUB}" ] && bbfatal "No ARMSTUB defined for your machine."
     oe_runmake ${ARMSTUB}
 }
 

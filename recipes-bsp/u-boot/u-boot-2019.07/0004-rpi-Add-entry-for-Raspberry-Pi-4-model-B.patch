@@ -1,12 +1,10 @@
-From 8a8e6c7364d41bbd3eb20dc7e4ec1c0a3e3b5259 Mon Sep 17 00:00:00 2001
+From 12fbbd5bc12e225b19d3b4cb193a1bf3d9fa752a Mon Sep 17 00:00:00 2001
 From: Andrei Gherzan <andrei@balena.io>
 Date: Wed, 17 Jul 2019 15:34:18 +0100
-Subject: [PATCH 06/12] rpi: Add rpi_model entry for RaspberryPi 4
+Subject: [PATCH 4/7] rpi: Add entry for Raspberry Pi 4 model B
 
 The Raspebrry Pi 4 uses the new revision code scheme as documented by
-the foundation[1]. This change adds an entry for this board as well.
-
-[1] https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
+the foundation. This change adds an entry for this board as well.
 
 Signed-off-by: Andrei Gherzan <andrei@balena.io>
 Upstream-status: Pending
@@ -15,7 +13,7 @@ Upstream-status: Pending
  1 file changed, 5 insertions(+)
 
 diff --git a/board/raspberrypi/rpi/rpi.c b/board/raspberrypi/rpi/rpi.c
-index 617c892dde..6d6f1ef39a 100644
+index 617c892dde..92c6534da6 100644
 --- a/board/raspberrypi/rpi/rpi.c
 +++ b/board/raspberrypi/rpi/rpi.c
 @@ -148,6 +148,11 @@ static const struct rpi_model rpi_models_new_scheme[] = {
@@ -24,7 +22,7 @@ index 617c892dde..6d6f1ef39a 100644
  	},
 +	[0x11] = {
 +		"4 Model B",
-+		DTB_DIR "bcm2711-rpi-4-b.dtb",
++		DTB_DIR "bcm2838-rpi-4-b.dtb",
 +		true,
 +	},
  };

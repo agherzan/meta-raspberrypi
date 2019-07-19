@@ -193,7 +193,7 @@ do_deploy() {
     printf "${RPI_EXTRA_CONFIG}\n" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
 
     # Handle setup with armstub file
-    if [ -n "${ARMSTUB}" ]; then
+    if [ "${@bb.utils.contains("MACHINE_FEATURES", "armstub", "1", "0", d)}" = "1" ]; then
         echo "\n# ARM stub configuration" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "armstub=${ARMSTUB}" >> ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         case "${ARMSTUB}" in

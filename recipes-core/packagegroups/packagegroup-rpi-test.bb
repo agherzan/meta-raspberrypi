@@ -19,7 +19,7 @@ RDEPENDS_${PN} = "\
     python-sense-hat \
     connman \
     connman-client \
-    crda \
+    wireless-regdb \
     bluez5 \
 "
 

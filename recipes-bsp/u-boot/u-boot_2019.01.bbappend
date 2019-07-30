@@ -1,5 +1,6 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-${PV}:"
 UBOOT_RPI4_SUPPORT_PATCHES = " \
+    file://0001-Fix-compilation-error-if-CONFIG_USB-is-disabled.patch \
     file://0001-configs-rpi4-Add-defconfigs-for-rpi4-32-64.patch \
     file://0002-ARM-bcm283x-Add-BCM283x_BASE-define.patch \
     file://0003-arm-mach-bcm283x-Define-configs-for-RaspberryPi-4.patch \

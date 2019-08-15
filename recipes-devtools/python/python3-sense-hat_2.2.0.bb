@@ -4,7 +4,7 @@ SECTION = "devel/python"
 LICENSE = "BSD"
 LIC_FILES_CHKSUM = "file://LICENCE.txt;md5=d80fe312e1ff5fbd97369b093bf21cda"
 
-inherit setuptools pypi
+inherit setuptools3 pypi
 
 PYPI_PACKAGE = "sense-hat"
 
@@ -18,7 +18,7 @@ DEPENDS += " \
     "
 
 RDEPENDS_${PN} += " \
-    python-numpy \
-    python-rtimu \
-    python-imaging \
+    ${PYTHON_PN}-numpy \
+    ${PYTHON_PN}-rtimu \
+    ${PYTHON_PN}-imaging \
     "

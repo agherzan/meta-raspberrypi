@@ -271,3 +271,61 @@ option:
         # Raspberry Pi 7\" display/touch screen \n \
         lcd_rotate=2 \n \
         '
+
+## Setup default ethernet
+
+The default distro has no ethernet interface (eth0) setup. so to enable eth0 automatically, it'd better to have a recipe for it by systemd.
+
+As an example, create a custom layer named `meta-custom` ( don't forget to add it to your local bblayers.conf ). Create a file as `meta-custom/recipes-core/systemd/systemd_%.bbappend`, whose content is:
+```
+FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
+
+SRC_URI += "file://eth0.network"
+
+do_install_append() {
+    install -d ${D}/${sysconfdir}/systemd/network
+    install -m 0644 ${WORKDIR}/eth0.network ${D}/${sysconfdir}/systemd/network/eth0.network
+}
+```
+Create a file as `meta-custom/recipes-core/systemd/systemd/eth0.network`, whose content is:
+```
+[Match]
+Name=eth0
+
+[Network]
+DHCP=yes
+```
+
+then if you build your system with systemd as init, it will setup eth0 with DHCP setup on boot
+
+## Setup for default pi user to access camera interface
+
+By default, the camera interfaces are owned by root, and required by root user to access. add following recipe to enable normal user ( in video group ) to access:
+Create a file as `meta-custom/recipes-core/udev/udev-rules-rpi.bbappend`, whose content is:
+```
+FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
+
+SRC_URI += " \
+           file://99-local-rpi.rules \
+           "
+
+do_install_append() {
+    install -d ${D}/${sysconfdir}/udev/rules.d
+    install -m 0644 ${WORKDIR}/99-local-rpi.rules ${D}/${sysconfdir}/udev/rules.d/
+}
+```
+Create a file as `meta-custom/recipes-core/udev/udev-rules-rpi/99-local-rpi.rules`, whose content is:
+```
+SUBSYSTEM=="vchiq",GROUP="video",MODE="0660"
+SUBSYSTEM=="vc-sm",GROUP="video",MODE="0660"
+SUBSYSTEM=="bcm2708_vcio",GROUP="video",MODE="0660"
+```
+
+in your own build/local.conf or other configuration file, you need to add your default user to video group, for example:
+```
+INHERIT += "extrausers"
+EXTRA_USERS_PARAMS = "\
+                      useradd -p $(openssl passwd 'raspberry') pi; \
+                      usermod -a -G video pi; \
+                      "
+```

@@ -1,0 +1,67 @@
+From c31cb8e5ff9a07429f5babe91168a1939e2d9dac Mon Sep 17 00:00:00 2001
+From: Matthias Brugger <mbrugger@suse.com>
+Date: Thu, 5 Sep 2019 10:48:48 +0200
+Subject: [PATCH 3/4] libfdt: Allow #size-cells of 0
+
+The commit "libfdt: fdt_address_cells() and fdt_size_cells()" introduced
+a bug as it consolidated code between the helpers for getting
+be 0, and is frequently found so in practice for /cpus.  IEEE1275 only
+requires implementations to handle 1..4 for #address-cells, although one
+could make a case for #address-cells == #size-cells == 0 being used to
+represent a bridge with a single port.
+
+While we're there, it's not totally obvious that the existing implicit
+cast of a u32 to int will give the correct results according to strict C,
+although it does work in practice.  Straighten that up to cast only after
+we've made our range checks.
+
+This is based on upstream commit:
+b8d6eca ("libfdt: Allow #size-cells of 0")
+but misses the test cases,as we don't implement them in U-Boot.
+
+Signed-off-by: Matthias Brugger <mbrugger@suse.com>
+
+Upstream-Status: Backport [git://gitlab.denx.de/u-boot/u-boot]
+Signed-off-by: Laurent Bonnans <laurent.bonnans@here.com>
+---
+ scripts/dtc/libfdt/fdt_addresses.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/scripts/dtc/libfdt/fdt_addresses.c b/scripts/dtc/libfdt/fdt_addresses.c
+index f13a87dfa0..788c143113 100644
+--- a/scripts/dtc/libfdt/fdt_addresses.c
++++ b/scripts/dtc/libfdt/fdt_addresses.c
+@@ -59,7 +59,7 @@
+ static int fdt_cells(const void *fdt, int nodeoffset, const char *name)
+ {
+ 	const fdt32_t *c;
+-	int val;
++	uint32_t val;
+ 	int len;
+ 
+ 	c = fdt_getprop(fdt, nodeoffset, name, &len);
+@@ -70,10 +70,10 @@ static int fdt_cells(const void *fdt, int nodeoffset, const char *name)
+ 		return -FDT_ERR_BADNCELLS;
+ 
+ 	val = fdt32_to_cpu(*c);
+-	if ((val <= 0) || (val > FDT_MAX_NCELLS))
++	if (val > FDT_MAX_NCELLS)
+ 		return -FDT_ERR_BADNCELLS;
+ 
+-	return val;
++	return (int)val;
+ }
+ 
+ int fdt_address_cells(const void *fdt, int nodeoffset)
+@@ -81,6 +81,8 @@ int fdt_address_cells(const void *fdt, int nodeoffset)
+ 	int val;
+ 
+ 	val = fdt_cells(fdt, nodeoffset, "#address-cells");
++	if (val == 0)
++		return -FDT_ERR_BADNCELLS;
+ 	if (val == -FDT_ERR_NOTFOUND)
+ 		return 2;
+ 	return val;
+-- 
+2.24.0
+

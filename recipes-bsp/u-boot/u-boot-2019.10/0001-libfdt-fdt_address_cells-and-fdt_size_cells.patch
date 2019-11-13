@@ -1,0 +1,105 @@
+From 8d0867e28073b652f275ae94d470feed368e23ee Mon Sep 17 00:00:00 2001
+From: Matthias Brugger <mbrugger@suse.com>
+Date: Thu, 5 Sep 2019 10:48:46 +0200
+Subject: [PATCH 1/4] libfdt: fdt_address_cells() and fdt_size_cells()
+
+Add internal fdt_cells() to avoid copy and paste. Fix typo in
+fdt_size_cells() documentation comment.
+
+This is based in upstream commit:
+c12b2b0 ("libfdt: fdt_address_cells() and fdt_size_cells()")
+but misses the test cases, as we don't implement them in U-Boot.
+
+Signed-off-by: Matthias Brugger <mbrugger@suse.com>
+Reviewed-by: Simon Glass <sjg@chromium.org>
+
+Upstream-Status: Backport [git://gitlab.denx.de/u-boot/u-boot]
+Signed-off-by: Laurent Bonnans <laurent.bonnans@here.com>
+---
+ scripts/dtc/libfdt/fdt_addresses.c | 35 +++++++++++-------------------
+ scripts/dtc/libfdt/libfdt.h        |  2 +-
+ 2 files changed, 14 insertions(+), 23 deletions(-)
+
+diff --git a/scripts/dtc/libfdt/fdt_addresses.c b/scripts/dtc/libfdt/fdt_addresses.c
+index eff4dbcc72..49537b578d 100644
+--- a/scripts/dtc/libfdt/fdt_addresses.c
++++ b/scripts/dtc/libfdt/fdt_addresses.c
+@@ -1,6 +1,7 @@
+ /*
+  * libfdt - Flat Device Tree manipulation
+  * Copyright (C) 2014 David Gibson <david@gibson.dropbear.id.au>
++ * Copyright (C) 2018 embedded brains GmbH
+  *
+  * libfdt is dual licensed: you can use it either under the terms of
+  * the GPL, or the BSD license, at your option.
+@@ -55,42 +56,32 @@
+ 
+ #include "libfdt_internal.h"
+ 
+-int fdt_address_cells(const void *fdt, int nodeoffset)
++static int fdt_cells(const void *fdt, int nodeoffset, const char *name)
+ {
+-	const fdt32_t *ac;
++	const fdt32_t *c;
+ 	int val;
+ 	int len;
+ 
+-	ac = fdt_getprop(fdt, nodeoffset, "#address-cells", &len);
+-	if (!ac)
++	c = fdt_getprop(fdt, nodeoffset, name, &len);
++	if (!c)
+ 		return 2;
+ 
+-	if (len != sizeof(*ac))
++	if (len != sizeof(*c))
+ 		return -FDT_ERR_BADNCELLS;
+ 
+-	val = fdt32_to_cpu(*ac);
++	val = fdt32_to_cpu(*c);
+ 	if ((val <= 0) || (val > FDT_MAX_NCELLS))
+ 		return -FDT_ERR_BADNCELLS;
+ 
+ 	return val;
+ }
+ 
+-int fdt_size_cells(const void *fdt, int nodeoffset)
++int fdt_address_cells(const void *fdt, int nodeoffset)
+ {
+-	const fdt32_t *sc;
+-	int val;
+-	int len;
+-
+-	sc = fdt_getprop(fdt, nodeoffset, "#size-cells", &len);
+-	if (!sc)
+-		return 2;
+-
+-	if (len != sizeof(*sc))
+-		return -FDT_ERR_BADNCELLS;
+-
+-	val = fdt32_to_cpu(*sc);
+-	if ((val < 0) || (val > FDT_MAX_NCELLS))
+-		return -FDT_ERR_BADNCELLS;
++	return fdt_cells(fdt, nodeoffset, "#address-cells");
++}
+ 
+-	return val;
++int fdt_size_cells(const void *fdt, int nodeoffset)
++{
++	return fdt_cells(fdt, nodeoffset, "#size-cells");
+ }
+diff --git a/scripts/dtc/libfdt/libfdt.h b/scripts/dtc/libfdt/libfdt.h
+index cf86ddba88..66f01fec53 100644
+--- a/scripts/dtc/libfdt/libfdt.h
++++ b/scripts/dtc/libfdt/libfdt.h
+@@ -1109,7 +1109,7 @@ int fdt_address_cells(const void *fdt, int nodeoffset);
+  *
+  * returns:
+  *	0 <= n < FDT_MAX_NCELLS, on success
+- *      2, if the node has no #address-cells property
++ *      2, if the node has no #size-cells property
+  *      -FDT_ERR_BADNCELLS, if the node has a badly formatted or invalid
+  *		#size-cells property
+  *	-FDT_ERR_BADMAGIC,
+-- 
+2.24.0
+

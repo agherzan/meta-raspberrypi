@@ -1,0 +1,79 @@
+From b7a17b1035cbbbf747e036be3470b4983cd3dce0 Mon Sep 17 00:00:00 2001
+From: Matthias Brugger <mbrugger@suse.com>
+Date: Thu, 5 Sep 2019 10:48:47 +0200
+Subject: [PATCH 2/4] libfdt: return correct value if #size-cells property is
+ not present
+
+According to the device tree specification, the default value for
+was not present.
+
+This patch also makes fdt_address_cells() and fdt_size_cells() conform
+to the behaviour documented in libfdt.h. The defaults are only returned
+if fdt_getprop() returns -FDT_ERR_NOTFOUND, otherwise the actual error
+is returned.
+
+This is based on upstream commit:
+aa7254d ("libfdt: return correct value if #size-cells property is not present")
+but misses the test case part, as we don't implement them in U-Boot.
+
+Signed-off-by: Matthias Brugger <mbrugger@suse.com>
+
+Upstream-Status: Backport [git://gitlab.denx.de/u-boot/u-boot]
+Signed-off-by: Laurent Bonnans <laurent.bonnans@here.com>
+---
+ scripts/dtc/libfdt/fdt_addresses.c | 16 +++++++++++++---
+ scripts/dtc/libfdt/libfdt.h        |  2 +-
+ 2 files changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/scripts/dtc/libfdt/fdt_addresses.c b/scripts/dtc/libfdt/fdt_addresses.c
+index 49537b578d..f13a87dfa0 100644
+--- a/scripts/dtc/libfdt/fdt_addresses.c
++++ b/scripts/dtc/libfdt/fdt_addresses.c
+@@ -64,7 +64,7 @@ static int fdt_cells(const void *fdt, int nodeoffset, const char *name)
+ 
+ 	c = fdt_getprop(fdt, nodeoffset, name, &len);
+ 	if (!c)
+-		return 2;
++		return len;
+ 
+ 	if (len != sizeof(*c))
+ 		return -FDT_ERR_BADNCELLS;
+@@ -78,10 +78,20 @@ static int fdt_cells(const void *fdt, int nodeoffset, const char *name)
+ 
+ int fdt_address_cells(const void *fdt, int nodeoffset)
+ {
+-	return fdt_cells(fdt, nodeoffset, "#address-cells");
++	int val;
++
++	val = fdt_cells(fdt, nodeoffset, "#address-cells");
++	if (val == -FDT_ERR_NOTFOUND)
++		return 2;
++	return val;
+ }
+ 
+ int fdt_size_cells(const void *fdt, int nodeoffset)
+ {
+-	return fdt_cells(fdt, nodeoffset, "#size-cells");
++	int val;
++
++	val = fdt_cells(fdt, nodeoffset, "#size-cells");
++	if (val == -FDT_ERR_NOTFOUND)
++		return 1;
++	return val;
+ }
+diff --git a/scripts/dtc/libfdt/libfdt.h b/scripts/dtc/libfdt/libfdt.h
+index 66f01fec53..5c778b115b 100644
+--- a/scripts/dtc/libfdt/libfdt.h
++++ b/scripts/dtc/libfdt/libfdt.h
+@@ -1109,7 +1109,7 @@ int fdt_address_cells(const void *fdt, int nodeoffset);
+  *
+  * returns:
+  *	0 <= n < FDT_MAX_NCELLS, on success
+- *      2, if the node has no #size-cells property
++ *      1, if the node has no #size-cells property
+  *      -FDT_ERR_BADNCELLS, if the node has a badly formatted or invalid
+  *		#size-cells property
+  *	-FDT_ERR_BADMAGIC,
+-- 
+2.24.0
+

@@ -1,0 +1,33 @@
+From 352736e5f59789a17c80acff4fbe6ee9ca1b49c4 Mon Sep 17 00:00:00 2001
+From: Matthias Brugger <mbrugger@suse.com>
+Date: Thu, 5 Sep 2019 10:48:49 +0200
+Subject: [PATCH 4/4] dm: Fix default address cells return value
+
+Default address cells value on the livetree access function
+returns the wrong value. Fix this so that the value returned
+corresponds to the device tree specification.
+
+Signed-off-by: Matthias Brugger <mbrugger@suse.com>
+
+Upstream-Status: Backport [git://gitlab.denx.de/u-boot/u-boot]
+Signed-off-by: Laurent Bonnans <laurent.bonnans@here.com>
+---
+ include/dm/of.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/dm/of.h b/include/dm/of.h
+index 461e25aa19..6bef73b441 100644
+--- a/include/dm/of.h
++++ b/include/dm/of.h
+@@ -111,7 +111,7 @@ static inline const char *of_node_full_name(const struct device_node *np)
+ 
+ /* Default #address and #size cells */
+ #if !defined(OF_ROOT_NODE_ADDR_CELLS_DEFAULT)
+-#define OF_ROOT_NODE_ADDR_CELLS_DEFAULT 1
++#define OF_ROOT_NODE_ADDR_CELLS_DEFAULT 2
+ #define OF_ROOT_NODE_SIZE_CELLS_DEFAULT 1
+ #endif
+ 
+-- 
+2.24.0
+

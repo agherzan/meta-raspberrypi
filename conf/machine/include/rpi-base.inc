@@ -2,6 +2,10 @@ include conf/machine/include/rpi-default-settings.inc
 include conf/machine/include/rpi-default-versions.inc
 include conf/machine/include/rpi-default-providers.inc
 
+require conf/multilib.conf
+MULTILIBS = "multilib:lib32"
+DEFAULTTUNE_virtclass-multilib-lib32 = "armv7athf-neon-vfpv4"
+
 SOC_FAMILY = "rpi"
 include conf/machine/include/soc-family.inc
 

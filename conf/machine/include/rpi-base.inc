@@ -5,7 +5,7 @@ include conf/machine/include/rpi-default-providers.inc
 SOC_FAMILY = "rpi"
 include conf/machine/include/soc-family.inc
 
-IMAGE_FSTYPES ?= "tar.bz2 ext3 rpi-sdimg"
+IMAGE_FSTYPES ?= "tar.bz2 ext3 wic.bz2 wic.bmap"
 WKS_FILE ?= "sdimage-raspberrypi.wks"
 
 XSERVER = " \

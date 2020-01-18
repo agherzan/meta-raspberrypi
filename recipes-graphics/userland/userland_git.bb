@@ -6,6 +6,7 @@ LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENCE;md5=0448d6488ef8cc380632b1569ee6d196"
 
 PROVIDES += "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", "", "virtual/libgles2 virtual/egl", d)}"
+PROVIDES += "virtual/libomxil"
 
 RPROVIDES_${PN} += "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", "", "libgles2 egl libegl libegl1 libglesv2-2", d)}"
 COMPATIBLE_MACHINE = "^rpi$"
@@ -39,6 +40,7 @@ SRC_URI = "\
     file://0017-khronos-backport-typedef-for-EGL_EXT_image_dma_buf_i.patch \
     file://0018-Add-EGL_IMG_context_priority-related-defines.patch \
     file://0019-libfdt-Undefine-__wordsize-if-already-defined.patch \
+    file://0020-openmaxil-add-pkg-config-file.patch \
 "
 S = "${WORKDIR}/git"
 

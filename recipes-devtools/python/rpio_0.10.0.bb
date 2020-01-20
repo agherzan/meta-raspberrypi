@@ -10,7 +10,7 @@ inherit pypi
 
 SRC_URI += "file://0001-include-sys-types.h-explicitly-for-getting-caddr_t-d.patch"
 
-inherit setuptools
+inherit setuptools3
 
 COMPATIBLE_MACHINE = "^rpi$"
 

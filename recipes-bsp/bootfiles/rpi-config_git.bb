@@ -159,7 +159,7 @@ do_deploy() {
     if [ "${ENABLE_UART}" = "1" ]; then
         echo "# Enable UART" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "enable_uart=1" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
-    else
+    elif [ "${ENABLE_UART}" = "0" ]; then
         echo "# Disable UART" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
         echo "enable_uart=0" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi

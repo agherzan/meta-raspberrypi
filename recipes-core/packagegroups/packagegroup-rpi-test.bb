@@ -23,8 +23,6 @@ RDEPENDS_${PN} = "\
 "
 
 RRECOMMENDS_${PN} = "\
-    bigbuckbunny-1080p \
-    bigbuckbunny-480p \
-    bigbuckbunny-720p \
+    ${@bb.utils.contains("BBFILE_COLLECTIONS", "meta-multimedia", "bigbuckbunny-1080p bigbuckbunny-480p bigbuckbunny-720p", "", d)} \
     ${MACHINE_EXTRA_RRECOMMENDS} \
 "

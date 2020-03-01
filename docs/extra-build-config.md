@@ -228,9 +228,15 @@ RaspberryPi 0 Wifi or 3 will have to explicitly set in local.conf:
 
     ENABLE_UART = "1"
 
+Users who don't want the serial console support at all should explicitly
+disable the UART in local.conf. This permit to use it for something else:
+
+    ENABLE_UART = "0"
+
 Ref.:
 * <https://github.com/raspberrypi/firmware/issues/553>
 * <https://github.com/RPi-Distro/repo/issues/22>
+* <https://github.com/agherzan/meta-raspberrypi/issues/567>
 
 ## Enable USB Peripheral (Gadget) support
 

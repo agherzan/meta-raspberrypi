@@ -10,14 +10,12 @@ Upstream-Status: Pending
 
 Signed-off-by: Balaji Velmurugan <balaji.velmurugan@ltts.com>
 
-diff --git a/src/gallium/state_trackers/dri/dri2.c b/src/gallium/state_trackers/dri/dri2.c
-index 6ce6f19..2f9d47d 100644
 --- a/src/gallium/state_trackers/dri/dri2.c
 +++ b/src/gallium/state_trackers/dri/dri2.c
-@@ -1368,14 +1368,28 @@ dri2_from_planar(__DRIimage *image, int plane, void *loaderPrivate)
+@@ -1366,14 +1366,28 @@ dri2_from_planar(__DRIimage *image, int
     return img;
  }
-
+ 
 +static boolean
 +dri2_query_dma_buf_modifiers(__DRIscreen *_screen, int fourcc, int max,
 +                             uint64_t *modifiers, unsigned int *external_only,
@@ -41,5 +39,5 @@ index 6ce6f19..2f9d47d 100644
                                     strides, offsets, NULL, loaderPrivate);
 +   #endif
  }
-
- static boolean       
+ 
+ static boolean

@@ -16,6 +16,7 @@ XSERVER = " \
 
 RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/at86rf233.dtbo \
+    overlays/disable-bt.dtbo \
     overlays/dwc2.dtbo \
     overlays/gpio-key.dtbo \
     overlays/hifiberry-amp.dtbo \
@@ -25,6 +26,7 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/i2c-rtc.dtbo \
     overlays/iqaudio-dac.dtbo \
     overlays/iqaudio-dacplus.dtbo \
+    overlays/miniuart-bt.dtbo \
     overlays/mcp2515-can0.dtbo \
     overlays/pi3-disable-bt.dtbo \
     overlays/pi3-miniuart-bt.dtbo \

@@ -13,11 +13,11 @@ COMPATIBLE_MACHINE = "^rpi$"
 
 SRCBRANCH = "master"
 SRCFORK = "raspberrypi"
-SRCREV = "17d2fdc1abd370e09ba7074753294c7976dd6b0d"
+SRCREV = "6fb59736b1ae80fc62cddfe3309c800f72e1c07e"
 
 # Use the date of the above commit as the package version. Update this when
 # SRCREV is changed.
-PV = "20190724"
+PV = "20200316"
 
 SRC_URI = "\
     git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \
@@ -75,6 +75,10 @@ do_install_append () {
 		rm -rf ${D}${libdir}/pkgconfig/egl.pc ${D}${libdir}/pkgconfig/glesv2.pc \
 			${D}${libdir}/pkgconfig/wayland-egl.pc
 		rm -rf ${D}${includedir}/EGL ${D}${includedir}/GLES* ${D}${includedir}/KHR
+        else
+                ln -sf brcmglesv2.pc ${D}${libdir}/pkgconfig/glesv2.pc
+                ln -sf brcmegl.pc ${D}${libdir}/pkgconfig/egl.pc
+                ln -sf brcmvg.pc ${D}${libdir}/pkgconfig/vg.pc
 	fi
 }
 

@@ -41,6 +41,7 @@ SRC_URI = "\
     file://0018-Add-EGL_IMG_context_priority-related-defines.patch \
     file://0019-libfdt-Undefine-__wordsize-if-already-defined.patch \
     file://0020-openmaxil-add-pkg-config-file.patch \
+    file://0021-cmake-Disable-format-overflow-warning-as-error.patch \
 "
 S = "${WORKDIR}/git"
 

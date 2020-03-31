@@ -1,4 +1,4 @@
-From 09c7ac4c09d91651b8e98780ec6f2e834e94ece6 Mon Sep 17 00:00:00 2001
+From d1a9839c6e4b4d187382baf341d25b3d023242cd Mon Sep 17 00:00:00 2001
 From: Martin Jansa <martin.jansa@lge.com>
 Date: Wed, 13 Jun 2018 18:22:22 +0000
 Subject: [PATCH] openmaxil: add pkg-config file
@@ -10,15 +10,15 @@ Subject: [PATCH] openmaxil: add pkg-config file
  create mode 100644 pkgconfig/openmaxil.pc.in
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 673a5ad..e64e0ad 100644
+index 8c5bf5f..9f4165a 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -133,7 +133,7 @@ include_directories("${PROJECT_BINARY_DIR}")
+@@ -131,7 +131,7 @@ include_directories("${PROJECT_BINARY_DIR}")
  include(FindPkgConfig QUIET)
  if(PKG_CONFIG_FOUND)
  	# Produce a pkg-config file
--	foreach(PCFILE bcm_host.pc egl.pc glesv2.pc vg.pc brcmegl.pc brcmglesv2.pc  brcmvg.pc vcsm.pc mmal.pc )
-+	foreach(PCFILE bcm_host.pc egl.pc glesv2.pc vg.pc brcmegl.pc brcmglesv2.pc  brcmvg.pc vcsm.pc mmal.pc openmaxil.pc )
+-	foreach(PCFILE bcm_host.pc brcmegl.pc brcmglesv2.pc brcmvg.pc vcsm.pc mmal.pc)
++	foreach(PCFILE bcm_host.pc brcmegl.pc brcmglesv2.pc brcmvg.pc vcsm.pc mmal.pc openmaxil.pc)
  		configure_file("pkgconfig/${PCFILE}.in" "${PCFILE}" @ONLY)
  		install(FILES       "${CMAKE_CURRENT_BINARY_DIR}/${PCFILE}"
  			DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig")

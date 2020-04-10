@@ -76,7 +76,7 @@ MACHINE_FEATURES += "apm usbhost keyboard vfat ext2 screen touchscreen alsa blue
 # Raspberry Pi has no hardware clock
 MACHINE_FEATURES_BACKFILL_CONSIDERED = "rtc"
 
-MACHINE_EXTRA_RRECOMMENDS += " kernel-modules udev-rules-rpi"
+MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += " kernel-modules udev-rules-rpi"
 
 # Set Raspberrypi splash image
 SPLASH = "psplash-raspberrypi"

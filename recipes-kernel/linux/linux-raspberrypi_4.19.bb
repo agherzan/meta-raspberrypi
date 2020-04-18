@@ -1,7 +1,7 @@
-LINUX_VERSION ?= "4.19.113"
+LINUX_VERSION ?= "4.19.115"
 LINUX_RPI_BRANCH ?= "rpi-4.19.y"
 
-SRCREV = "4f2a4cc501c428c940549f39d5562e60404ac4f7"
+SRCREV = "b13fc60b529fe9e4fee4a7a5caf73d582003abfa"
 
 require linux-raspberrypi_4.19.inc
 

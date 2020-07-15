@@ -59,6 +59,7 @@ do_image_rpi_sdimg[depends] = " \
     ${@bb.utils.contains('MACHINE_FEATURES', 'armstub', 'armstubs:do_deploy', '' ,d)} \
     ${@bb.utils.contains('RPI_USE_U_BOOT', '1', 'u-boot:do_deploy', '',d)} \
     ${@bb.utils.contains('RPI_USE_U_BOOT', '1', 'u-boot-default-script:do_deploy', '',d)} \
+    ${RPI_SDIMG_EXTRA_DEPENDS} \
 "
 
 do_image_rpi_sdimg[recrdeps] = "do_build"
@@ -146,6 +147,22 @@ IMAGE_CMD_rpi-sdimg () {
         else
             mcopy -v -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE} ::${SDIMG_KERNELIMAGE} || bbfatal "mcopy cannot copy ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE} into boot.img"
         fi
+    fi
+
+    # Add files (eg. hypervisor binaries) from the deploy dir
+    if [ -n "${DEPLOYPAYLOAD}" ] ; then
+        echo "Copying deploy file payload into VFAT"
+        for entry in ${DEPLOYPAYLOAD} ; do
+            # Split entry at optional ':' to enable file renaming for the destination
+            if [ $(echo "$entry" | grep -c :) = "0" ] ; then
+                DEPLOY_FILE="$entry"
+                DEST_FILENAME="$entry"
+            else
+                DEPLOY_FILE="$(echo "$entry" | cut -f1 -d:)"
+                DEST_FILENAME="$(echo "$entry" | cut -f2- -d:)"
+            fi
+            mcopy -v -i ${WORKDIR}/boot.img -s ${DEPLOY_DIR_IMAGE}/${DEPLOY_FILE} ::${DEST_FILENAME} || bbfatal "mcopy cannot copy ${DEPLOY_DIR_IMAGE}/${DEPLOY_FILE} into boot.img"
+        done
     fi
 
     if [ -n "${FATPAYLOAD}" ] ; then

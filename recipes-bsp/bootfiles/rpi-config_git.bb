@@ -28,6 +28,8 @@ VC4DTBO ?= "vc4-kms-v3d"
 GPIO_IR ?= "18"
 GPIO_IR_TX ?= "17"
 
+CAN_OSCILLATOR ?= "16000000"
+
 inherit deploy nopackages
 
 do_deploy() {
@@ -201,12 +203,12 @@ do_deploy() {
     # ENABLE DUAL CAN
     if [ "${ENABLE_DUAL_CAN}" = "1" ]; then
         echo "# Enable DUAL CAN" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
-        echo "dtoverlay=mcp2515-can0,oscillator=16000000,interrupt=25" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
-        echo "dtoverlay=mcp2515-can1,oscillator=16000000,interrupt=24" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+        echo "dtoverlay=mcp2515-can0,oscillator=${CAN_OSCILLATOR},interrupt=25" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+        echo "dtoverlay=mcp2515-can1,oscillator=${CAN_OSCILLATOR},interrupt=24" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     # ENABLE CAN
     elif [ "${ENABLE_CAN}" = "1" ]; then
         echo "# Enable CAN" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
-        echo "dtoverlay=mcp2515-can0,oscillator=16000000,interrupt=25" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+        echo "dtoverlay=mcp2515-can0,oscillator=${CAN_OSCILLATOR},interrupt=25" >>${DEPLOYDIR}/bcm2835-bootfiles/config.txt
     fi
 
     # Append extra config if the user has provided any

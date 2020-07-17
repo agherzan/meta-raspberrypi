@@ -172,6 +172,31 @@ To build an initramfs image:
   - `INITRAMFS_MAXSIZE = "315400"`
   - `IMAGE_FSTYPES_pn-${INITRAMFS_IMAGE} = "${INITRAMFS_FSTYPES}"`
 
+## Including additional files in the SD card image boot partition
+
+The SD card image class supports adding extra files into the boot
+partition, where the files are copied from either the image root
+partition or from the build image deploy directory.
+
+To copy files that are present in the root partition into boot,
+FATPAYLOAD is a simple space-separated list of files to be copied:
+
+    FATPAYLOAD = "/boot/example1 /boot/example2"
+
+To copy files from the image deploy directory, the files should be
+listed in the DEPLOYPAYLOAD as a space-separated list of entries.
+Each entry lists a file to be copied, and an optional destination
+filename can be specified by supplying it after a colon separator.
+
+    DEPLOYPAYLOAD = "example1-${MACHINE}:example1 example2"
+
+Files that are to be included from the deploy directory will be produced
+by tasks that image building task must depend upon, to ensure that the
+files are available when they are needed, so these component deploy
+tasks must be added to: RPI_SDIMG_EXTRA_DEPENDS.
+
+    RPI_SDIMG_EXTRA_DEPENDS_append = " example:do_deploy"
+
 ## Enable SPI bus
 
 When using device tree kernels, set this variable to enable the SPI bus:

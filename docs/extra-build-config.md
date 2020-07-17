@@ -252,21 +252,27 @@ When using device tree kernels, set this variable to enable the 802.15.4 hat:
 
 See: <https://openlabs.co/OSHW/Raspberry-Pi-802.15.4-radio>
 
-## Enable CAN with Pican2
+## Enable CAN
 
-In order to use Pican2 CAN module, set the following variables:
+In order to use CAN with an MCP2515-based module, set the following variables:
 
 	ENABLE_SPI_BUS = "1"
 	ENABLE_CAN = "1"
 
-See: <http://skpang.co.uk/catalog/pican2-canbus-board-for-raspberry-pi-23-p-1475.html>
+In case of dual CAN module (e.g. PiCAN2 Duo), set following variables instead:
 
-In order to use Pican2 Duo CAN module, set the following variables:
-
-	ENABLE_SPI_BUS = "1"
+    ENABLE_SPI_BUS = "1"
 	ENABLE_DUAL_CAN = "1"
 
-See: <http://skpang.co.uk/catalog/pican2-duo-canbus-board-for-raspberry-pi-23-p-1480.html>
+Some modules may require setting the frequency of the crystal oscillator used on the particular board. The frequency is usually marked on the package of the crystal. By default, it is set to 16 MHz. To change that to 8 MHz, the following variable also has to be set:
+
+    CAN_OSCILLATOR="8000000"
+
+Tested modules:
+
+* PiCAN2 (16 MHz crystal): <http://skpang.co.uk/catalog/pican2-canbus-board-for-raspberry-pi-23-p-1475.html>
+* WaveShare RS485 CAN HAT (8 MHz or 12 MHz crystal): <https://www.waveshare.com/rs485-can-hat.htm>
+* PiCAN2 Duo (16 MHz crystal): <http://skpang.co.uk/catalog/pican2-duo-canbus-board-for-raspberry-pi-23-p-1480.html>
 
 ## Enable infrared
 

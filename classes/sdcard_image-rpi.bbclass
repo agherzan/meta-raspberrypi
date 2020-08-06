@@ -49,6 +49,8 @@ SDIMG_ROOTFS = "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${SDIMG_ROOTFS_TYPE}"
 # For the names of kernel artifacts
 inherit kernel-artifact-names
 
+RPI_SDIMG_EXTRA_DEPENDS ?= ""
+
 do_image_rpi_sdimg[depends] = " \
     parted-native:do_populate_sysroot \
     mtools-native:do_populate_sysroot \

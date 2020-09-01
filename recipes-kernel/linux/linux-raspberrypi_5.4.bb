@@ -9,4 +9,5 @@ SRC_URI += "file://0001-Revert-selftests-bpf-Skip-perf-hw-events-test-if-the.pat
             file://0002-Revert-selftests-bpf-Fix-perf_buffer-test-on-systems.patch \
             file://0001-perf-cs-etm-Move-definition-of-traceid_list-global-v.patch \
             file://powersave.cfg \
+            file://android-drivers.cfg \
            "

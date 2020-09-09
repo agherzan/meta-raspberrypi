@@ -1,0 +1,22 @@
+From 4b806a7be5c28e5a76a26f899b6be0500b39d718 Mon Sep 17 00:00:00 2001
+From: leckijakub <jakub.lecki@3mdeb.com>
+Date: Tue, 8 Sep 2020 12:35:42 +0200
+Subject: [PATCH] rpi-eeprom-config: use #!/usr/bin/python
+
+Signed-off-by: leckijakub <jakub.lecki@3mdeb.com>
+---
+ rpi-eeprom-config | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/rpi-eeprom-config b/rpi-eeprom-config
+index af0d63b11b75..a6b5c4d29b12 100755
+--- a/rpi-eeprom-config
++++ b/rpi-eeprom-config
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ 
+ # rpi-eeprom-config
+ # Utility for reading and writing the configuration file in the
+-- 
+2.17.1

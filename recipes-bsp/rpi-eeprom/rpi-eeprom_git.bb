@@ -9,6 +9,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=7dcd1a1eb18ae569857c21cae81347cb"
 # https://www.raspberrypi.org/documentation/hardware/raspberrypi/booteeprom.md
 SRC_URI = " \
     git://github.com/${SRCFORK}/rpi-eeprom.git;protocol=git;branch=${SRCBRANCH} \
+    file://default-config.txt \
     file://0001-rpi-eeprom-config-use-usr-bin-python.patch \
 "
 
@@ -27,7 +28,7 @@ PV = "20200903"
 
 S = "${WORKDIR}/git"
 
-inherit python3native
+inherit deploy python3native
 
 do_install() {
     install -d ${D}${bindir}
@@ -56,14 +57,8 @@ FILES_${PN} += "${base_libdir}/firmware/raspberrypi/bootloader/*"
 FILES_${PN} += "${sysconfdir}/*"
 
 
-addtask do_deploy before do_package after do_compile
-
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
-
-# Ensure binaries are really deployed
-# on each build
-do_deploy[nostamp] = "1"
 
 # vl805 tool sources are not available (yet),
 # as it comes as a precompiled binary only.

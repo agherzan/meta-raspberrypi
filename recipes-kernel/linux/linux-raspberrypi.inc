@@ -27,7 +27,8 @@ LINUX_VERSION_EXTENSION ?= ""
 
 # CMDLINE for raspberrypi
 SERIAL = "${@oe.utils.conditional("ENABLE_UART", "1", "console=serial0,115200", "", d)}"
-CMDLINE ?= "dwc_otg.lpm_enable=0 ${SERIAL} root=/dev/mmcblk0p2 rootfstype=ext4 rootwait"
+CMA ?= "${@oe.utils.conditional("RASPBERRYPI_CAMERA_V2", "1", "cma=64M", "", d)}"
+CMDLINE ?= "dwc_otg.lpm_enable=0 ${SERIAL} root=/dev/mmcblk0p2 rootfstype=ext4 rootwait ${CMA}"
 
 # Add the kernel debugger over console kernel command line option if enabled
 CMDLINE_append = ' ${@oe.utils.conditional("ENABLE_KGDB", "1", "kgdboc=serial0,115200", "", d)}'

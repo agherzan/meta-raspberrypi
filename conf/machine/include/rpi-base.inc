@@ -42,6 +42,7 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/w1-gpio.dtbo \
     overlays/gpio-ir.dtbo \
     overlays/gpio-ir-tx.dtbo \
+    overlays/imx219.dtbo \
     "
 
 RPI_KERNEL_DEVICETREE ?= " \

@@ -29,22 +29,6 @@ KBUILD_DEFCONFIG_raspberrypi4-64 ?= "bcm2711_defconfig"
 
 LINUX_VERSION_EXTENSION ?= ""
 
-# CMDLINE for raspberrypi
-SERIAL = "${@oe.utils.conditional("ENABLE_UART", "1", "console=serial0,115200", "", d)}"
-CMA ?= "${@oe.utils.conditional("RASPBERRYPI_CAMERA_V2", "1", "cma=64M", "", d)}"
-CMDLINE ?= "dwc_otg.lpm_enable=0 ${SERIAL} root=/dev/mmcblk0p2 rootfstype=ext4 rootwait ${CMA}"
-
-# Add the kernel debugger over console kernel command line option if enabled
-CMDLINE_append = ' ${@oe.utils.conditional("ENABLE_KGDB", "1", "kgdboc=serial0,115200", "", d)}'
-
-# Disable rpi logo on boot
-CMDLINE_append = ' ${@oe.utils.conditional("DISABLE_RPI_BOOT_LOGO", "1", "logo.nologo", "", d)}'
-
-# You can define CMDLINE_DEBUG as "debug" in your local.conf or distro.conf
-# to enable kernel debugging.
-CMDLINE_DEBUG ?= ""
-CMDLINE_append = " ${CMDLINE_DEBUG}"
-
 KERNEL_MODULE_AUTOLOAD += "${@bb.utils.contains("MACHINE_FEATURES", "pitft28r", "stmpe-ts", "", d)}"
 
 # A LOADADDR is needed when building a uImage format kernel. This value is not
@@ -56,17 +40,5 @@ do_compile_append() {
     if [ "${SITEINFO_BITS}" = "64" ]; then
         cc_extra=$(get_cc_option)
         oe_runmake dtbs CC="${KERNEL_CC} $cc_extra " LD="${KERNEL_LD}" ${KERNEL_EXTRA_ARGS}
-    fi
-}
-
-do_deploy_append() {
-    # Deploy cmdline.txt only for the main kernel package
-    if [ ${KERNEL_PACKAGE_NAME} = "kernel" ]; then
-        install -d ${DEPLOYDIR}/${BOOTFILES_DIR_NAME}
-        PITFT="${@bb.utils.contains("MACHINE_FEATURES", "pitft", "1", "0", d)}"
-        if [ ${PITFT} = "1" ]; then
-            PITFT_PARAMS="fbcon=map:10 fbcon=font:VGA8x8"
-        fi
-        echo "${CMDLINE}${PITFT_PARAMS}" > ${DEPLOYDIR}/${BOOTFILES_DIR_NAME}/cmdline.txt
     fi
 }

@@ -12,7 +12,6 @@ inherit kernel siteinfo
 require recipes-kernel/linux/linux-yocto.inc
 
 SRC_URI += " \
-    file://rpi-kernel-misc.cfg \
     ${@bb.utils.contains("INITRAMFS_IMAGE_BUNDLE", "1", "file://initramfs-image-bundle.cfg", "", d)} \
     ${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", "file://vc4graphics.cfg", "", d)} \
     "

@@ -1,7 +1,6 @@
 FILESEXTRAPATHS_prepend_rpi := "${THISDIR}/${PN}:"
 
 SRC_URI_append_rpi = " \
-    file://0001-config-files-path.patch \
     file://0001-Don-t-try-to-acquire-buffer-when-src-pad-isn-t-activ.patch \
     file://0003-no-timeout-on-get-state.patch \
     file://0004-Properly-handle-drain-requests-while-flushing.patch \

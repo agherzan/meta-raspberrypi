@@ -55,10 +55,8 @@ inherit cmake pkgconfig
 
 ASNEEDED = ""
 
-ALLAPPS = "${@bb.utils.contains('PACKAGECONFIG', 'allapps', '-DALL_APPS=true', '', d)}"
 EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS='-Wl,--no-as-needed' \
                  -DVMCS_INSTALL_PREFIX=${exec_prefix} \
-                 ${ALLAPPS} \
 "
 
 EXTRA_OECMAKE_append_aarch64 = " -DARM64=ON "
@@ -67,6 +65,7 @@ EXTRA_OECMAKE_append_aarch64 = " -DARM64=ON "
 PACKAGECONFIG ?= "${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)}"
 
 PACKAGECONFIG[wayland] = "-DBUILD_WAYLAND=TRUE -DWAYLAND_SCANNER_EXECUTABLE:FILEPATH=${STAGING_BINDIR_NATIVE}/wayland-scanner,,wayland-native wayland"
+PACKAGECONFIG[allapps] = "-DALL_APPS=true,,,"
 
 CFLAGS_append = " -fPIC"
 

@@ -57,7 +57,7 @@ RPI_KERNEL_DEVICETREE ?= " \
     bcm2710-rpi-cm3.dtb \
     "
 
-KERNEL_DEVICETREE ?= " \
+KERNEL_DEVICETREE ??= " \
     ${RPI_KERNEL_DEVICETREE} \
     ${RPI_KERNEL_DEVICETREE_OVERLAYS} \
     "

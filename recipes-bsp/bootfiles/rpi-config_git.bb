@@ -121,7 +121,7 @@ do_deploy() {
         #       of the file. The underlying cause is unknown, but it can be related with a file size limitation affecting
         #       this variable. Therefore, "start_x=1" has been set to replace the original occurrence in config.txt,
         #       which is at the middle of the file.
-        sed -i '/#start_x=/ c\start_x=1' ${DEPLOYDIR}/bcm2835-bootfiles/config.txt
+        sed -i '/#start_x=/ c\start_x=1' ${DEPLOYDIR}/${BOOTFILES_DIR_NAME}/config.txt
     fi
 
     # Offline compositing support

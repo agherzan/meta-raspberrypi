@@ -18,31 +18,31 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/at86rf233.dtbo \
     overlays/disable-bt.dtbo \
     overlays/dwc2.dtbo \
+    overlays/gpio-ir.dtbo \
+    overlays/gpio-ir-tx.dtbo \
     overlays/gpio-key.dtbo \
     overlays/hifiberry-amp.dtbo \
     overlays/hifiberry-dac.dtbo \
     overlays/hifiberry-dacplus.dtbo \
     overlays/hifiberry-digi.dtbo \
     overlays/i2c-rtc.dtbo \
+    overlays/imx219.dtbo \
     overlays/iqaudio-dac.dtbo \
     overlays/iqaudio-dacplus.dtbo \
-    overlays/miniuart-bt.dtbo \
     overlays/mcp2515-can0.dtbo \
     overlays/mcp2515-can1.dtbo \
+    overlays/miniuart-bt.dtbo \
     overlays/pitft22.dtbo \
-    overlays/pitft28-resistive.dtbo \
     overlays/pitft28-capacitive.dtbo \
+    overlays/pitft28-resistive.dtbo \
     overlays/pitft35-resistive.dtbo \
     overlays/pps-gpio.dtbo \
     overlays/rpi-ft5406.dtbo \
     overlays/rpi-poe.dtbo \
-    overlays/vc4-kms-v3d.dtbo \
     overlays/vc4-fkms-v3d.dtbo \
-    overlays/w1-gpio-pullup.dtbo \
+    overlays/vc4-kms-v3d.dtbo \
     overlays/w1-gpio.dtbo \
-    overlays/gpio-ir.dtbo \
-    overlays/gpio-ir-tx.dtbo \
-    overlays/imx219.dtbo \
+    overlays/w1-gpio-pullup.dtbo \
     "
 
 RPI_KERNEL_DEVICETREE ?= " \

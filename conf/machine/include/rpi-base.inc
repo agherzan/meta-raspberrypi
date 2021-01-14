@@ -25,6 +25,9 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/hifiberry-dac.dtbo \
     overlays/hifiberry-dacplus.dtbo \
     overlays/hifiberry-digi.dtbo \
+    overlays/justboom-both.dtbo \
+    overlays/justboom-dac.dtbo \
+    overlays/justboom-digi.dtbo \
     overlays/i2c-rtc.dtbo \
     overlays/imx219.dtbo \
     overlays/iqaudio-dac.dtbo \

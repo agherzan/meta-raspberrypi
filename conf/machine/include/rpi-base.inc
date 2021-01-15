@@ -49,10 +49,13 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     "
 
 RPI_KERNEL_DEVICETREE ?= " \
+    bcm2708-rpi-zero.dtb \
     bcm2708-rpi-zero-w.dtb \
     bcm2708-rpi-b.dtb \
+    bcm2708-rpi-b-rev1.dtb \
     bcm2708-rpi-b-plus.dtb \
     bcm2709-rpi-2-b.dtb \
+    bcm2710-rpi-2-b.dtb \
     bcm2710-rpi-3-b.dtb \
     bcm2710-rpi-3-b-plus.dtb \
     bcm2711-rpi-4-b.dtb \

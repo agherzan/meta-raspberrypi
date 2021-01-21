@@ -8,7 +8,7 @@ COMPATIBLE_MACHINE = "^rpi$"
 PE = "1"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 
-inherit kernel siteinfo
+inherit siteinfo
 require recipes-kernel/linux/linux-yocto.inc
 
 SRC_URI += " \

@@ -19,4 +19,4 @@ require linux-raspberrypi.inc
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=bbea815ee2795b2f4230826c0c6b8814"
 
-KERNEL_EXTRA_ARGS += "DTC_FLAGS='-@ -H epapr'"
+KERNEL_DTC_FLAGS += "-@ -H epapr"

@@ -204,6 +204,12 @@ do_deploy() {
         echo "dtoverlay=dwc2,dr_mode=peripheral" >> $CONFIG
     fi
 
+    # DWC2 USB host mode support
+    if [ "${ENABLE_DWC2_HOST}" = "1" ]; then
+        echo "# Enable USB host mode" >> $CONFIG
+        echo "dtoverlay=dwc2,dr_mode=host" >> $CONFIG
+    fi
+
     # AT86RF23X support
     if [ "${ENABLE_AT86RF}" = "1" ]; then
         echo "# Enable AT86RF23X" >>$CONFIG

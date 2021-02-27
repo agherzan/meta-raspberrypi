@@ -17,5 +17,6 @@ RDEPENDS_${PN} += " \
     python3-adafruit-platformdetect \
     python3-adafruit-pureio \
     python3-core \
-    rpi-gpio \
 "
+
+RDEPENDS_${PN}_append_rpi = " rpi-gpio"

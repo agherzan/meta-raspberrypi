@@ -31,7 +31,9 @@ SDIMG_KERNELIMAGE_raspberrypi2 ?= "kernel7.img"
 SDIMG_KERNELIMAGE_raspberrypi3-64 ?= "kernel8.img"
 
 # Boot partition volume id
-BOOTDD_VOLUME_ID ?= "${MACHINE}"
+# Shorten raspberrypi to just rpi to keep it under 11 characters
+# now enforced by mkfs.vfat from dosfstools-4.2
+BOOTDD_VOLUME_ID ?= "${@d.getVar(MACHINE).replace('raspberrypi', 'rpi')}"
 
 # Boot partition size [in KiB] (will be rounded up to IMAGE_ROOTFS_ALIGNMENT)
 BOOT_SPACE ?= "49152"

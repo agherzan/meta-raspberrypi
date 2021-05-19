@@ -7,6 +7,7 @@ python __anonymous() {
 
 LINUX_VERSION ?= "5.10.y"
 LINUX_RPI_BRANCH ?= "rpi-5.10.y"
+LINUX_RPI_KMETA_BRANCH ?= "master"
 
 SRCREV_machine = "${AUTOREV}"
 SRCREV_meta = "${AUTOREV}"
@@ -14,8 +15,8 @@ SRCREV_meta = "${AUTOREV}"
 KMETA = "kernel-meta"
 
 SRC_URI = " \
-    git://github.com/raspberrypi/linux.git;name=machine;protocol=git;branch=${LINUX_RPI_BRANCH} \
-    git://git.yoctoproject.org/yocto-kernel-cache;type=kmeta;name=meta;branch=master;destsuffix=${KMETA} \
+    git://github.com/raspberrypi/linux.git;name=machine;branch=${LINUX_RPI_BRANCH} \
+    git://git.yoctoproject.org/yocto-kernel-cache;type=kmeta;name=meta;branch=${LINUX_RPI_KMETA_BRANCH};destsuffix=${KMETA} \
     file://powersave.cfg \
     file://android-drivers.cfg \
     "

@@ -160,7 +160,7 @@ do_deploy() {
     fi
 
     # UART support
-    if [ "${ENABLE_UART}" = "1" ]; then
+    if [ "${ENABLE_UART}" = "1" -o "${RPI_USE_U_BOOT}" = "1" ]; then
         echo "# Enable UART" >>${DEPLOYDIR}/${BOOTFILES_DIR_NAME}/config.txt
         echo "enable_uart=1" >>${DEPLOYDIR}/${BOOTFILES_DIR_NAME}/config.txt
     fi

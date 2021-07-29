@@ -284,7 +284,7 @@ latex_documents = [
 
 # Documents to append as an appendix to all manuals.
 #
-# latex:appendices = []
+# latex_appendices = []
 
 # It false, will not define \strong, \code, 	itleref, \crossref ... but only
 # \sphinxstrong, ..., \sphinxtitleref, ... To help avoid clash with user added
@@ -324,7 +324,7 @@ texinfo_documents = [
 
 # Documents to append as an appendix to all manuals.
 #
-# texinfo:appendices = []
+# texinfo_appendices = []
 
 # If false, no module index is generated.
 #

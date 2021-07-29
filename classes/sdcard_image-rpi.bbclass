@@ -23,7 +23,7 @@ inherit image_types
 # 0                      4MiB     4MiB + 48MiB       4MiB + 48Mib + SDIMG_ROOTFS
 
 # This image depends on the rootfs image
-IMAGE_TYPEDEP:rpi-sdimg = "${SDIMG_ROOTFS_TYPE}"
+IMAGE_TYPEDEP_rpi-sdimg = "${SDIMG_ROOTFS_TYPE}"
 
 # Kernel image name
 SDIMG_KERNELIMAGE:raspberrypi  ?= "kernel.img"
@@ -50,7 +50,7 @@ inherit kernel-artifact-names
 
 RPI_SDIMG_EXTRA_DEPENDS ?= ""
 
-do_image:rpi_sdimg[depends] = " \
+do_image_rpi_sdimg[depends] = " \
     parted-native:do_populate_sysroot \
     mtools-native:do_populate_sysroot \
     dosfstools-native:do_populate_sysroot \
@@ -62,7 +62,7 @@ do_image:rpi_sdimg[depends] = " \
     ${RPI_SDIMG_EXTRA_DEPENDS} \
 "
 
-do_image:rpi_sdimg[recrdeps] = "do_build"
+do_image_rpi_sdimg[recrdeps] = "do_build"
 
 # SD card image name
 SDIMG = "${IMGDEPLOYDIR}/${IMAGE_NAME}${IMAGE_NAME_SUFFIX}.rpi-sdimg"

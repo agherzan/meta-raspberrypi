@@ -159,7 +159,7 @@ command (eg. bootz) to be used.
 
 To build an initramfs image:
 
-* Set this 3 kernel variables (in kernel's do_configure_prepend in linux-raspberrypi.inc after the line kernel_configure_variable LOCALVERSION "\"\""
+* Set this 3 kernel variables (in kernel's do_configure:prepend in linux-raspberrypi.inc after the line kernel_configure_variable LOCALVERSION "\"\""
 )
   - kernel_configure_variable BLK_DEV_INITRD y
   - kernel_configure_variable INITRAMFS_SOURCE ""
@@ -195,7 +195,7 @@ by tasks that image building task must depend upon, to ensure that the
 files are available when they are needed, so these component deploy
 tasks must be added to: RPI_SDIMG_EXTRA_DEPENDS.
 
-    RPI_SDIMG_EXTRA_DEPENDS_append = " example:do_deploy"
+    RPI_SDIMG_EXTRA_DEPENDS:append = " example:do_deploy"
 
 ## Enable SPI bus
 

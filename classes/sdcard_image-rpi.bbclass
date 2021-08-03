@@ -87,7 +87,7 @@ def split_overlays(d, out, ver=None):
 
     return overlays
 
-IMAGE_CMD_rpi-sdimg () {
+IMAGE_CMD:rpi-sdimg () {
 
     # Align partitions
     BOOT_SPACE_ALIGNED=$(expr ${BOOT_SPACE} + ${IMAGE_ROOTFS_ALIGNMENT} - 1)

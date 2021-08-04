@@ -23,7 +23,7 @@ inherit image_types
 # 0                      4MiB     4MiB + 48MiB       4MiB + 48Mib + SDIMG_ROOTFS
 
 # This image depends on the rootfs image
-IMAGE_TYPEDEP_rpi-sdimg = "${SDIMG_ROOTFS_TYPE}"
+IMAGE_TYPEDEP:rpi-sdimg = "${SDIMG_ROOTFS_TYPE}"
 
 # Kernel image name
 SDIMG_KERNELIMAGE:raspberrypi  ?= "kernel.img"

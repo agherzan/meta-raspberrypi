@@ -88,6 +88,10 @@ do_install:append () {
                 ln -sf brcmegl.pc ${D}${libdir}/pkgconfig/egl.pc
                 ln -sf brcmvg.pc ${D}${libdir}/pkgconfig/vg.pc
 	fi
+	# Currently man files are installed in /usr/man instead of /usr/share/man, see comments in:
+	# https://github.com/raspberrypi/userland/commit/45a0022ac64b4d0788def3c5230c972430f6fc23
+	mkdir -pv ${D}${datadir}
+	mv -v ${D}${prefix}/man ${D}${mandir}
 }
 
 # Shared libs from userland package  build aren't versioned, so we need

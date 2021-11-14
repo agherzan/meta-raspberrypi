@@ -6,6 +6,7 @@ Yocto BSP layer for the Raspberry Pi boards - <http://www.raspberrypi.org/>.
 [![Matrix](https://img.shields.io/matrix/meta-raspberrypi:cub.icu.svg?server_fqdn=matrix.cub.icu)](https://matrix.to/#/#meta-raspberrypi:matrix.org)
 
 |                           |                                        |
+|:-:                        | :-:                                    |
 | Build server sponsored by | [![balena.io]](https://www.balena.io/) |
 
 ## Quick links

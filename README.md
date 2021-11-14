@@ -13,7 +13,7 @@ Yocto BSP layer for the Raspberry Pi boards - <http://www.raspberrypi.org/>.
 
 * Git repository web frontend:
   <https://github.com/agherzan/meta-raspberrypi>
-* Mailing list (yocto mailing list): <yocto@yoctoproject.org>
+* Mailing list (yocto mailing list): <yocto@lists.yoctoproject.org>
 * Issues management (Github Issues):
   <https://github.com/agherzan/meta-raspberrypi/issues>
 * Documentation: <http://meta-raspberrypi.readthedocs.io/en/latest/>

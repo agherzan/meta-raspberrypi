@@ -3,7 +3,7 @@
 Yocto BSP layer for the Raspberry Pi boards - <http://www.raspberrypi.org/>.
 
 [![Documentation Status](https://readthedocs.org/projects/meta-raspberrypi/badge/?version=latest)](https://meta-raspberrypi.readthedocs.io/en/latest/?badge=latest)
-[![Matrix](https://img.shields.io/matrix/meta-raspberrypi:cub.icu.svg?server_fqdn=matrix.cub.icu)](https://matrix.to/#/#meta-raspberrypi:matrix.org)
+[![Matrix](https://img.shields.io/badge/chat-meta--raspberrypi-brightgreen)](https://matrix.to/#/#meta-raspberrypi:matrix.org)
 
 |                           |                                        |
 |:-:                        | :-:                                    |

@@ -2,16 +2,11 @@
 
 Yocto BSP layer for the Raspberry Pi boards - <http://www.raspberrypi.org/>.
 
-[![Build Status](https://yocto-ci.resin.io/job/meta-raspberrypi1/badge/icon)](https://yocto-ci.resin.io/job/meta-raspberrypi1)
-[![Build Status](https://yocto-ci.resin.io/job/meta-raspberrypi2/badge/icon)](https://yocto-ci.resin.io/job/meta-raspberrypi2)
-[![Build Status](https://yocto-ci.resin.io/job/meta-raspberrypi3/badge/icon)](https://yocto-ci.resin.io/job/meta-raspberrypi3)
-[![Build Status](https://yocto-ci.resin.io/job/meta-raspberrypi4/badge/icon)](https://yocto-ci.resin.io/job/meta-raspberrypi4)
 [![Documentation Status](https://readthedocs.org/projects/meta-raspberrypi/badge/?version=latest)](https://meta-raspberrypi.readthedocs.io/en/latest/?badge=latest)
-[![Matrix](https://img.shields.io/matrix/meta-raspberrypi:cub.icu.svg?server_fqdn=matrix.cub.icu)](https://matrix.to/#/#meta-raspberrypi:cub.icu)
+[![Matrix](https://img.shields.io/matrix/meta-raspberrypi:cub.icu.svg?server_fqdn=matrix.cub.icu)](https://matrix.to/#/#meta-raspberrypi:matrix.org)
 
-|                           |                                                           |
-|:-:                        | :-:                                                       |
-| Build server sponsored by | [![balena.io](./img/balena.png)](https://www.balena.io/). |
+|                           |                                        |
+| Build server sponsored by | [![balena.io]](https://www.balena.io/) |
 
 ## Quick links
 
@@ -81,4 +76,4 @@ For further information, you can read more at <https://kas.readthedocs.io/en/1.0
 
 ## Maintainers
 
-* Andrei Gherzan `<andrei at gherzan.ro>`
+* Andrei Gherzan `<andrei at gherzan.com>`

@@ -20,7 +20,7 @@ SRCREV = "3fd8527eefd8790b4e8393458efc5f94eb21a615"
 PV = "20210319"
 
 SRC_URI = "\
-    git://github.com/${SRCFORK}/userland.git;protocol=git;branch=${SRCBRANCH} \
+    git://github.com/${SRCFORK}/userland.git;protocol=https;branch=${SRCBRANCH} \
     file://0001-Allow-applications-to-set-next-resource-handle.patch \
     file://0002-wayland-Add-support-for-the-Wayland-winsys.patch \
     file://0003-wayland-Add-Wayland-example.patch \

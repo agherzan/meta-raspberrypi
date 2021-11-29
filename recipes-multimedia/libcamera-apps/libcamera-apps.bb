@@ -1,19 +1,10 @@
-# Recipe created by recipetool
-# This is the basis of a recipe and may need further editing in order to be fully functional.
-# (Feel free to remove these comments when editing.)
+SUMMARY = "Raspberry libcamera-apps"
 
-# WARNING: the following LICENSE and LIC_FILES_CHKSUM values are best guesses - it is
-# your responsibility to verify that the values are complete and correct.
-#
-# The following license files were not able to be identified and are
-# represented as "Unknown" below, you will need to check them yourself:
-#   license.txt
-LICENSE = "Unknown"
+LICENSE = "BSD-2-Clause"
 LIC_FILES_CHKSUM = "file://license.txt;md5=a0013d1b383d72ba4bdc5b750e7d1d77"
 
 SRC_URI = "git://github.com/raspberrypi/libcamera-apps.git;branch=main;protocol=https"
 
-# Modify these as desired
 PV = "1.0+git${SRCPV}"
 SRCREV = "6145daf735fcb0a6e26699a407fe80307c24f6db"
 

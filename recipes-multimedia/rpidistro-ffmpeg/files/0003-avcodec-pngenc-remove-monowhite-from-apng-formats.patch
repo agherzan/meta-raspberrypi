@@ -6,6 +6,8 @@ Monowhite pixel format is not supported, and it does not make sense
 to add support for it.
 
 Fixes #7989
+
+Upstream-status: Pending
 ---
  libavcodec/pngenc.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)

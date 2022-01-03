@@ -1,3 +1,5 @@
+Upstream-status: Pending
+
 --- a/configure
 +++ b/configure
 @@ -6467,11 +6467,9 @@ enabled mbedtls           && { check_pkg

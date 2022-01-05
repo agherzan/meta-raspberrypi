@@ -1,0 +1,1 @@
+PROVIDES:append = " virtual/ffmpeg"

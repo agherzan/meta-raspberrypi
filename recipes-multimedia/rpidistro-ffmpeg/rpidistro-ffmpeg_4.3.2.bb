@@ -27,7 +27,7 @@ ARM_INSTRUCTION_SET_armv5 = "arm"
 ARM_INSTRUCTION_SET_armv6 = "arm"
 # Should be API compatible with libav (which was a fork of ffmpeg)
 # libpostproc was previously packaged from a separate recipe
-PROVIDES = "libav libpostproc"
+PROVIDES = "libav libpostproc virtual/ffmpeg"
 DEPENDS = "nasm-native"
 
 inherit autotools pkgconfig

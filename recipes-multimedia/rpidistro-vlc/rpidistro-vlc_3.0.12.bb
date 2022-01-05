@@ -27,7 +27,7 @@ S = "${WORKDIR}/git"
 LICENSE_FLAGS = "commercial"
 
 DEPENDS = "coreutils-native fribidi libtool libgcrypt libgcrypt-native \
-   dbus libxml2 gnutls tremor faad2 rpidistro-ffmpeg flac alsa-lib libidn \
+   dbus libxml2 gnutls tremor faad2 virtual/ffmpeg flac alsa-lib libidn \
    avahi jpeg xz libmodplug mpeg2dec \
    libmtp libopus orc libsamplerate0 libusb1 schroedinger taglib \
    tiff"
@@ -128,6 +128,8 @@ do_configure:append() {
   sed -i "/GLAPI void APIENTRY glShaderSource (/d" ${STAGING_INCDIR}/GL/glext.h
   sed -i -e s:'${top_builddir_slash}libtool':'${top_builddir_slash}'${TARGET_SYS}-libtool:g ${B}/doltlibtool
 }
+
+PROVIDES = "virtual/vlc"
 
 # This recipe packages vlc as a library as well, so qt4 dependencies
 # can be avoided when only the library is installed.

@@ -7,8 +7,8 @@ PREFERRED_PROVIDER_virtual/libgles2 ?= "${@bb.utils.contains("MACHINE_FEATURES",
 PREFERRED_PROVIDER_virtual/libgl ?= "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", "mesa", "mesa-gl", d)}"
 PREFERRED_PROVIDER_virtual/mesa ?= "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", "mesa", "mesa-gl", d)}"
 PREFERRED_PROVIDER_virtual/libgbm ?= "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", "mesa", "mesa-gl", d)}"
-PREFERRED_PROVIDER_virtual/vlc ?= "vlc"
-PREFERRED_PROVIDER_virtual/ffmpeg ?= "ffmpeg"
+PREFERRED_PROVIDER_virtual/vlc ?= "${@oe.utils.conditional("ENABLE_RPI_DISTRO_VLC", "1", "rpidistro-vlc", "vlc", d)}"
+PREFERRED_PROVIDER_virtual/ffmpeg ?= "${@oe.utils.conditional("ENABLE_RPI_DISTRO_VLC", "1", "rpidistro-ffmpeg", "ffmpeg", d)}"
 PREFERRED_PROVIDER_jpeg ?= "jpeg"
 
 PREFERRED_PROVIDER_virtual/libomxil ?= "userland"

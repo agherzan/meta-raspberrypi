@@ -354,19 +354,28 @@ Ref.:
 
 Support for WM8960 based sound cards such as the WM8960 Hi-Fi Sound Card HAT for Raspberry Pi from Waveshare, and ReSpeaker 2 / 4 / 6 Mics Pi HAT from Seeed Studio, can be enabled in `local.conf`
 
-    ```conf
     MACHINE_FEATURES += "wm8960"
-    ```
 
 You may need to adjust volume and toggle switches that are off by default
 
-    ```bash
     amixer -c1 sset 'Headphone',0 80%,80%
     amixer -c1 sset 'Speaker',0 80%,80%
     amixer -c1 sset 'Left Input Mixer Boost' toggle
     amixer -c1 sset 'Left Output Mixer PCM' toggle
     amixer -c1 sset 'Right Input Mixer Boost' toggle
     amixer -c1 sset 'Right Output Mixer PCM' toggle
-    ```
 
 Audio capture on ReSpeaker 2 / 4 / 6 Mics Pi HAT from Seeed Studio is very noisy.
+
+## Include Raspberry Pi Distro ffmpeg/vlc with mmal/omxil enabled
+
+Support for HW accelerated h264 video decode via MMAL, can be enabled in `local.conf`
+
+    ENABLE_RPI_DISTRO_VLC = "1"
+
+Setting the `ENABLE_RPI_DISTRO_VLC` conditional variable to `1` will auto inject raspberry pi
+distro version of vlc with HW accelerated video decode through MMAL into the image. It also
+allows vlc to be built with raspberry pi distro version of ffmpeg.
+
+If set to `0` the upstream recipes for both vlc and ffmpeg will be used. No version of vlc will
+get injected into image.

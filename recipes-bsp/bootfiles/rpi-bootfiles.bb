@@ -9,7 +9,7 @@ include recipes-bsp/common/raspberrypi-firmware.inc
 
 INHIBIT_DEFAULT_DEPS = "1"
 
-DEPENDS = "rpi-config rpi-cmdline"
+DEPENDS = "rpi-config rpi-cmdline rpi-ssh"
 
 COMPATIBLE_MACHINE = "^rpi$"
 
@@ -34,7 +34,11 @@ do_deploy() {
     touch ${DEPLOYDIR}/${BOOTFILES_DIR_NAME}/${PN}-${PV}.stamp
 }
 
-do_deploy[depends] += "rpi-config:do_deploy rpi-cmdline:do_deploy"
+do_deploy[depends] += "\
+    rpi-config:do_deploy\
+    rpi-cmdline:do_deploy\
+    rpi-ssh:do_deploy\
+"
 
 addtask deploy before do_build after do_install
 do_deploy[dirs] += "${DEPLOYDIR}/${BOOTFILES_DIR_NAME}"

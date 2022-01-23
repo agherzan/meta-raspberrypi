@@ -278,6 +278,14 @@ the header extension should set the following in local.conf:
 
     ENABLE_DWC2_HOST = "1"
 
+## Enable SSH support
+
+By default the raspberry pi's disable ssh. By setting the following variable
+we create the empty file "ssh" in the /boot/ directory which is used to enable
+the ssh capabilities on first boot. Note: This file will be deleted when used.
+
+    ENABLE_SSH = "1"
+
 ## Enable Openlabs 802.15.4 radio module
 
 When using device tree kernels, set this variable to enable the 802.15.4 hat:

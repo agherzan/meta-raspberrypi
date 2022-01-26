@@ -17,3 +17,6 @@ SRCREV = "7e4f1d379d698c44501fb84b886fadf3fc164b70"
 S = "${WORKDIR}/git"
 
 inherit setuptools3
+
+COMPATIBLE_HOST = "null"
+COMPATIBLE_HOST:rpi:libc-glibc = "(arm.*)-linux"

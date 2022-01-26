@@ -21,3 +21,6 @@ INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 SOLIBS = ".so"
 FILES_SOLIBSDEV = ""
+
+COMPATIBLE_HOST = "null"
+COMPATIBLE_HOST:rpi:libc-glibc = "(arm.*)-linux"

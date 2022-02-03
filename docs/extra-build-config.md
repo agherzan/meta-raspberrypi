@@ -269,6 +269,18 @@ local.conf:
 
     ENABLE_DWC2_PERIPHERAL = "1"
 
+Note: This setting is incompatible with the ENABLE_DWC2_OTG and ENABLE_DWC2_HOST
+
+## Enable USB OTG (on the go) support
+
+The standard USB driver only supports host mode operations.  Users who
+want to use gadget modules like g_ether and support host mode should set the 
+following in local.conf:
+
+    ENABLE_DWC2_OTG = "1"
+
+Note: This setting is incompatible with the ENABLE_DWC2_PERIPHERAL and ENABLE_DWC2_HOST
+
 ## Enable USB host support
 
 By default in case of the Compute Module 4 IO Board the standard USB driver
@@ -277,6 +289,34 @@ Users who want to use the 2 USB built-in ports or the other ports provided via
 the header extension should set the following in local.conf:
 
     ENABLE_DWC2_HOST = "1"
+
+Note: This setting is incompatible with the ENABLE_DWC2_PERIPHERAL and ENABLE_DWC2_OTG
+
+## Enable gadget modes
+
+Enable the use of ethernet over USB
+
+    ENABLE_ETHERNET_GADGET = "1"
+
+Enable the use of serial over USB
+
+    ENABLE_SERIAL_GADGET = "1"
+
+Enable the use of ethernet and serial over USB
+
+    ENABLE_CDC_GADGET = "1"
+
+Enable the use of ethernet and mass storage over USB
+
+    ENABLE_MULTI_GADGET = "1"
+
+Set the host MAC address when using RNDIS, only used when a gadget mode is enabled
+
+    GADGET_HOST_MAC_ADDR = "de:ad:be:ef:12"
+
+Set the dev MAC address when using RNDIS, only used when a gadget mode is enabled
+
+    GADGET_DEV_MAC_ADDR = "fe:eb:da:ed:12"
 
 ## Enable Openlabs 802.15.4 radio module
 

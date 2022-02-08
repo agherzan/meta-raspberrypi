@@ -1,0 +1,23 @@
+.dco:
+  stage: compliance
+  interruptible: true
+  image:
+  name: christophebedard/dco-check:latest
+  script:
+    # Work around a bug in dco-check affecting pipelines for merge requests.
+    # https://github.com/christophebedard/dco-check/issues/104
+    - |
+        set -x
+        if [ "${CI_MERGE_REQUEST_EVENT_TYPE:-}" = detached ]; then
+            git fetch -a  # so that we can resolve branch names below
+            export CI_COMMIT_BRANCH="$CI_COMMIT_REF_NAME";
+            export CI_COMMIT_BEFORE_SHA="$CI_MERGE_REQUEST_DIFF_BASE_SHA";
+            export CI_MERGE_REQUEST_SOURCE_BRANCH_SHA="$(git rev-parse "origin/$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME")";
+            export CI_MERGE_REQUEST_TARGET_BRANCH_SHA="$(git rev-parse "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME")";
+        fi
+    - dco-check --default-branch-from-remote --verbose
+  rules:
+    # Run this check on merge requests...
+    - if: $CI_MERGE_REQUEST_ID
+    # ... and when things land into the default branch.
+    - if: "$CI_COMMIT_BRANCH == '$CI_DEFAULT_BRANCH'"

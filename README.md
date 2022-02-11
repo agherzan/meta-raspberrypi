@@ -75,6 +75,13 @@ And the same for the `distro`.
 
 For further information, you can read more at <https://kas.readthedocs.io/en/1.0/index.html>
 
+## Contributing
+
+You can send patches using the GitHub pull request process or/and through the
+Yocto mailing list. Refer to the
+[documentation](https://meta-raspberrypi.readthedocs.io/en/latest/contributing.html)
+for more information.
+
 ## Maintainers
 
 * Andrei Gherzan `<andrei at gherzan.com>`

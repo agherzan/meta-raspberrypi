@@ -39,11 +39,6 @@ This layer depends on:
   * branch: master
   * revision: HEAD
 
-* URI: git://git.openembedded.org/meta-openembedded
-  * layers: meta-oe, meta-multimedia, meta-networking, meta-python
-  * branch: master
-  * revision: HEAD
-
 ## Quick Start
 
 1. source poky/oe-init-build-env rpi-build

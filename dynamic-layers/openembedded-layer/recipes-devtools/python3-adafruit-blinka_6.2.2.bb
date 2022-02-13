@@ -28,3 +28,6 @@ RDEPENDS:${PN} += " \
 "
 
 RDEPENDS:${PN}:append:rpi = " rpi-gpio"
+
+COMPATIBLE_HOST:libc-musl:class-target = "null"
+

@@ -16,3 +16,4 @@ RDEPENDS:${PN} += " \
     python3-adafruit-blinka \
     python3-core \
 "
+COMPATIBLE_HOST:libc-musl:class-target = "null"

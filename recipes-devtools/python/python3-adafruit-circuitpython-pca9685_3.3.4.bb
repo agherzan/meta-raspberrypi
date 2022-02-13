@@ -18,3 +18,4 @@ RDEPENDS:${PN} += " \
     python3-adafruit-circuitpython-register \
     python3-core \
 "
+COMPATIBLE_HOST:libc-musl:class-target = "null"

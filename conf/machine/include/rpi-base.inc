@@ -47,6 +47,7 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/rpi-ft5406.dtbo \
     overlays/rpi-poe.dtbo \
     overlays/vc4-fkms-v3d.dtbo \
+    overlays/vc4-fkms-v3d-pi4.dtbo \
     overlays/vc4-kms-v3d.dtbo \
     overlays/vc4-kms-v3d-pi4.dtbo \
     overlays/vc4-kms-dsi-7inch.dtbo \

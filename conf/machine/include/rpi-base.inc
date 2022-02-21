@@ -31,6 +31,7 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/justboom-both.dtbo \
     overlays/justboom-dac.dtbo \
     overlays/justboom-digi.dtbo \
+    overlays/i2c-gpio.dtbo \
     overlays/i2c-rtc.dtbo \
     overlays/imx219.dtbo \
     overlays/imx477.dtbo \
@@ -47,6 +48,7 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/rpi-ft5406.dtbo \
     overlays/rpi-poe.dtbo \
     overlays/vc4-fkms-v3d.dtbo \
+    overlays/vc4-fkms-v3d-pi4.dtbo \
     overlays/vc4-kms-v3d.dtbo \
     overlays/vc4-kms-v3d-pi4.dtbo \
     overlays/vc4-kms-dsi-7inch.dtbo \

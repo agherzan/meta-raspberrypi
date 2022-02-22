@@ -14,9 +14,6 @@ jobs:
     name: Yocto Git Mirror
     runs-on: [self-hosted, Linux]
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: '0'
       - uses: agherzan/git-mirror-me-action@main
         env:
           SSH_PRIVATE_KEY: ${{ secrets.YOCTO_META_RASPBERRYPI_SSH_PRIVATE_KEY }}

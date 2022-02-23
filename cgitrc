@@ -1,0 +1,3 @@
+desc=Hardware specific BSP overlay for the RaspberryPi device
+section=-Yocto Metadata Layers - Other Layers
+hide=0

@@ -2,7 +2,7 @@ LINUX_VERSION ?= "5.15.24"
 LINUX_RPI_BRANCH ?= "rpi-5.15.y"
 LINUX_RPI_KMETA_BRANCH ?= "yocto-5.15"
 
-SRCREV_machine = "770d94882ac145c81af72e9a37180806c3f70bbd"
+SRCREV_machine = "ac66b3f757a3a6c84c6641356fb81c9fce3e89e9"
 SRCREV_meta = "e1b976ee4fb5af517cf01a9f2dd4a32f560ca894"
 
 KMETA = "kernel-meta"

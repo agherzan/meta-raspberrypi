@@ -11,6 +11,5 @@ SRCREV = "5fee6e0c3878110844bc51e16063eeae7d94c457"
 DEPENDS += "python3-setuptools-scm-native"
 
 inherit setuptools3
-PIP_INSTALL_PACKAGE = "adafruit_circuitpython_register"
 
 RDEPENDS:${PN} += "python3-core"

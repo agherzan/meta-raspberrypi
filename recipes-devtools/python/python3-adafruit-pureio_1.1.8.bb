@@ -9,7 +9,7 @@ SRCREV = "f4d0973da05b8b21905ff6bab69cdb652128f342"
 S = "${WORKDIR}/git"
 
 inherit setuptools3
-PIP_INSTALL_PACKAGE = "Adafruit_PureIO"
+
 DEPENDS += "python3-setuptools-scm-native"
 
 RDEPENDS:${PN} += " \

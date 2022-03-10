@@ -5,9 +5,8 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENCE.txt;md5=9b95630a648966b142f1a0dcea001cb7"
 
 PYPI_PACKAGE = "RPi.GPIO"
-inherit pypi setuptools3
 
-PIP_INSTALL_PACKAGE = "RPi.GPIO"
+inherit pypi setuptools3
 
 SRC_URI += "file://0001-Remove-nested-functions.patch \
             file://0001-setup.py-Use-setuptools-instead-of-distutils.patch \

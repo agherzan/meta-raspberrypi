@@ -10,8 +10,6 @@ S = "${WORKDIR}/git"
 
 inherit setuptools3
 
-PIP_INSTALL_PACKAGE = "Adafruit_PlatformDetect"
-
 DEPENDS += "python3-setuptools-scm-native"
 
 RDEPENDS:${PN} += "python3-core"

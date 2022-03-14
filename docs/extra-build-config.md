@@ -388,3 +388,23 @@ You may need to adjust volume and toggle switches that are off by default
     ```
 
 Audio capture on ReSpeaker 2 / 4 / 6 Mics Pi HAT from Seeed Studio is very noisy.
+
+## Support for RTC devices
+
+The RaspberryPi boards don't feature an RTC module and the machine
+configurations provided in this BSP layer have this assumption (until, if at
+all, some later boards will come with one).
+
+`rtc` is handled as a `MACHINE_FEATURES` in the context of the build system
+which means that if an attached device is provided for which support is needed,
+the recommended way forward is to write a new machine configuration based on an
+existing one. Check the documentation for
+`MACHINE_FEATURES_BACKFILL_CONSIDERED` for how this is disabled for the
+relevant machines.
+
+Even when `MACHINE_FEATURES` is tweaked to include the needed `rtc` string,
+make sure that your kernel configuration is supporting the attached device and
+the device tree is properly tweaked. Also, mind the runtime components that
+take advantage of your RTC device. You can do that by checking what is
+included/configured in the build system based on the inclusion of `rtc` in
+`MACHINE_FEATURES`.

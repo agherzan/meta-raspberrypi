@@ -255,6 +255,12 @@ do_deploy() {
         echo "dtoverlay=mcp2515-can0,oscillator=${CAN_OSCILLATOR},interrupt=25" >>$CONFIG
     fi
 
+    # PWM support
+    if [ "${ENABLE_PWM}" = "1" ]; then
+        echo "# Enable PWM" >>$CONFIG
+        echo "dtoverlay=pwm,pin=18,func=2" >>$CONFIG
+    fi
+
 
     if [ "${ENABLE_GPIO_SHUTDOWN}" = "1" ]; then
         if ([ "${ENABLE_I2C}" = "1" ] || [ "${PITFT}" = "1" ]) && [ -z "${GPIO_SHUTDOWN_PIN}" ]; then

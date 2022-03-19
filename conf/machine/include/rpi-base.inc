@@ -44,6 +44,7 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/pitft28-capacitive.dtbo \
     overlays/pitft28-resistive.dtbo \
     overlays/pitft35-resistive.dtbo \
+    overlays/pwm.dtbo \
     overlays/pps-gpio.dtbo \
     overlays/rpi-ft5406.dtbo \
     overlays/rpi-poe.dtbo \
@@ -101,6 +102,7 @@ MACHINE_EXTRA_RRECOMMENDS += "kernel-modules udev-rules-rpi"
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "${@oe.utils.conditional('ENABLE_I2C', '1', 'kernel-module-i2c-dev kernel-module-i2c-bcm2708', '', d)}"
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "${@oe.utils.conditional('ENABLE_IR', '1', 'kernel-module-gpio-ir kernel-module-gpio-ir-tx', '', d)}"
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "${@oe.utils.conditional('ENABLE_GPIO_SHUTDOWN', '1', 'gpio-shutdown kernel-module-gpio-keys', '', d)}"
+MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "${@oe.utils.conditional('ENABLE_PWM', '1', 'kernel-module-pwm', '', d)}"
 
 SERIAL_CONSOLES_CHECK ??= "${SERIAL_CONSOLES}"
 

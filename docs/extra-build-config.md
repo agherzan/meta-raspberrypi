@@ -290,13 +290,13 @@ See: <https://openlabs.co/OSHW/Raspberry-Pi-802.15.4-radio>
 
 In order to use CAN with an MCP2515-based module, set the following variables:
 
-	ENABLE_SPI_BUS = "1"
-	ENABLE_CAN = "1"
+    ENABLE_SPI_BUS = "1"
+    ENABLE_CAN = "1"
 
 In case of dual CAN module (e.g. PiCAN2 Duo), set following variables instead:
 
     ENABLE_SPI_BUS = "1"
-	ENABLE_DUAL_CAN = "1"
+    ENABLE_DUAL_CAN = "1"
 
 Some modules may require setting the frequency of the crystal oscillator used on the particular board. The frequency is usually marked on the package of the crystal. By default, it is set to 16 MHz. To change that to 8 MHz, the following variable also has to be set:
 

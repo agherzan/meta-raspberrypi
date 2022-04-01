@@ -278,6 +278,18 @@ the header extension should set the following in local.conf:
 
     ENABLE_DWC2_HOST = "1"
 
+## Set CPUs to be isolated from the standard Linux scheduler
+
+By default Linux will use all available CPUs for scheduling tasks. For real time
+purposes there can be an advantage to isolating one or more CPUs from the
+standard scheduler. It should be noted that CPU 0 is special, it is the only CPU
+available during the early stages of the boot process and cannot be isolated.
+
+The string assigned to this variable may be a single CPU number, a comma
+separated list ("1,2"), a range("1-3"), or a mixture of these ("1,3-5")
+
+    ISOLATED_CPUS = "1-2"
+
 ## Enable Openlabs 802.15.4 radio module
 
 When using device tree kernels, set this variable to enable the 802.15.4 hat:

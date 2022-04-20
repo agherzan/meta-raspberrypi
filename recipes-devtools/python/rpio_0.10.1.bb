@@ -3,12 +3,13 @@ GPIO interrups, TCP socket interrupts, command line tools and more"
 HOMEPAGE = "https://github.com/metachris/RPIO"
 SECTION = "devel/python"
 LICENSE = "LGPL-3.0-or-later"
-LIC_FILES_CHKSUM = "file://README.rst;beginline=41;endline=53;md5=d5d95d7486a4d98c999675c23196b25a"
+LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=bb3ca60759f3202f1ae42e3519cd06bc"
 
-PYPI_PACKAGE = "RPIO"
-inherit pypi
-
-SRC_URI += "file://0001-include-sys-types.h-explicitly-for-getting-caddr_t-d.patch"
+SRC_URI = "\
+    git://github.com/metachris/RPIO.git;protocol=https;branch=master \
+    "
+SRCREV = "be1942a69b2592ddacd9dc833d2668a19aafd8d2"
+S = "${WORKDIR}/git"
 
 inherit setuptools3
 

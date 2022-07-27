@@ -24,17 +24,17 @@ LICENSE = "\
     Firmware-broadcom_bcm43xx-rpidistro \
 "
 LIC_FILES_CHKSUM = "\
-    file://debian/config/brcm80211/LICENSE;md5=8cba1397cda6386db37210439a0da3eb \
+    file://debian/config/brcm80211/copyright;md5=b0630b02d90e3da72206c909b6aecc8c \
 "
 
 # These are not common licenses, set NO_GENERIC_LICENSE for them
 # so that the license files will be copied from fetched source
-NO_GENERIC_LICENSE[Firmware-broadcom_bcm43xx-rpidistro] = "debian/config/brcm80211/LICENSE"
+NO_GENERIC_LICENSE[Firmware-broadcom_bcm43xx-rpidistro] = "debian/config/brcm80211/copyright"
 
 SRC_URI = "git://github.com/RPi-Distro/firmware-nonfree;branch=bullseye;protocol=https"
 
-SRCREV = "99d5c588e95ec9c9b86d7e88d3cf85b4f729d2bc"
-PV = "20210315-3+rpt4"
+SRCREV = "541e5a05d152e7e6f0d9be45622e4a3741e51c02"
+PV = "20210315-3+rpt7"
 
 S = "${WORKDIR}/git"
 
@@ -49,7 +49,7 @@ do_compile() {
 do_install() {
     install -d ${D}${nonarch_base_libdir}/firmware/brcm ${D}${nonarch_base_libdir}/firmware/cypress
 
-    cp debian/config/brcm80211/LICENSE ${D}${nonarch_base_libdir}/firmware/LICENSE.broadcom_bcm43xx-rpidistro
+    cp debian/config/brcm80211/copyright ${D}${nonarch_base_libdir}/firmware/copyright.broadcom_bcm43xx-rpidistro
 
     # Replace outdated linux-firmware files with updated ones from
     # raspbian firmware-nonfree. Raspbian adds blobs and nvram
@@ -81,7 +81,7 @@ LICENSE:${PN}-bcm43436s = "Firmware-broadcom_bcm43xx-rpidistro"
 LICENSE:${PN}-bcm43455 = "Firmware-broadcom_bcm43xx-rpidistro"
 LICENSE:${PN}-bcm43456 = "Firmware-broadcom_bcm43xx-rpidistro"
 LICENSE:${PN}-broadcom-license = "Firmware-broadcom_bcm43xx-rpidistro"
-FILES:${PN}-broadcom-license = "${nonarch_base_libdir}/firmware/LICENSE.broadcom_bcm43xx-rpidistro"
+FILES:${PN}-broadcom-license = "${nonarch_base_libdir}/firmware/copyright.broadcom_bcm43xx-rpidistro"
 FILES:${PN}-bcm43430 = "${nonarch_base_libdir}/firmware/brcm/brcmfmac43430* ${nonarch_base_libdir}/firmware/cypress/cyfmac43430-sdio.bin ${nonarch_base_libdir}/firmware/cypress/cyfmac43430-sdio.clm_blob"
 FILES:${PN}-bcm43436 = "${nonarch_base_libdir}/firmware/brcm/brcmfmac43436-*"
 FILES:${PN}-bcm43436s = "${nonarch_base_libdir}/firmware/brcm/brcmfmac43436s*"

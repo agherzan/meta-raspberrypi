@@ -31,6 +31,14 @@ OpenEmbedded/Yocto distributions and layer stacks, such as:
 * Yoe Disto (Video and Camera Products).
 * Yocto/Poky (main focus of testing).
 
+## Yocto Project Compatible Layer
+
+<img src="img/LF_17_02_Yocto-Badge-Update_Compatible_Final_Blank.png" alt="Yocto Compatible Badge" width="100"/>
+
+This layer is officially approved as part of the `Yocto Project Compatible
+Layers Program`. You can find details of that on the official Yocto Project
+[website](https://www.yoctoproject.org/software-overview/layers/?searchTerm=meta-raspberrypi).
+
 ## Dependencies
 
 This layer depends on:

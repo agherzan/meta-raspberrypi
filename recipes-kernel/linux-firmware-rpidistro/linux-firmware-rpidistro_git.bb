@@ -13,6 +13,7 @@ LIC_FILES_CHKSUM = "\
 # license files will be copied from the fetched source.
 NO_GENERIC_LICENSE[binary-redist-Cypress-rpidistro] = "debian/config/brcm80211/copyright"
 NO_GENERIC_LICENSE[Synaptics-rpidistro] = "debian/config/brcm80211/copyright"
+LICENSE_FLAGS = "synaptics-killswitch"
 
 SRC_URI = "git://github.com/RPi-Distro/firmware-nonfree;branch=bullseye;protocol=https"
 SRCREV = "541e5a05d152e7e6f0d9be45622e4a3741e51c02"

@@ -150,3 +150,20 @@ do_image_wic[recrdeps] = "do_build"
 # The kernel image is installed into the FAT32 boot partition and does not need
 # to also be installed into the rootfs.
 RDEPENDS:${KERNEL_PACKAGE_NAME}-base = ""
+
+RASPBERRYPI_3_FIRMWARE_PACKAGES += "\
+    linux-firmware-rpidistro-bcm43430 \
+    linux-firmware-rpidistro-bcm43455 \
+    bluez-firmware-rpidistro-bcm43430a1-hcd \
+    bluez-firmware-rpidistro-bcm4345c0-hcd \
+"
+RASPBERRYPI_4_FIRMWARE_PACKAGES += "\
+    linux-firmware-rpidistro-bcm43455 \
+    bluez-firmware-rpidistro-bcm4345c0-hcd \
+    linux-firmware-rpidistro-bcm43456 \
+    bluez-firmware-rpidistro-bcm4345c5-hcd \
+"
+
+RASPBERRYPI_3_KERNEL ?= "kernel7.img"
+# 'l' stands for LPAE
+RASPBERRYPI_4_KERNEL ?= "kernel7l.img"

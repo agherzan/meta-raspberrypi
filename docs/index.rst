@@ -14,6 +14,7 @@ Contents:
    readme
    layer-contents
    extra-build-config
+   multiconfig
    extra-apps
    ipcompliance
    contributing

@@ -134,12 +134,15 @@ def make_dtb_boot_files(d):
 
     return ' '.join([transform(dtb) for dtb in alldtbs.split(' ') if dtb])
 
+RPI_EXTRA_IMAGE_BOOT_FILES ?= " \
+	${@bb.utils.contains('RPI_USE_U_BOOT', '1', \
+		'${KERNEL_IMAGETYPE} u-boot.bin;${SDIMG_KERNELIMAGE} boot.scr', \
+		'${KERNEL_IMAGETYPE};${SDIMG_KERNELIMAGE}', d)} \
+	"
 
 IMAGE_BOOT_FILES ?= "${BOOTFILES_DIR_NAME}/* \
                  ${@make_dtb_boot_files(d)} \
-                 ${@bb.utils.contains('RPI_USE_U_BOOT', '1', \
-                    '${KERNEL_IMAGETYPE} u-boot.bin;${SDIMG_KERNELIMAGE} boot.scr', \
-                    '${KERNEL_IMAGETYPE};${SDIMG_KERNELIMAGE}', d)} \
+                 ${RPI_EXTRA_IMAGE_BOOT_FILES} \
                  "
 do_image_wic[depends] += " \
     rpi-bootfiles:do_deploy \

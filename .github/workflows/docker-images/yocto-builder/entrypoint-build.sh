@@ -49,8 +49,20 @@ VIRTUAL-RUNTIME_initscripts = "systemd-compat-units"
 LICENSE_FLAGS_ACCEPTED = "synaptics-killswitch"
 EOCONF
 
+# If we enable multiconfigs before adding the layers providing them, the build
+# fails. So, if environemnt enables multiconfigs, save and restore.
+if [ -n "$BBMULTICONFIG" ]; then
+	BBMULTICONFIG_BKP="$BBMULTICONFIG"
+	unset BBMULTICONFIG
+fi
+
 # Add the BSP layer
 bitbake-layers add-layer "$META_RASPBERRYPI_PATH"
+
+# Restore BBMULTICONFIG
+if [ -n "$BBMULTICONFIG_BKP" ]; then
+	export BBMULTICONFIG="$BBMULTICONFIG_BKP"
+fi
 
 # Log configs for debugging purposes
 for f in 'conf/local.conf' 'conf/bblayers.conf'; do

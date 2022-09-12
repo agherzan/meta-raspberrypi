@@ -32,6 +32,12 @@ This machine targets support for all the ARMv7-based Raspberry Pi boards. It
 will pull in the firmware and deploy the kernel image and kernel modules for
 all the relevant boards.
 
+### raspberrypi-armv8
+
+This machine targets support for all the ARMv8-based Raspberry Pi boards. It
+will pull in the firmware and deploy the kernel image and kernel modules for
+all the relevant boards.
+
 ## Images
 
 * rpi-test-image

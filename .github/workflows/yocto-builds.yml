@@ -28,6 +28,7 @@ jobs:
           - raspberrypi-cm3
           - raspberrypi-cm
           - raspberrypi-armv7
+          - raspberrypi-armv8
         image: [rpi-test-image]
         distro: [poky]
     runs-on: [self-hosted, Linux]

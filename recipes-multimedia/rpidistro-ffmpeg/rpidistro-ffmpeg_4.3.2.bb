@@ -35,7 +35,8 @@ DEPENDS = "nasm-native"
 inherit autotools pkgconfig
 PACKAGECONFIG ??= "avdevice avfilter avcodec avformat swresample swscale postproc avresample \
                    opengl udev sdl2 ffplay alsa bzlib lzma pic pthreads shared theora zlib \
-                   libvorbis x264 gpl mmal sand rpi vout-drm vout-egl \
+                   libvorbis x264 gpl sand rpi vout-drm vout-egl \
+                   ${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', '', 'mmal', d)} \
                    ${@bb.utils.contains('AVAILTUNES', 'mips32r2', 'mips32r2', '', d)} \
                    ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'xv xcb', '', d)}"
 
@@ -186,3 +187,8 @@ INSANE_SKIP:${MLPREFIX}libavresample = "textrel"
 INSANE_SKIP:${MLPREFIX}libswscale = "textrel"
 INSANE_SKIP:${MLPREFIX}libswresample = "textrel"
 INSANE_SKIP:${MLPREFIX}libpostproc = "textrel"
+
+# Only enable it for rpi class of machines
+COMPATIBLE_HOST = "null"
+COMPATIBLE_HOST:rpi = "'(.*)'"
+

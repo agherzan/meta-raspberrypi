@@ -51,8 +51,9 @@ EXTRA_OECONF = "\
 
 PACKAGECONFIG ?= "\
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'x11', '', d)} \
+    ${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', '', 'mmal', d)} \
     live555 dv1394 notify fontconfig fluidsynth freetype dvdread png udev \
-    x264 alsa mmal harfbuzz jack neon fribidi dvbpsi a52 v4l2 gles2 \
+    x264 alsa harfbuzz jack neon fribidi dvbpsi a52 v4l2 gles2 \
 "
 
 PACKAGECONFIG[mmal] = "--enable-omxil --enable-omxil-vout --enable-rpi-omxil --enable-mmal --enable-mmal-avcodec,,userland"
@@ -150,5 +151,9 @@ FILES:${PN}-staticdev += "\
     ${libdir}/vlc/plugins/*/*.a \
     ${libdir}/vlc/libcompat.a \
 "
+
+# Only enable it for rpi class of machines
+COMPATIBLE_HOST = "null"
+COMPATIBLE_HOST:rpi = "'(.*)'"
 
 INSANE_SKIP:${PN} = "dev-so"

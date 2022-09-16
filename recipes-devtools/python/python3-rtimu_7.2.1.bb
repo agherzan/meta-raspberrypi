@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 DESCRIPTION = "RTIMULib is a C++ and Python library that makes it easy to use 9-dof and \
 10-dof IMUs with embedded Linux systems"
 HOMEPAGE = "https://github.com/RPi-Distro/RTIMULib/"

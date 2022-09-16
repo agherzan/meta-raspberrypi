@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 SUMMARY = "Python module to control the Raspberry Pi Sense HAT used in the Astro Pi mission"
 HOMEPAGE = "https://github.com/RPi-Distro/python-sense-hat"
 SECTION = "devel/python"

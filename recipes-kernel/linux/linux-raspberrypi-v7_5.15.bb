@@ -1,4 +1,5 @@
 # SPDX-FileCopyrightText: Andrei Gherzan <andrei.gherzan@huawei.com>
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
 #
 # SPDX-License-Identifier: MIT
 

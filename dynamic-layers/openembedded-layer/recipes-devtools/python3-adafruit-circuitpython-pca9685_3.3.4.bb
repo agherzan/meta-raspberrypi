@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 SUMMARY = "CircuitPython driver for motor, stepper, and servo based on PCA9685."
 HOMEPAGE = "https://github.com/adafruit/Adafruit_CircuitPython_PCA9685"
 LICENSE = "MIT"

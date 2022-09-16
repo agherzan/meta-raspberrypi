@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 PACKAGECONFIG_GL:rpi = "${@bb.utils.contains('DISTRO_FEATURES', 'x11 opengl', 'gl', \
                         bb.utils.contains('DISTRO_FEATURES',     'opengl', 'eglfs gles2', \
                                                                        '', d), d)}"

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 DESCRIPTION = "Commented config.txt file for the Raspberry Pi. \
                The Raspberry Pi config.txt file is read by the GPU before \
                the ARM core is initialised. It can be used to set various \

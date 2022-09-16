@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 DESCRIPTION = "A module to control Raspberry Pi GPIO channels"
 HOMEPAGE = "https://sourceforge.net/projects/raspberry-gpio-python/"
 SECTION = "devel/python"

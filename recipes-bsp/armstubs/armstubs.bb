@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 DESCRIPTION = "Boot strap code that the GPU puts on memory to start running the boot loader"
 LICENSE = "BSD-3-Clause"
 

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 from oeqa.runtime.cases.parselogs import *
 
 rpi_errors = [

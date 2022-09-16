@@ -1,4 +1,5 @@
 #!/bin/sh
+
 ##
 # Bind the gpio-shutdown keycode as Keyboard signal and load it to the
 # keymap during startup.

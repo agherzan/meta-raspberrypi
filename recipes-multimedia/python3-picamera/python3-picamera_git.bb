@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 SUMMARY = "Python interface to the Raspberry Pi camera module"
 DESCRIPTION = "This package provides a pure Python interface to the Raspberry Pi camera module for Python 2.7 (or above) or Python 3.2 (or above)."
 HOMEPAGE = "https://github.com/waveform80/picamera" 

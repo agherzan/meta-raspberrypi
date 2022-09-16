@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 # until fully tested, prefer `libwayland-egl` provided by `userland` instead of `wayland` when not using vc4graphics
 do_install:append:rpi () {
     if [ "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", "1", "0", d)}" = "0" ]; then

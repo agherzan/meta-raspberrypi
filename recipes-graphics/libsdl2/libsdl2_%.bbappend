@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 # when using userland graphic KHR/khrplatform.h is provided by userland but virtual/libgl is provided by mesa-gl where

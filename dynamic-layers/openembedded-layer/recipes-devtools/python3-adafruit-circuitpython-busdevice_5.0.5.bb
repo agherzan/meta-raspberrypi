@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 SUMMARY = "CircuitPython bus device classes to manage bus sharing."
 HOMEPAGE = "https://github.com/adafruit/Adafruit_CircuitPython_BusDevice"
 LICENSE = "MIT"

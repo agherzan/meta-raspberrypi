@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 DESCRIPTION = "Video player and streamer - davinci edition"
 HOMEPAGE = "http://www.videolan.org"
 SECTION = "multimedia"

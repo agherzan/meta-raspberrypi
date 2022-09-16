@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 # DRI3 note:
 # With oe-core commit 8509e2e1a87578882b71948ccef3b50ccf1228b3 dri3 is set
 # as default. To state out clearly that Raspi needs dri3 and to avoid surprises

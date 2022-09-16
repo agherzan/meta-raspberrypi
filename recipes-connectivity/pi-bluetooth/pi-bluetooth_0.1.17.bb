@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 SUMMARY = "Script to properly configure BT-HCI on Raspberry Pi"
 HOMEPAGE = "https://github.com/RPi-Distro/pi-bluetooth"
 SECTION = "kernel"

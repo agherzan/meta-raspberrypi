@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 SUMMARY = "A complete, cross-platform solution to record, convert and stream audio and video."
 DESCRIPTION = "FFmpeg is the leading multimedia framework, able to decode, encode, transcode, \
                mux, demux, stream, filter and play pretty much anything that humans and machines \

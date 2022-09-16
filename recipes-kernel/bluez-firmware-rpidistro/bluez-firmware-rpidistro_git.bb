@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 SUMMARY = "Linux kernel Bluetooth firmware files from Raspbian distribution"
 DESCRIPTION = "Updated Bluetooth firmware files for RaspberryPi hardware. \
 RPi-Distro obtains these directly from Cypress; they are not submitted \

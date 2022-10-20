@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 python __anonymous() {
     if "linux-raspberrypi-dev" not in d.getVar("PREFERRED_PROVIDER_virtual/kernel"):
         msg = "Skipping linux-raspberrypi-dev as it is not the preferred " + \

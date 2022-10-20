@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 OPENGL_PKGCONFIGS:rpi = "dri glx ${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', 'dri3 glamor', '', d)}"
 
 # when using userland graphic KHR/khrplatform.h is provided by userland but virtual/libgl is provided by mesa-gl where

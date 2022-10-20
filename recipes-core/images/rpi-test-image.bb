@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 # Base this image on core-image-base
 include recipes-core/images/core-image-base.bb
 

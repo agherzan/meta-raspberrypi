@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 DESCRIPTION = "This repository contains the source code for the ARM side \
 libraries used on Raspberry Pi. These typically are installed in /opt/vc/lib \
 and includes source for the ARM side code to interface to: EGL, mmal, GLESv2,\

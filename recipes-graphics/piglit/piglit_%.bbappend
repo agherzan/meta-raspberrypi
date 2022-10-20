@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 # mesa-demos need libgles1 and userland driver does not have it so remove it from piglit rdeps
 RDEPENDS:${PN}:remove:rpi = "${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', '', 'mesa-demos', d)}"
 # it needs EGL >= 11 but userland says it provided version 10, remove it from build

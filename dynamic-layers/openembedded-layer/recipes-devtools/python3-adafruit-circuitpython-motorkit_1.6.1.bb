@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 SUMMARY = "CircuitPython helper library for DC & Stepper Motor FeatherWing, Shield, and Pi Hat kits."
 HOMEPAGE = "https://github.com/adafruit/Adafruit_CircuitPython_MotorKit"
 LICENSE = "MIT"

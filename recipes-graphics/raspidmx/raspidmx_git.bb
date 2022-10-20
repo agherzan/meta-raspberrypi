@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 SUMMARY = "Some examples using the DispmanX API on the Raspberry Pi"
 HOMEPAGE = "https://github.com/AndrewFromMelbourne/raspidmx"
 SECTION = "graphics"

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 SUMMARY = "Raspberrypi firmware libraries which are required by picamera library"
 DESCRIPTION = "Raspberrypi firmware libraries required by picamera library"
 LICENSE = "Broadcom-RPi"

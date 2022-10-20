@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
+<<<<<<< HEAD
+=======
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+#
+>>>>>>> 064cbc9 (changing license for two doc files)
 # meta-raspberrypi documentation build configuration file, created by
 # sphinx-quickstart on Tue May 23 09:51:24 2017.
 #

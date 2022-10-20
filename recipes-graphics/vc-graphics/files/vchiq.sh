@@ -1,4 +1,5 @@
 #!/bin/sh
+
 ### BEGIN INIT INFO
 # Provides:          vchiq.sh
 # Required-Start:    $remote_fs rmnologin

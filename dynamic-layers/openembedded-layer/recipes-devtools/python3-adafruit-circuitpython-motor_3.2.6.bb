@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 SUMMARY = "CircuitPython helper library provides higher level objects to control motors and servos."
 HOMEPAGE = "https://github.com/adafruit/Adafruit_CircuitPython_Motor"
 LICENSE = "MIT"

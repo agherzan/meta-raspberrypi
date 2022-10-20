@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
 SUMMARY = "A commandline OMX player for the Raspberry Pi"
 DESCRIPTION = "This player was developed as a testbed for the XBMC \
 Raspberry PI implementation and is quite handy to use standalone"

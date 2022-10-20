@@ -1,3 +1,10 @@
+<<<<<<< HEAD
+=======
+# SPDX-FileCopyrightText: meta-raspberrypi contributors
+#
+# SPDX-License-Identifier: MIT
+
+>>>>>>> 064cbc9 (changing license for two doc files)
 # Makefile for Sphinx documentation
 #
 

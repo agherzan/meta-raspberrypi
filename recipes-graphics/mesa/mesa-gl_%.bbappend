@@ -1,4 +1,4 @@
-PACKAGECONFIG:append:rpi = " gbm"
+PACKAGECONFIG:append:rpi = " gbm ${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', '', 'gallium', d)}"
 PROVIDES:append:rpi = " virtual/libgbm"
 
 GALLIUMDRIVERS:append:rpi = ",swrast"

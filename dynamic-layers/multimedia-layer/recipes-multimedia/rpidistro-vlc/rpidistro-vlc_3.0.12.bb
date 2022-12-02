@@ -51,8 +51,10 @@ EXTRA_OECONF = "\
 
 PACKAGECONFIG ?= "\
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'x11', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
+    ${@bb.utils.contains_any('DISTRO_FEATURES', 'wayland x11', 'notify', '', d)} \
     ${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', '', 'mmal', d)} \
-    live555 dv1394 notify fontconfig fluidsynth freetype dvdread png udev \
+    live555 dv1394 fontconfig fluidsynth freetype dvdread png udev \
     x264 alsa harfbuzz jack neon fribidi dvbpsi a52 v4l2 gles2 \
 "
 

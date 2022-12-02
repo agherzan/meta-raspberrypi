@@ -190,5 +190,5 @@ INSANE_SKIP:${MLPREFIX}libpostproc = "textrel"
 
 # Only enable it for rpi class of machines
 COMPATIBLE_HOST = "null"
-COMPATIBLE_HOST:rpi = "'(.*)'"
+COMPATIBLE_HOST:rpi = "(.*)"
 

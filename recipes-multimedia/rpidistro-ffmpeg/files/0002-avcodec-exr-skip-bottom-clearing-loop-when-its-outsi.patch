@@ -1,0 +1,54 @@
+From: Michael Niedermayer <michael@niedermayer.cc>
+Date: Tue, 12 Jan 2021 20:36:35 +0100
+Subject: avcodec/exr: skip bottom clearing loop when its outside the image
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original ffmpeg and applies patches to enable
+raspiberry pi support.
+
+Fixes: signed integer overflow: 1633771809 * 32960 cannot be represented in type 'int'
+Fixes: 26532/clusterfuzz-testcase-minimized-ffmpeg_AV_CODEC_ID_EXR_fuzzer-5613925708857344
+
+Found-by: continuous fuzzing process https://github.com/google/oss-fuzz/tree/master/projects/ffmpeg
+Signed-off-by: Michael Niedermayer <michael@niedermayer.cc>
+---
+ libavcodec/exr.c | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/libavcodec/exr.c b/libavcodec/exr.c
+index 2e008c8..4a81f79 100644
+--- a/libavcodec/exr.c
++++ b/libavcodec/exr.c
+@@ -1672,7 +1672,7 @@ static int decode_frame(AVCodecContext *avctx, void *data,
+     AVFrame *picture = data;
+     uint8_t *ptr;
+ 
+-    int i, y, ret;
++    int i, y, ret, ymax;
+     int planes;
+     int out_line_size;
+     int nb_blocks;   /* nb scanline or nb tile */
+@@ -1824,14 +1824,16 @@ static int decode_frame(AVCodecContext *avctx, void *data,
+ 
+     avctx->execute2(avctx, decode_block, s->thread_data, NULL, nb_blocks);
+ 
++    ymax = FFMAX(0, s->ymax + 1);
+     // Zero out the end if ymax+1 is not h
+-    for (i = 0; i < planes; i++) {
+-        ptr = picture->data[i] + ((s->ymax+1) * picture->linesize[i]);
+-        for (y = s->ymax + 1; y < avctx->height; y++) {
+-            memset(ptr, 0, out_line_size);
+-            ptr += picture->linesize[i];
++    if (ymax < avctx->height)
++        for (i = 0; i < planes; i++) {
++            ptr = picture->data[i] + (ymax * picture->linesize[i]);
++            for (y = ymax; y < avctx->height; y++) {
++                memset(ptr, 0, out_line_size);
++                ptr += picture->linesize[i];
++            }
+         }
+-    }
+ 
+     picture->pict_type = AV_PICTURE_TYPE_I;
+     *got_frame = 1;

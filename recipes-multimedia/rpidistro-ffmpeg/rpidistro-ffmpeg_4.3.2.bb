@@ -33,23 +33,31 @@ RPROVIDES:${PN} = "${PROVIDES}"
 DEPENDS = "nasm-native"
 
 inherit autotools pkgconfig
-PACKAGECONFIG ??= "avdevice avfilter avcodec avformat swresample swscale postproc avresample \
-                   opengl udev sdl2 ffplay alsa bzlib lzma pic pthreads shared theora zlib \
-                   libvorbis x264 gpl sand rpi vout-drm vout-egl \
+PACKAGECONFIG ??= "avdevice avfilter avcodec avformat swresample swscale postproc avresample ffplay \
+                   sdl2 v4l2 drm udev alsa bzlib lzma pic pthreads shared theora zlib libvorbis x264 gpl \
+                   rpi sand vout-drm vout-egl \
                    ${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', '', 'mmal', d)} \
                    ${@bb.utils.contains('AVAILTUNES', 'mips32r2', 'mips32r2', '', d)} \
+                   ${@bb.utils.contains('DISTRO_FEATURES', 'opengl', 'opengl', '', d)} \
                    ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'xv xcb', '', d)}"
 
 SRC_URI = "\
     git://git@github.com/RPi-Distro/ffmpeg;protocol=https;branch=pios/bullseye \
     file://0001-avcodec-arm-sbcenc-avoid-callee-preserved-vfp-regist.patch \
-    file://0002-Fix-build-on-powerpc-and-ppc64.patch \
-    file://0003-avcodec-pngenc-remove-monowhite-from-apng-formats.patch \
-    file://0004-ffmpeg-4.3.2-rpi_10.patch \
-    file://0005-fix_flags.diff \
-"
+    file://0002-avcodec-exr-skip-bottom-clearing-loop-when-its-outsi.patch \
+    file://0003-Fix-build-on-powerpc-and-ppc64.patch \
+    file://0004-avfilter-vf_vmafmotion-Check-dimensions.patch \
+    file://0005-avfilter-vf_yadif-Fix-handing-of-tiny-images.patch \
+    file://0006-avformat-movenc-Check-pal_size-before-use.patch \
+    file://0007-avcodec-pngenc-remove-monowhite-from-apng-formats.patch \
+    file://0008-ffmpeg-4.3.2-rpi_10.patch \
+    file://0009-fix_flags.diff \
+    file://2001-configure-setup-for-OE-core-usage.patch \
+    file://2002-libavdevice-opengl_enc-update-dynamic-function-loader.patch \
+    file://2003-libavcodec-fix-v4l2_req_devscan.patch \
+    "
 
-SRCREV = "ea72093f350f38edcd39c480b331c3219c377642"
+SRCREV = "378adea166f167a0e75cf85888f661101cb4af0f"
 
 S = "${WORKDIR}/git"
 
@@ -70,7 +78,7 @@ PACKAGECONFIG[altivec] = "--enable-altivec,--disable-altivec,"
 PACKAGECONFIG[bzlib] = "--enable-bzlib,--disable-bzlib,bzip2"
 PACKAGECONFIG[fdk-aac] = "--enable-libfdk-aac --enable-nonfree,--disable-libfdk-aac,fdk-aac"
 PACKAGECONFIG[gpl] = "--enable-gpl,--disable-gpl"
-PACKAGECONFIG[opengl] = "--enable-opengl,--disable-opengl,virtual/libgl"
+PACKAGECONFIG[opengl] = "--enable-opengl,--disable-opengl,virtual/libgles2"
 PACKAGECONFIG[gsm] = "--enable-libgsm,--disable-libgsm,libgsm"
 PACKAGECONFIG[jack] = "--enable-indev=jack,--disable-indev=jack,jack"
 PACKAGECONFIG[libvorbis] = "--enable-libvorbis,--disable-libvorbis,libvorbis"
@@ -90,9 +98,10 @@ PACKAGECONFIG[x264] = "--enable-libx264,--disable-libx264,x264"
 PACKAGECONFIG[xcb] = "--enable-libxcb,--disable-libxcb,libxcb"
 PACKAGECONFIG[xv] = "--enable-outdev=xv,--disable-outdev=xv,libxv"
 PACKAGECONFIG[zlib] = "--enable-zlib,--disable-zlib,zlib"
-#PACKAGECONFIG[snappy] = "--enable-libsnappy,--enable-libsnappy,snappy"
+PACKAGECONFIG[snappy] = "--enable-libsnappy,--disable-libsnappy,snappy"
 PACKAGECONFIG[udev] = "--enable-libudev,--disable-libudev,udev"
-PACKAGECONFIG[v4l2] = "--enable-libv4l2 --enable-v4l2-request --enable-libdrm,,v4l-utils"
+PACKAGECONFIG[drm] = "--enable-libdrm,--disable-libdrm,libdrm"
+PACKAGECONFIG[v4l2] = "--enable-libv4l2 --enable-v4l2-m2m --enable-v4l2-request,,v4l-utils"
 PACKAGECONFIG[mmal] = "--enable-omx --enable-omx-rpi --enable-mmal,,userland"
 PACKAGECONFIG[sand] = "--enable-sand,,"
 PACKAGECONFIG[rpi] = "--enable-rpi,,"

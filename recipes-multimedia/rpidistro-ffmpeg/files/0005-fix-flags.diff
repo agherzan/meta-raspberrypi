@@ -1,8 +1,11 @@
-Upstream-status: Pending
+Upstream-Status: Inappropriate
+
+RPI-Distro repo clones original ffmpeg and applies patches to enable
+raspiberry pi support.
 
 --- a/configure
 +++ b/configure
-@@ -6467,11 +6467,9 @@ enabled mbedtls           && { check_pkg
+@@ -6471,11 +6471,9 @@ enabled mbedtls           && { check_pkg
                                 die "ERROR: mbedTLS not found"; }
  enabled mediacodec        && { enabled jni || die "ERROR: mediacodec requires --enable-jni"; }
  ( enabled rpi ||

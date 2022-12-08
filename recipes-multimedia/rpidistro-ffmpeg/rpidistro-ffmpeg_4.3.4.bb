@@ -33,23 +33,27 @@ RPROVIDES:${PN} = "${PROVIDES}"
 DEPENDS = "nasm-native"
 
 inherit autotools pkgconfig
-PACKAGECONFIG ??= "avdevice avfilter avcodec avformat swresample swscale postproc avresample \
-                   opengl udev sdl2 ffplay alsa bzlib lzma pic pthreads shared theora zlib \
-                   libvorbis x264 gpl sand rpi vout-drm vout-egl \
-                   ${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', '', 'mmal', d)} \
+PACKAGECONFIG ??= "avdevice avfilter avcodec avformat swresample swscale postproc avresample ffplay \
+                   v4l2 drm udev alsa bzlib lzma pic pthreads shared theora zlib libvorbis x264 gpl \
+                   ${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', '', 'mmal rpi sand vout-drm', d)} \
                    ${@bb.utils.contains('AVAILTUNES', 'mips32r2', 'mips32r2', '', d)} \
-                   ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'xv xcb', '', d)}"
+                   ${@bb.utils.contains('DISTRO_FEATURES', 'opengl', 'opengl', '', d)} \
+                   ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'xv xcb vout-egl epoxy', '', d)}"
 
 SRC_URI = "\
     git://git@github.com/RPi-Distro/ffmpeg;protocol=https;branch=pios/bullseye \
     file://0001-avcodec-arm-sbcenc-avoid-callee-preserved-vfp-regist.patch \
     file://0002-Fix-build-on-powerpc-and-ppc64.patch \
     file://0003-avcodec-pngenc-remove-monowhite-from-apng-formats.patch \
-    file://0004-ffmpeg-4.3.2-rpi_10.patch \
-    file://0005-fix_flags.diff \
-"
+    file://0004-ffmpeg-4.3.4-rpi_14.patch \
+    file://0005-fix-flags.diff \
+    file://2001-configure-setup-for-OE-core-usage.patch \
+    file://2002-libavdevice-opengl_enc-update-dynamic-function-loader.patch \
+    file://2003-libavcodec-fix-v4l2_req_devscan.patch \
+    file://2004-libavcodec-omx-replace-opt-vc-path-with-usr-lib.patch \
+    "
 
-SRCREV = "ea72093f350f38edcd39c480b331c3219c377642"
+SRCREV = "246e1a55a0eca931537d8706acd8b133c07beb05"
 
 S = "${WORKDIR}/git"
 
@@ -70,7 +74,7 @@ PACKAGECONFIG[altivec] = "--enable-altivec,--disable-altivec,"
 PACKAGECONFIG[bzlib] = "--enable-bzlib,--disable-bzlib,bzip2"
 PACKAGECONFIG[fdk-aac] = "--enable-libfdk-aac --enable-nonfree,--disable-libfdk-aac,fdk-aac"
 PACKAGECONFIG[gpl] = "--enable-gpl,--disable-gpl"
-PACKAGECONFIG[opengl] = "--enable-opengl,--disable-opengl,virtual/libgl"
+PACKAGECONFIG[opengl] = "--enable-opengl,--disable-opengl,virtual/libgles2"
 PACKAGECONFIG[gsm] = "--enable-libgsm,--disable-libgsm,libgsm"
 PACKAGECONFIG[jack] = "--enable-indev=jack,--disable-indev=jack,jack"
 PACKAGECONFIG[libvorbis] = "--enable-libvorbis,--disable-libvorbis,libvorbis"
@@ -90,9 +94,11 @@ PACKAGECONFIG[x264] = "--enable-libx264,--disable-libx264,x264"
 PACKAGECONFIG[xcb] = "--enable-libxcb,--disable-libxcb,libxcb"
 PACKAGECONFIG[xv] = "--enable-outdev=xv,--disable-outdev=xv,libxv"
 PACKAGECONFIG[zlib] = "--enable-zlib,--disable-zlib,zlib"
-#PACKAGECONFIG[snappy] = "--enable-libsnappy,--enable-libsnappy,snappy"
+PACKAGECONFIG[snappy] = "--enable-libsnappy,--disable-libsnappy,snappy"
 PACKAGECONFIG[udev] = "--enable-libudev,--disable-libudev,udev"
-PACKAGECONFIG[v4l2] = "--enable-libv4l2 --enable-v4l2-request --enable-libdrm,,v4l-utils"
+PACKAGECONFIG[drm] = "--enable-libdrm,--disable-libdrm,libdrm"
+PACKAGECONFIG[epoxy] = "--enable-epoxy,--disable-epoxy,libepoxy"
+PACKAGECONFIG[v4l2] = "--enable-libv4l2 --enable-v4l2-m2m --enable-v4l2-request,,v4l-utils"
 PACKAGECONFIG[mmal] = "--enable-omx --enable-omx-rpi --enable-mmal,,userland"
 PACKAGECONFIG[sand] = "--enable-sand,,"
 PACKAGECONFIG[rpi] = "--enable-rpi,,"
@@ -137,11 +143,6 @@ EXTRA_OECONF = " \
     --pkg-config=pkg-config \
 "
 EXTRA_OECONF:append:linux-gnux32 = " --disable-asm"
-
-# Directly specify the include directories the contain headers for
-#   libdrm
-#   openmaxil
-TARGET_CFLAGS:append = " -I${STAGING_INCDIR}/IL -I${STAGING_INCDIR}/drm"
 
 # gold crashes on x86, another solution is to --disable-asm but thats more hacky
 # ld.gold: internal error in relocate_section, at ../../gold/i386.cc:3684

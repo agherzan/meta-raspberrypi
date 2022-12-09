@@ -1,4 +1,7 @@
-Upstream-status: Pending
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+to enable raspiberry pi support.
 
 --- a/bin/vlc.c
 +++ b/bin/vlc.c
@@ -12,5 +15,5 @@ Upstream-status: Pending
 +//    signal (SIGINT, SIG_DFL);
 +    _exit(0);
  }
-
+ 
  /*****************************************************************************

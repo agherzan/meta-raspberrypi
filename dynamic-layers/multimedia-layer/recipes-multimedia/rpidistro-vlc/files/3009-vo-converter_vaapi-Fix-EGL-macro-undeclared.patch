@@ -1,22 +1,29 @@
+From 35276c4b02b9114436108e74727d192f1e21f239 Mon Sep 17 00:00:00 2001
 From: Vincent Davis Jr <vince@underview.tech>
-Date: Fri, 07 Jan 2022 07:01:47 PM CST
-Subject: [PATCH] Fix EGL macro undeclared and EGLImageKHR
+Date: Fri, 9 Dec 2022 23:31:33 -0600
+Subject: [PATCH] vo: converter_vaapi Fix EGL macro undeclared
 
-* Fixes compiler issues related to EGL macro constant/enum value type not being defined
-* Updates EGLImage to EGLImageKHR
+Upstream-Status: Inappropriate
 
-Upstream-status: Pending
+RPI-Distro repo forks original vlc and applies patches to enable
+raspiberry pi support.
+
+Fixes compiler issues related to EGL macro constant/enum value type
+not being defined
 
 Signed-off-by: Vincent Davis Jr <vince@underview.tech>
-diff --git a/modules/hw/mmal/converter_mmal.c b/modules/hw/mmal/converter_mmal.c
-index f31cb81d8..426af668b 100644
---- a/modules/hw/mmal/converter_mmal.c
-+++ b/modules/hw/mmal/converter_mmal.c
-@@ -28,6 +28,34 @@
+---
+ modules/video_output/opengl/converter_vaapi.c | 27 +++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
- #define TRACE_ALL 0
-
-+// Pass Yocto related build errors
+diff --git a/modules/video_output/opengl/converter_vaapi.c b/modules/video_output/opengl/converter_vaapi.c
+index cd842f711..59245fe4c 100644
+--- a/modules/video_output/opengl/converter_vaapi.c
++++ b/modules/video_output/opengl/converter_vaapi.c
+@@ -55,6 +55,33 @@
+ 
+ #define DRM_FORMAT_MOD_INVALID  fourcc_mod_code(NONE, DRM_FORMAT_RESERVED)
+ 
 +#define EGL_LINUX_DMA_BUF_EXT           0x3270
 +#define EGL_LINUX_DRM_FOURCC_EXT        0x3271
 +#define EGL_DMA_BUF_PLANE0_FD_EXT       0x3272
@@ -44,15 +51,9 @@ index f31cb81d8..426af668b 100644
 +#define EGL_DMA_BUF_PLANE3_MODIFIER_LO_EXT 0x3449
 +#define EGL_DMA_BUF_PLANE3_MODIFIER_HI_EXT 0x344A
 +
- typedef struct mmal_gl_converter_s
+ struct priv
  {
-     EGLint drm_fourcc;
-@@ -199,7 +227,7 @@ static tex_context_t * get_tex_context(const opengl_tex_converter_t * const tc,
+     struct vlc_vaapi_instance *vainst;
+-- 
+2.38.1
 
-         *a = EGL_NONE;
-
--        const EGLImage image = tc->gl->egl.createImageKHR(tc->gl, EGL_LINUX_DMA_BUF_EXT, NULL, attribs);
-+        const EGLImageKHR image = tc->gl->egl.createImageKHR(tc->gl, EGL_LINUX_DMA_BUF_EXT, NULL, attribs);
-         if (!image) {
-            msg_Err(tc, "Failed to import fd %d: Err=%#x", fd, tc->vt->GetError());
-            goto fail;

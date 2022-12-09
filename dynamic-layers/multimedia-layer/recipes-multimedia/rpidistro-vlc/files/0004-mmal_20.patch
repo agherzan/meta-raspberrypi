@@ -1,4 +1,7 @@
-Upstream-status: Pending
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+to enable raspiberry pi support.
 
 --- a/configure.ac
 +++ b/configure.ac
@@ -26,13 +29,13 @@ Upstream-status: Pending
  fi
  AM_CONDITIONAL([HAVE_MMAL], [test "${have_mmal}" = "yes"])
 +AM_CONDITIONAL([HAVE_MMAL_AVCODEC], [test "${enable_mmal_avcodec}" = "yes"])
-
+ 
  dnl
  dnl evas plugin
 --- a/include/vlc_fourcc.h
 +++ b/include/vlc_fourcc.h
 @@ -365,6 +365,11 @@
-
+ 
  /* Broadcom MMAL opaque buffer type */
  #define VLC_CODEC_MMAL_OPAQUE     VLC_FOURCC('M','M','A','L')
 +#define VLC_CODEC_MMAL_ZC_SAND8   VLC_FOURCC('Z','S','D','8')
@@ -40,7 +43,7 @@ Upstream-status: Pending
 +#define VLC_CODEC_MMAL_ZC_SAND30  VLC_FOURCC('Z','S','D','3')
 +#define VLC_CODEC_MMAL_ZC_I420    VLC_FOURCC('Z','4','2','0')
 +#define VLC_CODEC_MMAL_ZC_RGB32   VLC_FOURCC('Z','R','G','B')
-
+ 
  /* DXVA2 opaque video surface for use with D3D9 */
  #define VLC_CODEC_D3D9_OPAQUE     VLC_FOURCC('D','X','A','9') /* 4:2:0  8 bpc */
 --- a/modules/hw/mmal/Makefile.am
@@ -48,12 +51,12 @@ Upstream-status: Pending
 @@ -1,23 +1,57 @@
  include $(top_srcdir)/modules/common.am
  mmaldir = $(pluginsdir)/mmal
-
+ 
 -AM_CFLAGS += $(CFLAGS_mmal)
 -AM_LDFLAGS += -rpath '$(mmaldir)' $(LDFLAGS_mmal)
 +AM_CFLAGS += -pthread $(CFLAGS_mmal)
 +AM_LDFLAGS += -pthread -rpath '$(mmaldir)' $(LDFLAGS_mmal)
-
+ 
 -libmmal_vout_plugin_la_SOURCES = vout.c mmal_picture.c mmal_picture.h
 +libmmal_vout_plugin_la_SOURCES = vout.c mmal_cma.c mmal_picture.c subpic.c\
 +  mmal_cma.h mmal_picture.h subpic.h transform_ops.h\
@@ -63,7 +66,7 @@ Upstream-status: Pending
 +libmmal_vout_plugin_la_LDFLAGS = $(AM_LDFLAGS) -lm -lX11 -lXrandr
  libmmal_vout_plugin_la_LIBADD = $(LIBS_mmal)
  mmal_LTLIBRARIES = libmmal_vout_plugin.la
-
+ 
 -libmmal_codec_plugin_la_SOURCES = codec.c
 +libmmal_codec_plugin_la_SOURCES = codec.c mmal_cma.c mmal_picture.c subpic.c\
 +  mmal_cma.h mmal_picture.h subpic.h transform_ops.h\
@@ -72,7 +75,7 @@ Upstream-status: Pending
  libmmal_codec_plugin_la_LDFLAGS = $(AM_LDFLAGS)
  libmmal_codec_plugin_la_LIBADD = $(LIBS_mmal)
  mmal_LTLIBRARIES += libmmal_codec_plugin.la
-
+ 
 -libmmal_deinterlace_plugin_la_SOURCES = deinterlace.c mmal_picture.c
 +libmmal_deinterlace_plugin_la_SOURCES = deinterlace.c mmal_picture.c mmal_cma.c\
 +  mmal_cma.h mmal_picture.h transform_ops.h\
@@ -517,7 +520,7 @@ Upstream-status: Pending
 @@ -26,267 +26,443 @@
  #include "config.h"
  #endif
-
+ 
 +#include <stdatomic.h>
 +
  #include <vlc_common.h>
@@ -526,17 +529,17 @@ Upstream-status: Pending
  #include <vlc_codec.h>
 +#include <vlc_filter.h>
  #include <vlc_threads.h>
-
+ 
 -#include <bcm_host.h>
  #include <interface/mmal/mmal.h>
  #include <interface/mmal/util/mmal_util.h>
  #include <interface/mmal/util/mmal_default_components.h>
-
+ 
 +#include <interface/vcsm/user-vcsm.h>
 +
 +#include "mmal_cma.h"
  #include "mmal_picture.h"
-
+ 
 +#include "subpic.h"
 +#include "blend_rgba_neon.h"
 +
@@ -550,18 +553,18 @@ Upstream-status: Pending
  #define NUM_EXTRA_BUFFERS 5
 +//#define NUM_EXTRA_BUFFERS 10
  #define NUM_DECODER_BUFFER_HEADERS 30
-
+ 
 -#define MIN_NUM_BUFFERS_IN_TRANSIT 2
 +#define CONVERTER_BUFFERS 4  // Buffers on the output of the converter
 +
 +#define MMAL_SLICE_HEIGHT 16
 +#define MMAL_ALIGN_W      32
 +#define MMAL_ALIGN_H      16
-
+ 
  #define MMAL_OPAQUE_NAME "mmal-opaque"
  #define MMAL_OPAQUE_TEXT N_("Decode frames directly into RPI VideoCore instead of host memory.")
  #define MMAL_OPAQUE_LONGTEXT N_("Decode frames directly into RPI VideoCore instead of host memory. This option must only be used with the MMAL video output plugin.")
-
+ 
 -static int OpenDecoder(decoder_t *dec);
 -static void CloseDecoder(decoder_t *dec);
 -
@@ -580,7 +583,7 @@ Upstream-status: Pending
 +#define MMAL_ISP_NAME "mmal-isp"
 +#define MMAL_ISP_TEXT N_("Use mmal isp rather than hvs.")
 +#define MMAL_ISP_LONGTEXT N_("Use mmal isp rather than hvs. This may be faster but has no blend.")
-
+ 
 -struct decoder_sys_t {
 -    bool opaque;
 +typedef struct decoder_sys_t
@@ -593,11 +596,11 @@ Upstream-status: Pending
 +    hw_mmal_port_pool_ref_t *ppr;
      MMAL_ES_FORMAT_T *output_format;
 -    vlc_sem_t sem;
-
+ 
 +    MMAL_STATUS_T err_stream;
      bool b_top_field_first;
      bool b_progressive;
-
+ 
 +    bool b_flushed;
 +
 +    vcsm_init_type_t vcsm_init_type;
@@ -613,7 +616,7 @@ Upstream-status: Pending
      atomic_bool started;
 -};
 +} decoder_sys_t;
-
+ 
 -/* Utilities */
 -static int change_output_format(decoder_t *dec);
 -static int send_output_buffer(decoder_t *dec);
@@ -627,7 +630,7 @@ Upstream-status: Pending
 -static void control_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer);
 -static void input_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer);
 -static void output_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer);
-
+ 
 -static int OpenDecoder(decoder_t *dec)
 -{
 -    int ret = VLC_SUCCESS;
@@ -647,12 +650,12 @@ Upstream-status: Pending
 +    {{MMAL_PARAMETER_SUPPORTED_ENCODINGS, sizeof(((supported_mmal_enc_t *)0)->supported)}, {0}}, \
 +    -1 \
 +}
-
+ 
 -    if (dec->fmt_in.i_codec != VLC_CODEC_MPGV &&
 -            dec->fmt_in.i_codec != VLC_CODEC_H264)
 -        return VLC_EGENERIC;
 +static supported_mmal_enc_t supported_decode_in_enc = SUPPORTED_MMAL_ENC_INIT;
-
+ 
 -    sys = calloc(1, sizeof(decoder_sys_t));
 -    if (!sys) {
 -        ret = VLC_ENOMEM;
@@ -672,7 +675,7 @@ Upstream-status: Pending
 -    dec->p_sys = sys;
 +    return false;
 +}
-
+ 
 -    sys->opaque = var_InheritBool(dec, MMAL_OPAQUE_NAME);
 -    bcm_host_init();
 +static bool set_and_test_enc_supported(supported_mmal_enc_t * const support, MMAL_PORT_T * port, const MMAL_FOURCC_T fcc)
@@ -684,7 +687,7 @@ Upstream-status: Pending
 +    else
 +        support->n = (support->supported.header.size - sizeof(support->supported.header)) /
 +          sizeof(support->supported.encodings[0]);
-
+ 
 -    status = mmal_component_create(MMAL_COMPONENT_DEFAULT_VIDEO_DECODER, &sys->component);
 -    if (status != MMAL_SUCCESS) {
 -        msg_Err(dec, "Failed to create MMAL component %s (status=%"PRIx32" %s)",
@@ -694,7 +697,7 @@ Upstream-status: Pending
 -    }
 +    return is_enc_supported(support, fcc);
 +}
-
+ 
 -    sys->component->control->userdata = (struct MMAL_PORT_USERDATA_T *)dec;
 -    status = mmal_port_enable(sys->component->control, control_port_cb);
 -    if (status != MMAL_SUCCESS) {
@@ -737,7 +740,7 @@ Upstream-status: Pending
      }
 +    return 0;
 +}
-
+ 
 -    sys->input = sys->component->input[0];
 -    sys->input->userdata = (struct MMAL_PORT_USERDATA_T *)dec;
 -    if (dec->fmt_in.i_codec == VLC_CODEC_MPGV)
@@ -776,7 +779,7 @@ Upstream-status: Pending
 +    }
 +    return 0;
 +}
-
+ 
 -    if (dec->fmt_in.i_codec == VLC_CODEC_H264) {
 -        if (dec->fmt_in.i_extra > 0) {
 -            status = mmal_format_extradata_alloc(sys->input->format,
@@ -804,7 +807,7 @@ Upstream-status: Pending
      }
 +}
 +#endif
-
+ 
 -    status = mmal_port_format_commit(sys->input);
 -    if (status != MMAL_SUCCESS) {
 -        msg_Err(dec, "Failed to commit format for input port %s (status=%"PRIx32" %s)",
@@ -822,7 +825,7 @@ Upstream-status: Pending
 -    sys->input->buffer_size = sys->input->buffer_size_recommended;
 -    sys->input->buffer_num = sys->input->buffer_num_recommended;
 +}
-
+ 
 -    status = mmal_port_enable(sys->input, input_port_cb);
 -    if (status != MMAL_SUCCESS) {
 -        msg_Err(dec, "Failed to enable input port %s (status=%"PRIx32" %s)",
@@ -830,7 +833,7 @@ Upstream-status: Pending
 -        ret = VLC_EGENERIC;
 -        goto out;
 -    }
-
+ 
 -    sys->output = sys->component->output[0];
 -    sys->output->userdata = (struct MMAL_PORT_USERDATA_T *)dec;
 +static void draw_corners(void * pic_buf, size_t pic_stride, unsigned int x, unsigned int y, unsigned int w, unsigned int h)
@@ -846,7 +849,7 @@ Upstream-status: Pending
 +    draw_line(pic_buf, pic_stride, x, y + h - 1, len, -(int)pic_stride);
 +}
 +#endif
-
+ 
 -    if (sys->opaque) {
 -        extra_buffers.hdr.id = MMAL_PARAMETER_EXTRA_BUFFERS;
 -        extra_buffers.hdr.size = sizeof(MMAL_PARAMETER_UINT32_T);
@@ -863,7 +866,7 @@ Upstream-status: Pending
 +{
 +    static const unsigned int primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 0};
 +    const unsigned int * p = primes;
-
+ 
 -        msg_Dbg(dec, "Activate zero-copy for output port");
 -        MMAL_PARAMETER_BOOLEAN_T zero_copy = {
 -            { MMAL_PARAMETER_ZERO_COPY, sizeof(MMAL_PARAMETER_BOOLEAN_T) },
@@ -873,7 +876,7 @@ Upstream-status: Pending
 +    if (num == 0 || den == 0) {
 +        return (MMAL_RATIONAL_T){.num = 0, .den = 0};
 +    }
-
+ 
 -        status = mmal_port_parameter_set(sys->output, &zero_copy.hdr);
 -        if (status != MMAL_SUCCESS) {
 -           msg_Err(dec, "Failed to set zero copy on port %s (status=%"PRIx32" %s)",
@@ -889,7 +892,7 @@ Upstream-status: Pending
      }
 +    return (MMAL_RATIONAL_T){.num = num, .den = den};
 +}
-
+ 
 -    status = mmal_port_enable(sys->output, output_port_cb);
 -    if (status != MMAL_SUCCESS) {
 -        msg_Err(dec, "Failed to enable output port %s (status=%"PRIx32" %s)",
@@ -901,7 +904,7 @@ Upstream-status: Pending
 +static picture_t * alloc_opaque_pic(decoder_t * const dec, MMAL_BUFFER_HEADER_T * const buf)
 +{
 +    decoder_sys_t *const dec_sys = dec->p_sys;
-
+ 
 -    status = mmal_component_enable(sys->component);
 -    if (status != MMAL_SUCCESS) {
 -        msg_Err(dec, "Failed to enable component %s (status=%"PRIx32" %s)",
@@ -919,11 +922,11 @@ Upstream-status: Pending
 +        msg_Err(dec, "%s: Empty buffer", __func__);
 +        goto fail2;
      }
-
+ 
 -    sys->input_pool = mmal_pool_create(sys->input->buffer_num, 0);
 +    if ((pic->context = hw_mmal_gen_context(buf, dec_sys->ppr)) == NULL)
 +        goto fail2;
-
+ 
 -    if (sys->opaque) {
 -        dec->fmt_out.i_codec = VLC_CODEC_MMAL_OPAQUE;
 -        dec->fmt_out.video.i_chroma = VLC_CODEC_MMAL_OPAQUE;
@@ -961,22 +964,22 @@ Upstream-status: Pending
 +        msg_Err(dec, "MMAL error %"PRIx32" \"%s\"", status,
 +                mmal_status_to_string(status));
      }
-
+ 
 -    dec->pf_decode = decode;
 -    dec->pf_flush  = flush_decoder;
 +    mmal_buffer_header_release(buffer);
 +}
-
+ 
 -    vlc_sem_init(&sys->sem, 0);
 +static void input_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 +{
 +    block_t * const block = (block_t *)buffer->user_data;
-
+ 
 -out:
 -    if (ret != VLC_SUCCESS)
 -        CloseDecoder(dec);
 +    (void)port;  // Unused
-
+ 
 -    return ret;
 +#if TRACE_ALL
 +    msg_Dbg((decoder_t *)port->userdata, "<<< %s: cmd=%d, data=%p, len=%d/%d, pts=%lld", __func__,
@@ -989,14 +992,14 @@ Upstream-status: Pending
 +    if (block != NULL)
 +        block_Release(block);
  }
-
+ 
 -static void CloseDecoder(decoder_t *dec)
 +static void decoder_output_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
  {
 -    decoder_sys_t *sys = dec->p_sys;
 -    MMAL_BUFFER_HEADER_T *buffer;
 +    decoder_t * const dec = (decoder_t *)port->userdata;
-
+ 
 -    if (!sys)
 +    if (buffer->cmd == 0 && buffer->length != 0)
 +    {
@@ -1016,7 +1019,7 @@ Upstream-status: Pending
 +        // Buffer released or attached to pic - do not release again
          return;
 +    }
-
+ 
 -    if (sys->component && sys->component->control->is_enabled)
 -        mmal_port_disable(sys->component->control);
 +    if (buffer->cmd == MMAL_EVENT_FORMAT_CHANGED)
@@ -1024,7 +1027,7 @@ Upstream-status: Pending
 +        decoder_sys_t * const sys = dec->p_sys;
 +        MMAL_EVENT_FORMAT_CHANGED_T * const fmt = mmal_event_format_changed_get(buffer);
 +        MMAL_ES_FORMAT_T * const format = mmal_format_alloc();
-
+ 
 -    if (sys->input && sys->input->is_enabled)
 -        mmal_port_disable(sys->input);
 +        if (format == NULL)
@@ -1033,7 +1036,7 @@ Upstream-status: Pending
 +        {
 +            mmal_format_full_copy(format, fmt->format);
 +            format->encoding = MMAL_ENCODING_OPAQUE;
-
+ 
 -    if (sys->output && sys->output->is_enabled)
 -        mmal_port_disable(sys->output);
 +            // If no PAR in the stream - see if we've got one from the demux
@@ -1057,17 +1060,17 @@ Upstream-status: Pending
 +                        d = 1;
 +                    }
 +                }
-
+ 
 -    if (sys->component && sys->component->is_enabled)
 -        mmal_component_disable(sys->component);
 +                format->es->video.par = rationalize_sar(n, d);
 +            }
-
+ 
 -    if (sys->input_pool)
 -        mmal_pool_destroy(sys->input_pool);
 +            if (sys->output_format != NULL)
 +                mmal_format_free(sys->output_format);
-
+ 
 -    if (sys->output_format)
 -        mmal_format_free(sys->output_format);
 +            sys->output_format = format;
@@ -1077,7 +1080,7 @@ Upstream-status: Pending
 +        char buf0[5];
 +        msg_Warn(dec, "Unexpected output cb event: %s", str_fourcc(buf0, buffer->cmd));
 +    }
-
+ 
 -    if (sys->output_pool)
 -        mmal_pool_destroy(sys->output_pool);
 +    // If we get here then we were flushing (cmd == 0 && len == 0) or
@@ -1087,13 +1090,13 @@ Upstream-status: Pending
 +    buffer->user_data = NULL;
 +    mmal_buffer_header_release(buffer);
 +}
-
+ 
 -    if (sys->component)
 -        mmal_component_release(sys->component);
-
+ 
 -    vlc_sem_destroy(&sys->sem);
 -    free(sys);
-
+ 
 -    bcm_host_deinit();
 +static void fill_output_port(decoder_t *dec)
 +{
@@ -1113,7 +1116,7 @@ Upstream-status: Pending
 +    hw_mmal_port_pool_ref_fill(sys->ppr);
 +    return;
  }
-
+ 
  static int change_output_format(decoder_t *dec)
  {
      MMAL_PARAMETER_VIDEO_INTERLACE_TYPE_T interlace_type;
@@ -1122,7 +1125,7 @@ Upstream-status: Pending
      MMAL_STATUS_T status;
 -    int pool_size;
      int ret = 0;
-
+ 
 +#if TRACE_ALL
 +    msg_Dbg(dec, "%s: <<<", __func__);
 +#endif
@@ -1132,7 +1135,7 @@ Upstream-status: Pending
          status = mmal_port_format_commit(sys->output);
 @@ -300,7 +476,9 @@ static int change_output_format(decoder_
      }
-
+ 
  port_reset:
 +#if TRACE_ALL
      msg_Dbg(dec, "%s: Do full port reset", __func__);
@@ -1142,7 +1145,7 @@ Upstream-status: Pending
          msg_Err(dec, "Failed to disable output port (status=%"PRIx32" %s)",
 @@ -310,6 +488,7 @@ port_reset:
      }
-
+ 
      mmal_format_full_copy(sys->output->format, sys->output_format);
 +
      status = mmal_port_format_commit(sys->output);
@@ -1151,7 +1154,7 @@ Upstream-status: Pending
 @@ -318,18 +497,10 @@ port_reset:
          goto out;
      }
-
+ 
 -    if (sys->opaque) {
 -        sys->output->buffer_num = NUM_DECODER_BUFFER_HEADERS;
 -        pool_size = NUM_DECODER_BUFFER_HEADERS;
@@ -1163,7 +1166,7 @@ Upstream-status: Pending
 -
 +    sys->output->buffer_num = NUM_DECODER_BUFFER_HEADERS;
      sys->output->buffer_size = sys->output->buffer_size_recommended;
-
+ 
 -    status = mmal_port_enable(sys->output, output_port_cb);
 +    status = mmal_port_enable(sys->output, decoder_output_cb);
      if (status != MMAL_SUCCESS) {
@@ -1171,7 +1174,7 @@ Upstream-status: Pending
                  status, mmal_status_to_string(status));
 @@ -338,25 +509,14 @@ port_reset:
      }
-
+ 
      if (!atomic_load(&sys->started)) {
 -        if (!sys->opaque) {
 -            sys->output_pool = mmal_port_pool_create(sys->output, pool_size, 0);
@@ -1179,7 +1182,7 @@ Upstream-status: Pending
 -        }
 -
          atomic_store(&sys->started, true);
-
+ 
          /* we need one picture from vout for each buffer header on the output
           * port */
 -        dec->i_extra_picture_buffers = pool_size;
@@ -1196,7 +1199,7 @@ Upstream-status: Pending
          msg_Dbg(dec, "Request %d extra pictures", dec->i_extra_picture_buffers);
 +#endif
      }
-
+ 
  apply_fmt:
 @@ -366,8 +526,8 @@ apply_fmt:
      dec->fmt_out.video.i_y_offset = sys->output->format->es->video.crop.y;
@@ -1208,7 +1211,7 @@ Upstream-status: Pending
 +    dec->fmt_out.video.i_sar_den = sys->output_format->es->video.par.den;
      dec->fmt_out.video.i_frame_rate = sys->output->format->es->video.frame_rate.num;
      dec->fmt_out.video.i_frame_rate_base = sys->output->format->es->video.frame_rate.den;
-
+ 
 @@ -382,12 +542,19 @@ apply_fmt:
          sys->b_progressive = (interlace_type.eMode == MMAL_InterlaceProgressive);
          sys->b_top_field_first = sys->b_progressive ? true :
@@ -1220,7 +1223,7 @@ Upstream-status: Pending
                  interlace_type.eMode);
 +#endif
      }
-
+ 
 +    // Tell the rest of the world we have changed format
 +    vlc_mutex_lock(&sys->pic_lock);
 +    ret = decoder_UpdateVideoFormat(dec);
@@ -1232,7 +1235,7 @@ Upstream-status: Pending
 @@ -395,144 +562,85 @@ out:
      return ret;
  }
-
+ 
 -static int send_output_buffer(decoder_t *dec)
 +static MMAL_STATUS_T
 +set_extradata_and_commit(decoder_t * const dec, decoder_sys_t * const sys)
@@ -1244,7 +1247,7 @@ Upstream-status: Pending
      MMAL_STATUS_T status;
 -    unsigned buffer_size = 0;
 -    int ret = 0;
-
+ 
 -    if (!sys->output->is_enabled)
 -        return VLC_EGENERIC;
 -
@@ -1318,7 +1321,7 @@ Upstream-status: Pending
 -    return ret;
 +    return status;
  }
-
+ 
 -static void fill_output_port(decoder_t *dec)
 +static MMAL_STATUS_T decoder_send_extradata(decoder_t * const dec, decoder_sys_t *const sys)
  {
@@ -1341,7 +1344,7 @@ Upstream-status: Pending
 +        buf->length = dec->fmt_in.i_extra;
 +        buf->data = dec->fmt_in.p_extra;
 +        buf->flags = MMAL_BUFFER_HEADER_FLAG_CONFIG;
-
+ 
 -    if (sys->output_pool) {
 -        max_buffers_in_transit = __MAX(sys->output_pool->headers_num,
 -                MIN_NUM_BUFFERS_IN_TRANSIT);
@@ -1357,7 +1360,7 @@ Upstream-status: Pending
 +        }
      }
 -    buffers_to_send = max_buffers_in_transit - atomic_load(&sys->output_in_transit);
-
+ 
 -    if (buffers_to_send > buffers_available)
 -        buffers_to_send = buffers_available;
 -
@@ -1373,14 +1376,14 @@ Upstream-status: Pending
 -            break;
 +    return MMAL_SUCCESS;
  }
-
+ 
  static void flush_decoder(decoder_t *dec)
  {
 -    decoder_sys_t *sys = dec->p_sys;
 -    MMAL_BUFFER_HEADER_T *buffer;
 -    MMAL_STATUS_T status;
 +    decoder_sys_t *const sys = dec->p_sys;
-
+ 
 -    msg_Dbg(dec, "Flushing decoder ports...");
 -    mmal_port_flush(sys->output);
 -    mmal_port_flush(sys->input);
@@ -1404,7 +1407,7 @@ Upstream-status: Pending
 +    msg_Dbg(dec, "%s: >>>", __func__);
 +#endif
  }
-
+ 
  static int decode(decoder_t *dec, block_t *block)
  {
      decoder_sys_t *sys = dec->p_sys;
@@ -1414,7 +1417,7 @@ Upstream-status: Pending
 -    uint32_t flags = 0;
 +    uint32_t flags = MMAL_BUFFER_HEADER_FLAG_FRAME_START;
      MMAL_STATUS_T status;
-
+ 
 +#if TRACE_ALL
 +    msg_Dbg(dec, "<<< %s: %lld/%lld", __func__, block == NULL ? -1LL : block->i_dts, block == NULL ? -1LL : block->i_pts);
 +#endif
@@ -1431,12 +1434,12 @@ Upstream-status: Pending
 @@ -541,18 +649,50 @@ static int decode(decoder_t *dec, block_
              msg_Err(dec, "Failed to change output port format");
      }
-
+ 
 -    if (!block)
 -        goto out;
 +    if (block == NULL)
 +        return VLCDEC_SUCCESS;
-
+ 
      /*
       * Check whether full flush is required
       */
@@ -1453,7 +1456,7 @@ Upstream-status: Pending
          block_Release(block);
          return VLCDEC_SUCCESS;
      }
-
+ 
 +    // Reenable stuff if the last thing we did was flush
 +    if (!sys->output->is_enabled &&
 +        (status = mmal_port_enable(sys->output, decoder_output_cb)) != MMAL_SUCCESS)
@@ -1481,11 +1484,11 @@ Upstream-status: Pending
 +    // reported the size & the output stages have been set up
      if (atomic_load(&sys->started))
          fill_output_port(dec);
-
+ 
 @@ -563,18 +703,21 @@ static int decode(decoder_t *dec, block_
      if (block->i_flags & BLOCK_FLAG_CORRUPTED)
          flags |= MMAL_BUFFER_HEADER_FLAG_CORRUPTED;
-
+ 
 -    while (block && block->i_buffer > 0) {
 -        buffer = mmal_queue_timedwait(sys->input_pool->queue, 100);
 +    while (block != NULL)
@@ -1506,7 +1509,7 @@ Upstream-status: Pending
          buffer->dts = block->i_dts;
          buffer->alloc_size = sys->input->buffer_size;
 +        buffer->user_data = NULL;
-
+ 
          len = block->i_buffer;
          if (len > buffer->alloc_size)
 @@ -585,94 +728,1808 @@ static int decode(decoder_t *dec, block_
@@ -1522,7 +1525,7 @@ Upstream-status: Pending
              block = NULL;
          }
          buffer->flags = flags;
-
+ 
 +#if TRACE_ALL
 +        msg_Dbg(dec, "%s: -- Send buffer: cmd=%d, data=%p, size=%d, len=%d, offset=%d, flags=%#x, pts=%lld, dts=%lld", __func__,\
 +                buffer->cmd, buffer->data, buffer->alloc_size, buffer->length, buffer->offset,
@@ -1542,17 +1545,17 @@ Upstream-status: Pending
 +        flags &= ~MMAL_BUFFER_HEADER_FLAG_FRAME_START;
      }
 +    return VLCDEC_SUCCESS;
-
+ 
 -out:
 -    if (need_flush)
 -        flush_decoder(dec);
 +fail:
 +    flush_decoder(dec);
 +    return VLCDEC_ECRITICAL;
-
+ 
 -    return VLCDEC_SUCCESS;
  }
-
+ 
 -static void control_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 +
 +static void CloseDecoder(decoder_t *dec)
@@ -1921,7 +1924,7 @@ Upstream-status: Pending
 +#if TRACE_ALL
 +    msg_Dbg(p_filter, "%s: <<< cmd=%d, data=%p, pic=%p", __func__, buffer->cmd, buffer->data, buffer->user_data);
 +#endif
-
+ 
      if (buffer->cmd == MMAL_EVENT_ERROR) {
 -        status = *(uint32_t *)buffer->data;
 -        msg_Err(dec, "MMAL error %"PRIx32" \"%s\"", status,
@@ -1932,10 +1935,10 @@ Upstream-status: Pending
 +        msg_Err(p_filter, "MMAL error %"PRIx32" \"%s\"", status,
                  mmal_status_to_string(status));
      }
-
+ 
      mmal_buffer_header_release(buffer);
  }
-
+ 
 -static void input_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 +static void conv_input_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf)
  {
@@ -1967,14 +1970,14 @@ Upstream-status: Pending
 +    vlc_mutex_lock(&sys->lock);
 +    pic_fifo_put(&sys->ret_pics, pic);
 +    vlc_mutex_unlock(&sys->lock);
-
+ 
 -    mmal_buffer_header_release(buffer);
 -    if (block)
 -        block_Release(block);
 -    atomic_fetch_sub(&sys->input_in_transit, 1);
      vlc_sem_post(&sys->sem);
  }
-
+ 
 -static void output_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 +static void conv_output_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf)
  {
@@ -2006,7 +2009,7 @@ Upstream-status: Pending
 -        fmt = mmal_event_format_changed_get(buffer);
 +    filter_t * const p_filter = (filter_t *)port->userdata;
 +    filter_sys_t * const sys = p_filter->p_sys;
-
+ 
 -        format = mmal_format_alloc();
 -        mmal_format_full_copy(format, fmt->format);
 +#if TRACE_ALL
@@ -2016,7 +2019,7 @@ Upstream-status: Pending
 +#endif
 +    if (buf->cmd == 0) {
 +        picture_t * const pic = (picture_t *)buf->user_data;
-
+ 
 -        if (sys->opaque)
 -            format->encoding = MMAL_ENCODING_OPAQUE;
 +        if (pic == NULL) {
@@ -2713,9 +2716,9 @@ Upstream-status: Pending
 +        if (use_isp || use_resizer)
 +            return VLC_EGENERIC;
 +    }
-
+ 
 -        sys->output_format = format;
-
+ 
 -        mmal_buffer_header_release(buffer);
 +    if (use_resizer) {
 +        // use resizer overrides use_isp
@@ -3858,7 +3861,7 @@ Upstream-status: Pending
 @@ -26,11 +26,12 @@
  #include "config.h"
  #endif
-
+ 
 -#include <vlc_picture_pool.h>
 +#include <stdatomic.h>
 +
@@ -3867,31 +3870,31 @@ Upstream-status: Pending
  #include <vlc_plugin.h>
  #include <vlc_filter.h>
 -#include <vlc_atomic.h>
-
+ 
  #include "mmal_picture.h"
-
+ 
 @@ -39,468 +40,814 @@
  #include <interface/mmal/util/mmal_util.h>
  #include <interface/mmal/util/mmal_default_components.h>
-
+ 
 -#define MIN_NUM_BUFFERS_IN_TRANSIT 2
 +#define MMAL_DEINTERLACE_NO_QPU "mmal-deinterlace-no-qpu"
 +#define MMAL_DEINTERLACE_NO_QPU_TEXT N_("Do not use QPUs for advanced HD deinterlacing.")
 +#define MMAL_DEINTERLACE_NO_QPU_LONGTEXT N_("Do not make use of the QPUs to allow higher quality deinterlacing of HD content.")
-
+ 
 -#define MMAL_DEINTERLACE_QPU "mmal-deinterlace-adv-qpu"
 -#define MMAL_DEINTERLACE_QPU_TEXT N_("Use QPUs for advanced HD deinterlacing.")
 -#define MMAL_DEINTERLACE_QPU_LONGTEXT N_("Make use of the QPUs to allow higher quality deinterlacing of HD content.")
 +#define MMAL_DEINTERLACE_ADV "mmal-deinterlace-adv"
 +#define MMAL_DEINTERLACE_ADV_TEXT N_("Force advanced deinterlace")
 +#define MMAL_DEINTERLACE_ADV_LONGTEXT N_("Force advanced deinterlace")
-
+ 
 -static int Open(filter_t *filter);
 -static void Close(filter_t *filter);
 +#define MMAL_DEINTERLACE_FAST "mmal-deinterlace-fast"
 +#define MMAL_DEINTERLACE_FAST_TEXT N_("Force fast deinterlace")
 +#define MMAL_DEINTERLACE_FAST_LONGTEXT N_("Force fast deinterlace")
-
+ 
 -vlc_module_begin()
 -    set_shortname(N_("MMAL deinterlace"))
 -    set_description(N_("MMAL-based deinterlace filter plugin"))
@@ -3915,7 +3918,7 @@ Upstream-status: Pending
 +#define MMAL_DEINTERLACE_FULL_RATE "mmal-deinterlace-full-rate"
 +#define MMAL_DEINTERLACE_FULL_RATE_TEXT N_("Full output framerate")
 +#define MMAL_DEINTERLACE_FULL_RATE_LONGTEXT N_("Full output framerate. 1 output frame for each interlaced field input")
-
+ 
 -struct filter_sys_t {
 +
 +typedef struct filter_sys_t
@@ -3940,14 +3943,14 @@ Upstream-status: Pending
 +    bool use_passthrough;
 +    unsigned int seq_in;    // Seq of next frame to submit (1-15) [Init=1]
 +    unsigned int seq_out;   // Seq of last frame received  (1-15) [Init=15]
-
+ 
 -    MMAL_QUEUE_T *filtered_pictures;
 -    vlc_sem_t sem;
 +    vcsm_init_type_t vcsm_init_type;
-
+ 
 -    atomic_bool started;
 +} filter_sys_t;
-
+ 
 -    /* statistics */
 -    int output_in_transit;
 -    int input_in_transit;
@@ -3958,9 +3961,9 @@ Upstream-status: Pending
 -static void output_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer);
 -static picture_t *deinterlace(filter_t *filter, picture_t *picture);
 -static void flush(filter_t *filter);
-
+ 
  #define MMAL_COMPONENT_DEFAULT_DEINTERLACE "vc.ril.image_fx"
-
+ 
 -static int Open(filter_t *filter)
 +#define TRACE_ALL 0
 +
@@ -3975,7 +3978,7 @@ Upstream-status: Pending
 -    bool use_qpu = var_InheritBool(filter, MMAL_DEINTERLACE_QPU);
 +    filter_sys_t *const filter_sys = p_filter->p_sys;
 +    picture_t * const pic = filter_NewPicture(p_filter);
-
+ 
 -    MMAL_PARAMETER_IMAGEFX_PARAMETERS_T imfx_param = {
 -            { MMAL_PARAMETER_IMAGE_EFFECT_PARAMETERS, sizeof(imfx_param) },
 -            MMAL_PARAM_IMAGEFX_DEINTERLACE_ADV,
@@ -3984,7 +3987,7 @@ Upstream-status: Pending
 -    };
 +    if (pic == NULL)
 +        goto fail1;
-
+ 
 -    int ret = VLC_SUCCESS;
 -    MMAL_STATUS_T status;
 -    filter_sys_t *sys;
@@ -3992,28 +3995,28 @@ Upstream-status: Pending
 +        msg_Err(p_filter, "%s: Empty buffer", __func__);
 +        goto fail2;
 +    }
-
+ 
 -    msg_Dbg(filter, "Try to open mmal_deinterlace filter. frame_duration: %d, QPU %s!",
 -            frame_duration, use_qpu ? "used" : "unused");
 +    if ((pic->context = hw_mmal_gen_context(buf, filter_sys->out_ppr)) == NULL)
 +        goto fail2;
-
+ 
 -    if (filter->fmt_in.video.i_chroma != VLC_CODEC_MMAL_OPAQUE)
 -        return VLC_EGENERIC;
 +    buf_to_pic_copy_props(pic, buf);
-
+ 
 -    if (filter->fmt_out.video.i_chroma != VLC_CODEC_MMAL_OPAQUE)
 -        return VLC_EGENERIC;
 +#if TRACE_ALL
 +    msg_Dbg(p_filter, "pic: prog=%d, tff=%d, date=%lld", pic->b_progressive, pic->b_top_field_first, (long long)pic->date);
 +#endif
-
+ 
 -    sys = calloc(1, sizeof(filter_sys_t));
 -    if (!sys)
 -        return VLC_ENOMEM;
 -    filter->p_sys = sys;
 +    return pic;
-
+ 
 -    bcm_host_init();
 +fail2:
 +    picture_Release(pic);
@@ -4021,7 +4024,7 @@ Upstream-status: Pending
 +//    mmal_buffer_header_release(buf);
 +    return NULL;
 +}
-
+ 
 -    status = mmal_component_create(MMAL_COMPONENT_DEFAULT_DEINTERLACE, &sys->component);
 -    if (status != MMAL_SUCCESS) {
 -        msg_Err(filter, "Failed to create MMAL component %s (status=%"PRIx32" %s)",
@@ -4040,7 +4043,7 @@ Upstream-status: Pending
 +#else
 +    VLC_UNUSED(port);
 +#endif
-
+ 
 -    status = mmal_port_parameter_set(sys->component->output[0], &imfx_param.hdr);
 -    if (status != MMAL_SUCCESS) {
 -        msg_Err(filter, "Failed to configure MMAL component %s (status=%"PRIx32" %s)",
@@ -4049,7 +4052,7 @@ Upstream-status: Pending
 -        goto out;
 -    }
 +    mmal_buffer_header_release(buffer);
-
+ 
 -    sys->component->control->userdata = (struct MMAL_PORT_USERDATA_T *)filter;
 -    status = mmal_port_enable(sys->component->control, control_port_cb);
 -    if (status != MMAL_SUCCESS) {
@@ -4080,7 +4083,7 @@ Upstream-status: Pending
 +#endif
 +        return;
      }
-
+ 
 -    sys->input = sys->component->input[0];
 -    sys->input->userdata = (struct MMAL_PORT_USERDATA_T *)filter;
 -    if (filter->fmt_in.i_codec == VLC_CODEC_MMAL_OPAQUE)
@@ -4096,10 +4099,10 @@ Upstream-status: Pending
 +    mmal_buffer_header_reset(buf);   // User data stays intact so release will kill pic
 +    mmal_buffer_header_release(buf);
 +}
-
+ 
 -    es_format_Copy(&filter->fmt_out, &filter->fmt_in);
 -    filter->fmt_out.video.i_frame_rate *= 2;
-
+ 
 -    status = mmal_port_format_commit(sys->input);
 -    if (status != MMAL_SUCCESS) {
 -        msg_Err(filter, "Failed to commit format for input port %s (status=%"PRIx32" %s)",
@@ -4109,7 +4112,7 @@ Upstream-status: Pending
 -    }
 -    sys->input->buffer_size = sys->input->buffer_size_recommended;
 -    sys->input->buffer_num = sys->input->buffer_num_recommended;
-
+ 
 -    if (filter->fmt_in.i_codec == VLC_CODEC_MMAL_OPAQUE) {
 -        MMAL_PARAMETER_BOOLEAN_T zero_copy = {
 -            { MMAL_PARAMETER_ZERO_COPY, sizeof(MMAL_PARAMETER_BOOLEAN_T) },
@@ -4118,7 +4121,7 @@ Upstream-status: Pending
 +static MMAL_STATUS_T fill_output_from_q(filter_t * const p_filter, filter_sys_t * const sys, MMAL_QUEUE_T * const q)
 +{
 +    MMAL_BUFFER_HEADER_T * out_buf;
-
+ 
 -        status = mmal_port_parameter_set(sys->input, &zero_copy.hdr);
 -        if (status != MMAL_SUCCESS) {
 -           msg_Err(filter, "Failed to set zero copy on port %s (status=%"PRIx32" %s)",
@@ -4136,7 +4139,7 @@ Upstream-status: Pending
      }
 +    return MMAL_SUCCESS;
 +}
-
+ 
 -    status = mmal_port_enable(sys->input, input_port_cb);
 -    if (status != MMAL_SUCCESS) {
 -        msg_Err(filter, "Failed to enable input port %s (status=%"PRIx32" %s)",
@@ -4149,14 +4152,14 @@ Upstream-status: Pending
 +static MMAL_BOOL_T out_buffer_pre_release_cb(MMAL_BUFFER_HEADER_T *header, void *userdata)
 +{
 +    VLC_UNUSED(userdata);
-
+ 
 -    sys->output = sys->component->output[0];
 -    sys->output->userdata = (struct MMAL_PORT_USERDATA_T *)filter;
 -    mmal_format_full_copy(sys->output->format, sys->input->format);
 +    cma_buf_t * const cb = header->user_data;
 +    header->user_data = NULL;
 +    cma_buf_unref(cb);  // Copes fine with NULL
-
+ 
 -    status = mmal_port_format_commit(sys->output);
 -    if (status != MMAL_SUCCESS) {
 -        msg_Err(filter, "Failed to commit format for output port %s (status=%"PRIx32" %s)",
@@ -4240,7 +4243,7 @@ Upstream-status: Pending
 +            goto fail;
 +        }
 +        mmal_buffer_header_reset(out_buf);
-
+ 
 -    sys->output->buffer_num = 3;
 +        // Attach cma_buf to the buffer & ensure it is freed when the buffer is released
 +        // On a good send callback the pic will be extracted to avoid this
@@ -4264,7 +4267,7 @@ Upstream-status: Pending
 +                p_pic, out_buf->data, out_buf->user_data, out_buf->flags,
 +                out_buf->length, out_buf->alloc_size, (long long)out_buf->pts);
 +#endif
-
+ 
 -    if (filter->fmt_in.i_codec == VLC_CODEC_MMAL_OPAQUE) {
 -        MMAL_PARAMETER_UINT32_T extra_buffers = {
 -            { MMAL_PARAMETER_EXTRA_BUFFERS, sizeof(MMAL_PARAMETER_UINT32_T) },
@@ -4282,7 +4285,7 @@ Upstream-status: Pending
          }
 +        out_buf = NULL;
 +    }
-
+ 
 -        MMAL_PARAMETER_BOOLEAN_T zero_copy = {
 -            { MMAL_PARAMETER_ZERO_COPY, sizeof(MMAL_PARAMETER_BOOLEAN_T) },
 -            1
@@ -4297,7 +4300,7 @@ Upstream-status: Pending
 +            msg_Err(p_filter, "Pic has not attached buffer");
 +            goto fail;
 +        }
-
+ 
 -        status = mmal_port_parameter_set(sys->output, &zero_copy.hdr);
 -        if (status != MMAL_SUCCESS) {
 -           msg_Err(filter, "Failed to set zero copy on port %s (status=%"PRIx32" %s)",
@@ -4317,7 +4320,7 @@ Upstream-status: Pending
 +            goto fail;
          }
      }
-
+ 
 -    status = mmal_port_enable(sys->output, output_port_cb);
 -    if (status != MMAL_SUCCESS) {
 -        msg_Err(filter, "Failed to enable output port %s (status=%"PRIx32" %s)",
@@ -4410,7 +4413,7 @@ Upstream-status: Pending
 +        // Crash on lockup
 +        assert(ret_pics != NULL || seq_delta(sys->seq_in, sys->seq_out) < 5);
      }
-
+ 
 -    status = mmal_component_enable(sys->component);
 -    if (status != MMAL_SUCCESS) {
 -        msg_Err(filter, "Failed to enable component %s (status=%"PRIx32" %s)",
@@ -4471,20 +4474,20 @@ Upstream-status: Pending
 +        // Leaving the input disabled is fine - but we want to leave the output enabled
 +        // so we can retrieve buffers that are still bound to pictures
      }
-
+ 
 -    sys->filtered_pictures = mmal_queue_create();
 +    sys->seq_in = 1;
 +    sys->seq_out = 15;
-
+ 
 -    filter->pf_video_filter = deinterlace;
 -    filter->pf_flush = flush;
 +#if TRACE_ALL
 +    msg_Dbg(p_filter, ">>> %s", __func__);
 +#endif
 +}
-
+ 
 -    vlc_sem_init(&sys->sem, 0);
-
+ 
 -out:
 -    if (ret != VLC_SUCCESS)
 -        Close(filter);
@@ -4493,7 +4496,7 @@ Upstream-status: Pending
 +    // Nothing to do
 +    VLC_UNUSED(p_filter);
 +}
-
+ 
 -    return ret;
 +static picture_t * pass_deinterlace(filter_t * p_filter, picture_t * p_pic)
 +{
@@ -4502,7 +4505,7 @@ Upstream-status: Pending
 +    p_pic->b_progressive = true;
 +    return p_pic;
  }
-
+ 
 -static void Close(filter_t *filter)
 +
 +static void control_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
@@ -4511,7 +4514,7 @@ Upstream-status: Pending
 -    MMAL_BUFFER_HEADER_T *buffer;
 +    filter_t *filter = (filter_t *)port->userdata;
 +    MMAL_STATUS_T status;
-
+ 
 -    if (!sys)
 +    if (buffer->cmd == MMAL_EVENT_ERROR) {
 +        status = *(uint32_t *)buffer->data;
@@ -4533,7 +4536,7 @@ Upstream-status: Pending
 +
 +    if (sys == NULL)
          return;
-
+ 
 -    if (sys->component && sys->component->control->is_enabled)
 -        mmal_port_disable(sys->component->control);
 +    if (sys->use_passthrough)
@@ -4541,19 +4544,19 @@ Upstream-status: Pending
 +        free(sys);
 +        return;
 +    }
-
+ 
 -    if (sys->input && sys->input->is_enabled)
 -        mmal_port_disable(sys->input);
 +    di_flush(filter);
-
+ 
 -    if (sys->output && sys->output->is_enabled)
 -        mmal_port_disable(sys->output);
 +    if (sys->component && sys->component->control->is_enabled)
 +        mmal_port_disable(sys->component->control);
-
+ 
      if (sys->component && sys->component->is_enabled)
          mmal_component_disable(sys->component);
-
+ 
 -    while ((buffer = mmal_queue_get(sys->filtered_pictures))) {
 -        picture_t *pic = (picture_t *)buffer->user_data;
 -        picture_Release(pic);
@@ -4575,22 +4578,22 @@ Upstream-status: Pending
 +        if (sys->out_pool != NULL)
 +            mmal_pool_destroy(sys->out_pool);
      }
-
+ 
 -    if (sys->filtered_pictures)
 -        mmal_queue_destroy(sys->filtered_pictures);
 +    if (sys->out_q != NULL)
 +        mmal_queue_destroy(sys->out_q);
-
+ 
      if (sys->component)
          mmal_component_release(sys->component);
-
+ 
 -    vlc_sem_destroy(&sys->sem);
 +    cma_vcsm_exit(sys->vcsm_init_type);
 +
      free(sys);
 +}
 +
-
+ 
 -    bcm_host_deinit();
 +static bool is_fmt_valid_in(const vlc_fourcc_t fmt)
 +{
@@ -4598,7 +4601,7 @@ Upstream-status: Pending
 +           fmt == VLC_CODEC_MMAL_ZC_I420 ||
 +           fmt == VLC_CODEC_MMAL_ZC_SAND8;
  }
-
+ 
 -static int send_output_buffer(filter_t *filter)
 +static int OpenMmalDeinterlace(filter_t *filter)
  {
@@ -4619,7 +4622,7 @@ Upstream-status: Pending
 +    if (!is_fmt_valid_in(filter->fmt_in.video.i_chroma) ||
 +        filter->fmt_out.video.i_chroma != filter->fmt_in.video.i_chroma)
 +        return VLC_EGENERIC;
-
+ 
 -    if (!sys->output->is_enabled) {
 -        ret = VLC_EGENERIC;
 -        goto out;
@@ -4665,7 +4668,7 @@ Upstream-status: Pending
 +            msg_Warn(filter, "Deinterlace bypassed due to lack of GPU memory");
 +        }
      }
-
+ 
 -    picture = filter_NewPicture(filter);
 -    if (!picture) {
 -        msg_Warn(filter, "Failed to get new picture");
@@ -4717,7 +4720,7 @@ Upstream-status: Pending
      }
 -    picture->format.i_frame_rate = filter->fmt_out.video.i_frame_rate;
 -    picture->format.i_frame_rate_base = filter->fmt_out.video.i_frame_rate_base;
-
+ 
 -    buffer = picture->p_sys->buffer;
 -    buffer->user_data = picture;
 -    buffer->cmd = 0;
@@ -4727,7 +4730,7 @@ Upstream-status: Pending
 +                MMAL_COMPONENT_DEFAULT_DEINTERLACE, status, mmal_status_to_string(status));
 +        goto fail;
 +    }
-
+ 
 -    mmal_picture_lock(picture);
 +    {
 +        const MMAL_PARAMETER_IMAGEFX_PARAMETERS_T imfx_param = {
@@ -4738,7 +4741,7 @@ Upstream-status: Pending
 +            4,
 +            { 5 /* Frame type: mixed */, frame_duration, sys->half_rate, sys->use_qpu }
 +        };
-
+ 
 -    status = mmal_port_send_buffer(sys->output, buffer);
 +        status = mmal_port_parameter_set(sys->component->output[0], &imfx_param.hdr);
 +        if (status != MMAL_SUCCESS) {
@@ -4763,7 +4766,7 @@ Upstream-status: Pending
 +                sys->component->control->name, status, mmal_status_to_string(status));
 +        goto fail;
      }
-
+ 
 -out:
 -    return ret;
 -}
@@ -4771,7 +4774,7 @@ Upstream-status: Pending
 +    sys->input->userdata = (struct MMAL_PORT_USERDATA_T *)filter;
 +    sys->input->format->encoding = vlc_to_mmal_video_fourcc(&filter->fmt_in.video);
 +    hw_mmal_vlc_fmt_to_mmal_fmt(sys->input->format, &filter->fmt_in.video);
-
+ 
 -static void fill_output_port(filter_t *filter)
 -{
 -    filter_sys_t *sys = filter->p_sys;
@@ -4785,7 +4788,7 @@ Upstream-status: Pending
 +    es_format_Copy(&filter->fmt_out, &filter->fmt_in);
 +    if (!sys->half_rate)
 +        filter->fmt_out.video.i_frame_rate *= 2;
-
+ 
 -    if (buffers_to_send > buffers_available)
 -        buffers_to_send = buffers_available;
 +    status = mmal_port_format_commit(sys->input);
@@ -4797,7 +4800,7 @@ Upstream-status: Pending
 +    sys->input->buffer_size = sys->input->buffer_size_recommended;
 +    sys->input->buffer_num = 30;
 +//    sys->input->buffer_num = sys->input->buffer_num_recommended;
-
+ 
 -#ifndef NDEBUG
 -    msg_Dbg(filter, "Send %d buffers to output port (available: %d, in_transit: %d, buffer_num: %d)",
 -                    buffers_to_send, buffers_available, sys->output_in_transit,
@@ -4812,7 +4815,7 @@ Upstream-status: Pending
 +        goto fail;
      }
 -}
-
+ 
 -static picture_t *deinterlace(filter_t *filter, picture_t *picture)
 -{
 -    filter_sys_t *sys = filter->p_sys;
@@ -4827,7 +4830,7 @@ Upstream-status: Pending
 +                sys->input->name, status, mmal_status_to_string(status));
 +       goto fail;
 +    }
-
+ 
 -    fill_output_port(filter);
 +    status = mmal_port_enable(sys->input, di_input_port_cb);
 +    if (status != MMAL_SUCCESS) {
@@ -4835,12 +4838,12 @@ Upstream-status: Pending
 +                sys->input->name, status, mmal_status_to_string(status));
 +        goto fail;
 +    }
-
+ 
 -    buffer = picture->p_sys->buffer;
 -    buffer->user_data = picture;
 -    buffer->pts = picture->date;
 -    buffer->cmd = 0;
-
+ 
 -    if (!picture->p_sys->displayed) {
 -        status = mmal_port_send_buffer(sys->input, buffer);
 -        if (status != MMAL_SUCCESS) {
@@ -4881,7 +4884,7 @@ Upstream-status: Pending
      }
 -    if (out_picture)
 -        out_picture->p_next = NULL;
-
+ 
 -    return ret;
 -}
 -
@@ -4891,7 +4894,7 @@ Upstream-status: Pending
 -    MMAL_BUFFER_HEADER_T *buffer;
 +    sys->output = sys->component->output[0];
 +    mmal_format_full_copy(sys->output->format, sys->input->format);
-
+ 
 -    msg_Dbg(filter, "flush deinterlace filter");
 +    if (!sys->is_cma)
 +    {
@@ -4908,7 +4911,7 @@ Upstream-status: Pending
 +            msg_Err(filter, "Failed to alloc cma buf pool");
 +            goto fail;
 +        }
-
+ 
 -    msg_Dbg(filter, "flush: flush ports (input: %d, output: %d in transit)",
 -            sys->input_in_transit, sys->output_in_transit);
 -    mmal_port_flush(sys->output);
@@ -4934,13 +4937,13 @@ Upstream-status: Pending
 +            msg_Err(filter, "Failed to alloc out pool");
 +            goto fail;
 +        }
-
+ 
 -static void control_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 -{
 -    filter_t *filter = (filter_t *)port->userdata;
 -    MMAL_STATUS_T status;
 +        port_parameter_set_bool(sys->output, MMAL_PARAMETER_ZERO_COPY, true);
-
+ 
 -    if (buffer->cmd == MMAL_EVENT_ERROR) {
 -        status = *(uint32_t *)buffer->data;
 -        msg_Err(filter, "MMAL error %"PRIx32" \"%s\"", status,
@@ -4951,12 +4954,12 @@ Upstream-status: Pending
 +            msg_Err(filter, "Output port format commit failed");
 +            goto fail;
 +        }
-
+ 
 -    mmal_buffer_header_release(buffer);
 -}
 +        sys->output->buffer_num = 30;
 +        sys->output->buffer_size = sys->output->buffer_size_recommended;
-
+ 
 -static void input_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 -{
 -    picture_t *picture = (picture_t *)buffer->user_data;
@@ -4970,7 +4973,7 @@ Upstream-status: Pending
 +            goto fail;
 +        }
 +    }
-
+ 
 -    if (picture) {
 -        picture_Release(picture);
 -    } else {
@@ -4982,7 +4985,7 @@ Upstream-status: Pending
 +                sys->component->name, status, mmal_status_to_string(status));
 +        goto fail;
      }
-
+ 
 -    atomic_fetch_sub(&sys->input_in_transit, 1);
 -    vlc_sem_post(&sys->sem);
 +    filter->pf_video_filter = deinterlace;
@@ -4993,7 +4996,7 @@ Upstream-status: Pending
 +    CloseMmalDeinterlace(filter);
 +    return ret;
  }
-
+ 
 -static void output_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 -{
 -    filter_t *filter = (filter_t *)port->userdata;
@@ -5022,7 +5025,7 @@ Upstream-status: Pending
 +
 +vlc_module_end()
 +
-
+ 
 -    if (buffer->cmd == 0) {
 -        if (buffer->length > 0) {
 -            atomic_store(&sys->started, true);
@@ -8126,7 +8129,7 @@ Upstream-status: Pending
 @@ -21,25 +21,1542 @@
   * Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
   *****************************************************************************/
-
+ 
 +// We would really like to use vlc_thread.h but the detach thread stuff can't be
 +// used here :-(
 +#include <pthread.h>
@@ -8148,7 +8151,7 @@ Upstream-status: Pending
 +#include <interface/mmal/util/mmal_default_components.h>
 +#include <interface/vmcs_host/vcgencmd.h>
 +#include <interface/vcsm/user-vcsm.h>
-
+ 
 +#include "mmal_cma.h"
  #include "mmal_picture.h"
 +#include "transform_ops.h"
@@ -9291,7 +9294,7 @@ Upstream-status: Pending
 +            ent = ent_list_extract_pic_ent(&pc->ents_cur, pic);
 +
 +//        printf("ent_found: %p\n", ent);
-
+ 
 -int mmal_picture_lock(picture_t *picture)
 +        if (ent == NULL)
 +        {
@@ -9523,7 +9526,7 @@ Upstream-status: Pending
 +        case MMAL_ENCODING_RGB16:
 +            pb = 2;
 +            break;
-
+ 
 -    int offset = 0;
 -    picture->p[0].p_pixels = buffer->data;
 -    for (int i = 1; i < picture->i_planes; i++) {
@@ -9544,14 +9547,14 @@ Upstream-status: Pending
 +//            msg_Err(p_filter, "%s: Unexpected format", __func__);
 +            return VLC_EGENERIC;
      }
-
+ 
 -    pic_sys->displayed = false;
 +    // Fix up SAR if unset
 +    if (pic->format.i_sar_den == 0 || pic->format.i_sar_num == 0) {
 +        pic->format.i_sar_den = mm_fmt->par.den;
 +        pic->format.i_sar_num = mm_fmt->par.num;
 +    }
-
+ 
 +    pic->i_planes = planes;
 +    unsigned int offset = 0;
 +    for (unsigned int i = 0; i != planes; ++i) {
@@ -9680,17 +9683,17 @@ Upstream-status: Pending
 @@ -24,19 +24,298 @@
  #ifndef VLC_MMAL_MMAL_PICTURE_H_
  #define VLC_MMAL_MMAL_PICTURE_H_
-
+ 
 +#include <stdatomic.h>
 +
  #include <vlc_common.h>
  #include <interface/mmal/mmal.h>
-
+ 
 +#include "mmal_cma.h"
 +
  /* Think twice before changing this. Incorrect values cause havoc. */
  #define NUM_ACTUAL_OPAQUE_BUFFERS 30
-
+ 
 -struct picture_sys_t {
 -    vlc_object_t *owner;
 +#ifndef VLC_TICK_INVALID
@@ -9969,18 +9972,18 @@ Upstream-status: Pending
 +vcsm_init_type_t cma_vcsm_type(void);
 +const char * cma_vcsm_init_str(const vcsm_init_type_t init_mode);
 +
-
+ 
 -    MMAL_BUFFER_HEADER_T *buffer;
 -    bool displayed;
 -};
 +#define VOUT_DISPLAY_CHANGE_MMAL_BASE 1024
 +#define VOUT_DISPLAY_CHANGE_MMAL_HIDE (VOUT_DISPLAY_CHANGE_MMAL_BASE + 0)
-
+ 
 -int mmal_picture_lock(picture_t *picture);
 +#define MMAL_COMPONENT_DEFAULT_RESIZER "vc.ril.resize"
 +#define MMAL_COMPONENT_ISP_RESIZER     "vc.ril.isp"
 +#define MMAL_COMPONENT_HVS             "vc.ril.hvs"
-
+ 
  #endif
 --- /dev/null
 +++ b/modules/hw/mmal/rpi_prof.h
@@ -10879,17 +10882,17 @@ Upstream-status: Pending
 +++ b/modules/hw/mmal/vout.c
 @@ -27,21 +27,28 @@
  #endif
-
+ 
  #include <math.h>
 +#include <stdatomic.h>
-
+ 
  #include <vlc_common.h>
 -#include <vlc_atomic.h>
  #include <vlc_plugin.h>
  #include <vlc_threads.h>
  #include <vlc_vout_display.h>
 +#include <vlc_modules.h>
-
+ 
 -#include "mmal_picture.h"
 -
 +#pragma GCC diagnostic push
@@ -10907,13 +10910,13 @@ Upstream-status: Pending
 +#include "transform_ops.h"
 +
 +#define TRACE_ALL 0
-
+ 
  #define MAX_BUFFERS_IN_TRANSIT 1
  #define VC_TV_MAX_MODE_IDS 127
 @@ -50,10 +57,28 @@
  #define MMAL_LAYER_TEXT N_("VideoCore layer where the video is displayed.")
  #define MMAL_LAYER_LONGTEXT N_("VideoCore layer where the video is displayed. Subpictures are displayed directly above and a black background directly below.")
-
+ 
 -#define MMAL_BLANK_BACKGROUND_NAME "mmal-blank-background"
 -#define MMAL_BLANK_BACKGROUND_TEXT N_("Blank screen below video.")
 -#define MMAL_BLANK_BACKGROUND_LONGTEXT N_("Render blank screen below video. " \
@@ -10940,13 +10943,13 @@ Upstream-status: Pending
 +#define MMAL_VOUT_TRANSPARENT_LONGTEXT N_("Enable layers beneath the video layer."\
 +" By default these are disabled."\
 +" Having the lower layers enabled can impact video performance")
-
+ 
  #define MMAL_ADJUST_REFRESHRATE_NAME "mmal-adjust-refreshrate"
  #define MMAL_ADJUST_REFRESHRATE_TEXT N_("Adjust HDMI refresh rate to the video.")
 @@ -68,332 +93,628 @@
  #define PHASE_OFFSET_TARGET ((double)0.25)
  #define PHASE_CHECK_INTERVAL 100
-
+ 
 -static int Open(vlc_object_t *);
 -static void Close(vlc_object_t *);
 -
@@ -10965,7 +10968,7 @@ Upstream-status: Pending
 -    set_callbacks(Open, Close)
 -vlc_module_end()
 +#define SUBS_MAX 4
-
+ 
 -struct dmx_region_t {
 -    struct dmx_region_t *next;
 -    picture_t *picture;
@@ -10982,12 +10985,12 @@ Upstream-status: Pending
 +    MMAL_COMPONENT_T *component;
 +    subpic_reg_stash_t sub;
 +} vout_subpic_t;
-
+ 
  struct vout_display_sys_t {
 -    vlc_cond_t buffer_cond;
 -    vlc_mutex_t buffer_mutex;
      vlc_mutex_t manage_mutex;
-
+ 
 -    plane_t planes[3]; /* Depending on video format up to 3 planes are used */
 -    picture_t **pictures; /* Actual list of alloced pictures passed into picture_pool */
 -    picture_pool_t *picture_pool;
@@ -10998,11 +11001,11 @@ Upstream-status: Pending
      MMAL_POOL_T *pool; /* mmal buffer headers, used for pushing pictures to component*/
 -    struct dmx_region_t *dmx_region;
      int i_planes; /* Number of actually used planes, 1 for opaque, 3 for i420 */
-
+ 
 -    uint32_t buffer_size; /* size of actual mmal buffers */
      int buffers_in_transit; /* number of buffers currently pushed to mmal component */
      unsigned num_buffers; /* number of buffers allocated at mmal port */
-
+ 
 -    DISPMANX_DISPLAY_HANDLE_T dmx_handle;
 -    DISPMANX_ELEMENT_HANDLE_T bkg_element;
 -    DISPMANX_RESOURCE_HANDLE_T bkg_resource;
@@ -11018,17 +11021,17 @@ Upstream-status: Pending
 +    MMAL_DISPLAYTRANSFORM_T dest_transform;      // Dest window coord transform
 +    MMAL_DISPLAYTRANSFORM_T display_transform;  // "Native" display transform
 +    MMAL_DISPLAYTRANSFORM_T video_transform;     // Combined config+native transform
-
+ 
 -    int i_frame_rate_base; /* cached framerate to detect changes for rate adjustment */
 -    int i_frame_rate;
 +    unsigned int i_frame_rate_base; /* cached framerate to detect changes for rate adjustment */
 +    unsigned int i_frame_rate;
-
+ 
      int next_phase_check; /* lowpass for phase check frequency */
      int phase_offset; /* currently applied offset to presentation time in ns */
      int layer; /* the dispman layer (z-index) used for video rendering */
 +    bool transparent;           // Do not disable layers beneath ours
-
+ 
      bool need_configure_display; /* indicates a required display reconfigure to main thread */
      bool adjust_refresh_rate;
      bool native_interlaced;
@@ -11037,7 +11040,7 @@ Upstream-status: Pending
 -    bool opaque; /* indicated use of opaque picture format (zerocopy) */
 -};
 +    bool force_config;
-
+ 
 -static const vlc_fourcc_t subpicture_chromas[] = {
 -    VLC_CODEC_RGBA,
 -    0
@@ -11058,14 +11061,14 @@ Upstream-status: Pending
 +        MMAL_POOL_T * out_pool;
 +        bool pending;
 +    } isp;
-
+ 
 -/* Utility functions */
 -static inline uint32_t align(uint32_t x, uint32_t y);
 -static int configure_display(vout_display_t *vd, const vout_display_cfg_t *cfg,
 -                const video_format_t *fmt);
 +    MMAL_POOL_T * copy_pool;
 +    MMAL_BUFFER_HEADER_T * copy_buf;
-
+ 
 -/* VLC vout display callbacks */
 -static picture_pool_t *vd_pool(vout_display_t *vd, unsigned count);
 -static void vd_prepare(vout_display_t *vd, picture_t *picture,
@@ -11081,14 +11084,14 @@ Upstream-status: Pending
 +    // Subpic blend if we have to do it here
 +    vzc_pool_ctl_t * vzc;
 +};
-
+ 
 -/* TV service */
 -static int query_resolution(vout_display_t *vd, unsigned *width, unsigned *height);
 -static void tvservice_cb(void *callback_data, uint32_t reason, uint32_t param1,
 -                uint32_t param2);
 -static void adjust_refresh_rate(vout_display_t *vd, const video_format_t *fmt);
 -static int set_latency_target(vout_display_t *vd, bool enable);
-
+ 
 -/* DispManX */
 -static void display_subpicture(vout_display_t *vd, subpicture_t *subpicture);
 -static void close_dmx(vout_display_t *vd);
@@ -11101,7 +11104,7 @@ Upstream-status: Pending
 -static void show_background(vout_display_t *vd, bool enable);
 -static void maintain_phase_sync(vout_display_t *vd);
 +// ISP setup
-
+ 
 -static int Open(vlc_object_t *object)
 +static inline bool want_isp(const vout_display_t * const vd)
  {
@@ -11115,14 +11118,14 @@ Upstream-status: Pending
 -    unsigned i;
 +    return (vd->fmt.i_chroma == VLC_CODEC_MMAL_ZC_SAND10);
 +}
-
+ 
 -    if (vout_display_IsWindowed(vd))
 -        return VLC_EGENERIC;
 +static inline bool want_copy(const vout_display_t * const vd)
 +{
 +    return (vd->fmt.i_chroma == VLC_CODEC_I420 || vd->fmt.i_chroma == VLC_CODEC_I420_10L);
 +}
-
+ 
 -    sys = calloc(1, sizeof(struct vout_display_sys_t));
 -    if (!sys)
 -        return VLC_ENOMEM;
@@ -11133,7 +11136,7 @@ Upstream-status: Pending
 +        VLC_CODEC_I420 :
 +        vd->fmt.i_chroma;
 +}
-
+ 
 -    sys->layer = var_InheritInteger(vd, MMAL_LAYER_NAME);
 -    bcm_host_init();
 +static MMAL_FOURCC_T vout_vlc_to_mmal_pic_fourcc(const unsigned int fcc)
@@ -11155,14 +11158,14 @@ Upstream-status: Pending
 +    }
 +    return MMAL_ENCODING_I420;
 +}
-
+ 
 -    sys->opaque = vd->fmt.i_chroma == VLC_CODEC_MMAL_OPAQUE;
 +static void display_set_format(const vout_display_t * const vd, MMAL_ES_FORMAT_T *const es_fmt, const bool is_intermediate)
 +{
 +    const unsigned int w = is_intermediate ? vd->fmt.i_visible_width  : vd->fmt.i_width ;
 +    const unsigned int h = is_intermediate ? vd->fmt.i_visible_height : vd->fmt.i_height;
 +    MMAL_VIDEO_FORMAT_T * const v_fmt = &es_fmt->es->video;
-
+ 
 -    status = mmal_component_create(MMAL_COMPONENT_DEFAULT_VIDEO_RENDERER, &sys->component);
 -    if (status != MMAL_SUCCESS) {
 -        msg_Err(vd, "Failed to create MMAL component %s (status=%"PRIx32" %s)",
@@ -11189,7 +11192,7 @@ Upstream-status: Pending
 +    v_fmt->frame_rate.num = vd->fmt.i_frame_rate;
 +    v_fmt->frame_rate.den = vd->fmt.i_frame_rate_base;
 +    v_fmt->color_space    = vlc_to_mmal_color_space(vd->fmt.space);
-
+ 
 -    sys->component->control->userdata = (struct MMAL_PORT_USERDATA_T *)vd;
 -    status = mmal_port_enable(sys->component->control, control_port_cb);
 -    if (status != MMAL_SUCCESS) {
@@ -11241,12 +11244,12 @@ Upstream-status: Pending
 +        status = *(uint32_t *)buffer->data;
 +        msg_Err(vd, "MMAL error %"PRIx32" \"%s\"", status, mmal_status_to_string(status));
      }
-
+ 
 -    sys->input = sys->component->input[0];
 -    sys->input->userdata = (struct MMAL_PORT_USERDATA_T *)vd;
 +    mmal_buffer_header_release(buffer);
 +}
-
+ 
 -    if (sys->opaque) {
 -        sys->input->format->encoding = MMAL_ENCODING_OPAQUE;
 -        sys->i_planes = 1;
@@ -11276,7 +11279,7 @@ Upstream-status: Pending
 +        // but might not on later flushes as we shut down
 +        vout_display_t * const vd = (vout_display_t *)port->userdata;
 +        struct vout_isp_conf_s *const isp = &vd->sys->isp;
-
+ 
 -    status = mmal_port_format_commit(sys->input);
 -    if (status != MMAL_SUCCESS) {
 -        msg_Err(vd, "Failed to commit format for input port %s (status=%"PRIx32" %s)",
@@ -11298,7 +11301,7 @@ Upstream-status: Pending
 +        mmal_buffer_header_release(buf);
 +    }
 +}
-
+ 
 -    vout_display_PlacePicture(&place, &vd->source, vd->cfg, false);
 -    display_region.hdr.id = MMAL_PARAMETER_DISPLAYREGION;
 -    display_region.hdr.size = sizeof(MMAL_DISPLAYREGION_T);
@@ -11355,7 +11358,7 @@ Upstream-status: Pending
 +            return err;
 +        }
      }
-
+ 
 -    for (i = 0; i < sys->i_planes; ++i) {
 -        sys->planes[i].i_lines = buffer_height;
 -        sys->planes[i].i_pitch = buffer_pitch;
@@ -11368,7 +11371,7 @@ Upstream-status: Pending
 +            return err;
 +        }
 +    }
-
+ 
 -        if (i > 0) {
 -            sys->planes[i].i_lines /= 2;
 -            sys->planes[i].i_pitch /= 2;
@@ -11383,7 +11386,7 @@ Upstream-status: Pending
      }
 +    return MMAL_SUCCESS;
 +}
-
+ 
 -    vlc_mutex_init(&sys->buffer_mutex);
 -    vlc_cond_init(&sys->buffer_cond);
 -    vlc_mutex_init(&sys->manage_mutex);
@@ -11391,7 +11394,7 @@ Upstream-status: Pending
 +{
 +    struct vout_isp_conf_s * const isp = &vd_sys->isp;
 +    VLC_UNUSED(vd);
-
+ 
 -    vd->pool = vd_pool;
 -    vd->prepare = vd_prepare;
 -    vd->display = vd_display;
@@ -11399,10 +11402,10 @@ Upstream-status: Pending
 -    vd->manage = vd_manage;
 +    if (isp->component == NULL)
 +        return;
-
+ 
 -    vc_tv_register_callback(tvservice_cb, vd);
 +    isp_flush(isp);
-
+ 
 -    if (query_resolution(vd, &sys->display_width, &sys->display_height) >= 0) {
 -        vout_display_SendEventDisplaySize(vd, sys->display_width, sys->display_height);
 -    } else {
@@ -11418,28 +11421,28 @@ Upstream-status: Pending
 +        mmal_queue_destroy(isp->out_q);
 +        isp->out_q = NULL;
      }
-
+ 
 -    sys->dmx_handle = vc_dispmanx_display_open(0);
 -    vd->info.subpicture_chromas = subpicture_chromas;
 +    if (isp->out_pool != NULL) {
 +        mmal_port_pool_destroy(isp->output, isp->out_pool);
 +        isp->out_pool = NULL;
 +    }
-
+ 
 -    vout_display_DeleteWindow(vd, NULL);
 +    isp->input = NULL;
 +    isp->output = NULL;
-
+ 
 -out:
 -    if (ret != VLC_SUCCESS)
 -        Close(object);
 +    mmal_component_release(isp->component);
 +    isp->component = NULL;
-
+ 
 -    return ret;
 +    return;
  }
-
+ 
 -static void Close(vlc_object_t *object)
 +// Restuff into output rather than return to pool is we can
 +static MMAL_BOOL_T isp_out_pool_cb(MMAL_POOL_T *pool, MMAL_BUFFER_HEADER_T *buffer, void *userdata)
@@ -11457,13 +11460,13 @@ Upstream-status: Pending
 +    }
 +    return MMAL_TRUE;
 +}
-
+ 
 -    vc_tv_unregister_callback_full(tvservice_cb, vd);
 +static MMAL_STATUS_T isp_setup(vout_display_t * const vd, vout_display_sys_t * const vd_sys)
 +{
 +    struct vout_isp_conf_s * const isp = &vd_sys->isp;
 +    MMAL_STATUS_T err;
-
+ 
 -    if (sys->dmx_handle)
 -        close_dmx(vd);
 +    if ((err = mmal_component_create(MMAL_COMPONENT_ISP_RESIZER, &isp->component)) != MMAL_SUCCESS) {
@@ -11472,7 +11475,7 @@ Upstream-status: Pending
 +    }
 +    isp->input = isp->component->input[0];
 +    isp->output = isp->component->output[0];
-
+ 
 -    if (sys->component && sys->component->control->is_enabled)
 -        mmal_port_disable(sys->component->control);
 +    isp->component->control->userdata = (void *)vd;
@@ -11480,29 +11483,29 @@ Upstream-status: Pending
 +        msg_Err(vd, "Failed to enable ISP control port");
 +        goto fail;
 +    }
-
+ 
 -    if (sys->input && sys->input->is_enabled)
 -        mmal_port_disable(sys->input);
 +    isp->input->userdata = (void *)vd;
 +    display_set_format(vd, isp->input->format, false);
-
+ 
 -    if (sys->component && sys->component->is_enabled)
 -        mmal_component_disable(sys->component);
 +    if ((err = port_parameter_set_bool(isp->input, MMAL_PARAMETER_ZERO_COPY, true)) != MMAL_SUCCESS)
 +        goto fail;
-
+ 
 -    if (sys->pool)
 -        mmal_port_pool_destroy(sys->input, sys->pool);
 +    if ((err = mmal_port_format_commit(isp->input)) != MMAL_SUCCESS) {
 +        msg_Err(vd, "Failed to set ISP input format");
 +        goto fail;
 +    }
-
+ 
 -    if (sys->component)
 -        mmal_component_release(sys->component);
 +    isp->input->buffer_size = isp->input->buffer_size_recommended;
 +    isp->input->buffer_num = 30;
-
+ 
 -    if (sys->picture_pool)
 -        picture_pool_Release(sys->picture_pool);
 -    else
@@ -11516,7 +11519,7 @@ Upstream-status: Pending
 +        msg_Err(vd, "Failed to create input pool");
 +        goto fail;
 +    }
-
+ 
 -    vlc_mutex_destroy(&sys->buffer_mutex);
 -    vlc_cond_destroy(&sys->buffer_cond);
 -    vlc_mutex_destroy(&sys->manage_mutex);
@@ -11525,7 +11528,7 @@ Upstream-status: Pending
 +        err = MMAL_ENOMEM;
 +        goto fail;
 +    }
-
+ 
 -    if (sys->native_interlaced) {
 -        if (vc_gencmd(response, sizeof(response), "hvs_update_fields 0") < 0 ||
 -                response[18] != '0')
@@ -11539,7 +11542,7 @@ Upstream-status: Pending
 +        msg_Err(vd, "Failed to set ISP input format");
 +        goto fail;
      }
-
+ 
 -    free(sys->pictures);
 -    free(sys);
 +    isp->output->buffer_size = isp->output->buffer_size_recommended;
@@ -11558,13 +11561,13 @@ Upstream-status: Pending
 +        goto fail;
 +
 +    return MMAL_SUCCESS;
-
+ 
 -    bcm_host_deinit();
 +fail:
 +    isp_close(vd, vd_sys);
 +    return err;
  }
-
+ 
 -static inline uint32_t align(uint32_t x, uint32_t y) {
 -    uint32_t mod = x % y;
 -    if (mod == 0)
@@ -11792,7 +11795,7 @@ Upstream-status: Pending
 +    }
 +    return 0;
  }
-
+ 
  static int configure_display(vout_display_t *vd, const vout_display_cfg_t *cfg,
                  const video_format_t *fmt)
  {
@@ -11801,7 +11804,7 @@ Upstream-status: Pending
 -    MMAL_DISPLAYREGION_T display_region;
 +    vout_display_sys_t * const sys = vd->sys;
      MMAL_STATUS_T status;
-
+ 
      if (!cfg && !fmt)
 +    {
 +        msg_Err(vd, "%s: Missing cfg & fmt", __func__);
@@ -11809,17 +11812,17 @@ Upstream-status: Pending
 +    }
 +
 +    isp_check(vd, sys);
-
+ 
      if (fmt) {
          sys->input->format->es->video.par.num = fmt->i_sar_num;
 @@ -412,30 +733,14 @@ static int configure_display(vout_displa
      if (!cfg)
          cfg = vd->cfg;
-
+ 
 -    vout_display_PlacePicture(&place, fmt, cfg, false);
 +    sys->video_transform = combine_transform(
 +        vlc_to_mmal_transform(fmt->orientation), sys->display_transform);
-
+ 
 -    display_region.hdr.id = MMAL_PARAMETER_DISPLAYREGION;
 -    display_region.hdr.size = sizeof(MMAL_DISPLAYREGION_T);
 -    display_region.fullscreen = MMAL_FALSE;
@@ -11843,7 +11846,7 @@ Upstream-status: Pending
 +    if (set_input_region(vd, fmt) != 0)
          return -EINVAL;
 -    }
-
+ 
 -    show_background(vd, var_InheritBool(vd, MMAL_BLANK_BACKGROUND_NAME));
      sys->adjust_refresh_rate = var_InheritBool(vd, MMAL_ADJUST_REFRESHRATE_NAME);
      sys->native_interlaced = var_InheritBool(vd, MMAL_NATIVE_INTERLACED);
@@ -11851,7 +11854,7 @@ Upstream-status: Pending
 @@ -446,204 +751,217 @@ static int configure_display(vout_displa
      return 0;
  }
-
+ 
 +static void kill_pool(vout_display_sys_t * const sys)
 +{
 +    if (sys->pic_pool != NULL) {
@@ -11870,21 +11873,21 @@ Upstream-status: Pending
 -    MMAL_STATUS_T status;
 -    unsigned i;
 +    vout_display_sys_t * const sys = vd->sys;
-
+ 
 -    if (sys->picture_pool) {
 -        if (sys->num_buffers < count)
 -            msg_Warn(vd, "Picture pool with %u pictures requested, but we already have one with %u pictures",
 -                            count, sys->num_buffers);
 +    msg_Dbg(vd, "%s: fmt:%dx%d,sar:%d/%d; source:%dx%d", __func__,
 +            vd->fmt.i_width, vd->fmt.i_height, vd->fmt.i_sar_num, vd->fmt.i_sar_den, vd->source.i_width, vd->source.i_height);
-
+ 
 -        goto out;
 +    if (sys->pic_pool == NULL) {
 +        sys->pic_pool = picture_pool_NewFromFormat(&vd->fmt, count);
      }
 +    return sys->pic_pool;
 +}
-
+ 
 -    if (sys->opaque) {
 -        if (count <= NUM_ACTUAL_OPAQUE_BUFFERS)
 -            count = NUM_ACTUAL_OPAQUE_BUFFERS;
@@ -11896,7 +11899,7 @@ Upstream-status: Pending
 +        return true;
 +    return false;
 +}
-
+ 
 -        MMAL_PARAMETER_BOOLEAN_T zero_copy = {
 -            { MMAL_PARAMETER_ZERO_COPY, sizeof(MMAL_PARAMETER_BOOLEAN_T) },
 -            1
@@ -11906,7 +11909,7 @@ Upstream-status: Pending
 +{
 +    vout_display_sys_t * const sys = vd->sys;
 +    MMAL_STATUS_T err;
-
+ 
 -        status = mmal_port_parameter_set(sys->input, &zero_copy.hdr);
 -        if (status != MMAL_SUCCESS) {
 -           msg_Err(vd, "Failed to set zero copy on port %s (status=%"PRIx32" %s)",
@@ -11930,7 +11933,7 @@ Upstream-status: Pending
 -#ifndef NDEBUG
 -    msg_Dbg(vd, "Creating picture pool with %u pictures", count);
  #endif
-
+ 
 -    sys->input->buffer_num = count;
 -    status = mmal_port_enable(sys->input, input_port_cb);
 -    if (status != MMAL_SUCCESS) {
@@ -11942,7 +11945,7 @@ Upstream-status: Pending
 +    if (subpicture != NULL) {
 +        subpicture_Delete(subpicture);
      }
-
+ 
 -    status = mmal_component_enable(sys->component);
 -    if (status != MMAL_SUCCESS) {
 -        msg_Err(vd, "Failed to enable component %s (status=%"PRIx32" %s)",
@@ -12017,11 +12020,11 @@ Upstream-status: Pending
 +            msg_Err(vd, "Replicated buffer get fail");
 +            goto fail;
          }
-
+ 
 -        sys->pictures[i]->i_planes = sys->i_planes;
 -        memcpy(sys->pictures[i]->p, sys->planes, sys->i_planes * sizeof(plane_t));
 -    }
-
+ 
 -    memset(&picture_pool_cfg, 0, sizeof(picture_pool_configuration_t));
 -    picture_pool_cfg.picture_count = sys->num_buffers;
 -    picture_pool_cfg.picture = sys->pictures;
@@ -12035,7 +12038,7 @@ Upstream-status: Pending
 +            if (mmal_port_format_commit(sys->input) != MMAL_SUCCESS)
 +                msg_Warn(vd, "Input format commit failed");
 +        }
-
+ 
 -    sys->picture_pool = picture_pool_NewExtended(&picture_pool_cfg);
 -    if (!sys->picture_pool) {
 -        msg_Err(vd, "Failed to create picture pool");
@@ -12047,7 +12050,7 @@ Upstream-status: Pending
 +            goto fail;
 +        }
      }
-
+ 
 -out:
 -    return sys->picture_pool;
 -}
@@ -12123,18 +12126,18 @@ Upstream-status: Pending
 -    } else {
 -        picture_Release(picture);
      }
-
+ 
 -    display_subpicture(vd, subpicture);
 +fail:
 +    for (unsigned int i = 0; i != SUBS_MAX && sys->subpic_bufs[i] != NULL; ++i) {
 +        mmal_buffer_header_release(sys->subpic_bufs[i]);
 +        sys->subpic_bufs[i] = NULL;
 +    }
-
+ 
 -    if (subpicture)
 -        subpicture_Delete(subpicture);
 +    picture_Release(p_pic);
-
+ 
      if (sys->next_phase_check == 0 && sys->adjust_refresh_rate)
          maintain_phase_sync(vd);
      sys->next_phase_check = (sys->next_phase_check + 1) % PHASE_CHECK_INTERVAL;
@@ -12146,7 +12149,7 @@ Upstream-status: Pending
 -        vlc_mutex_unlock(&sys->buffer_mutex);
 -    }
  }
-
+ 
  static int vd_control(vout_display_t *vd, int query, va_list args)
  {
 -    vout_display_sys_t *sys = vd->sys;
@@ -12155,7 +12158,7 @@ Upstream-status: Pending
 +    vout_display_sys_t * const sys = vd->sys;
      int ret = VLC_EGENERIC;
 +    VLC_UNUSED(args);
-
+ 
      switch (query) {
 -        case VOUT_DISPLAY_CHANGE_DISPLAY_SIZE:
 -            tmp_cfg = va_arg(args, const vout_display_cfg_t *);
@@ -12175,7 +12178,7 @@ Upstream-status: Pending
 +            if (configure_display(vd, vd->cfg, &vd->source) >= 0)
                  ret = VLC_SUCCESS;
              break;
-
+ 
 -        case VOUT_DISPLAY_RESET_PICTURES:
 -            vlc_assert_unreachable();
          case VOUT_DISPLAY_CHANGE_ZOOM:
@@ -12218,13 +12221,13 @@ Upstream-status: Pending
 +            ret = VLC_SUCCESS;
              break;
 +        }
-
+ 
          default:
              msg_Warn(vd, "Unknown control query %d", query);
 @@ -653,79 +971,207 @@ static int vd_control(vout_display_t *vd
      return ret;
  }
-
+ 
 +static void set_display_windows(vout_display_t *const vd, vout_display_sys_t *const sys)
 +{
 +    unsigned int width, height;
@@ -12245,9 +12248,9 @@ Upstream-status: Pending
 -    vout_display_sys_t *sys = vd->sys;
 -    unsigned width, height;
 +    vout_display_sys_t *const sys = vd->sys;
-
+ 
      vlc_mutex_lock(&sys->manage_mutex);
-
+ 
      if (sys->need_configure_display) {
 -        close_dmx(vd);
 -        sys->dmx_handle = vc_dispmanx_display_open(0);
@@ -12261,10 +12264,10 @@ Upstream-status: Pending
          sys->need_configure_display = false;
 +        set_display_windows(vd, sys);
      }
-
+ 
      vlc_mutex_unlock(&sys->manage_mutex);
  }
-
+ 
 -static void control_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 +
 +static int attach_subpics(vout_display_t * const vd, vout_display_sys_t * const sys,
@@ -12273,7 +12276,7 @@ Upstream-status: Pending
 -    vout_display_t *vd = (vout_display_t *)port->userdata;
 -    MMAL_STATUS_T status;
 +    unsigned int n = 0;
-
+ 
 -    if (buffer->cmd == MMAL_EVENT_ERROR) {
 -        status = *(uint32_t *)buffer->data;
 -        msg_Err(vd, "MMAL error %"PRIx32" \"%s\"", status, mmal_status_to_string(status));
@@ -12284,7 +12287,7 @@ Upstream-status: Pending
 +            return VLC_ENOMEM;
 +        }
      }
-
+ 
 -    mmal_buffer_header_release(buffer);
 +    // Attempt to import the subpics
 +    for (subpicture_t * spic = subpicture; spic != NULL; spic = spic->p_next)
@@ -12330,7 +12333,7 @@ Upstream-status: Pending
 +    }
 +    return VLC_SUCCESS;
  }
-
+ 
 -static void input_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
 +
 +static void vd_prepare(vout_display_t *vd, picture_t *p_pic,
@@ -12425,12 +12428,12 @@ Upstream-status: Pending
      vout_display_sys_t *sys = vd->sys;
 -    picture_t *picture = (picture_t *)buffer->user_data;
 +    picture_sys_t *pic_sys = picture->p_sys;
-
+ 
 -    if (picture)
 -        picture_Release(picture);
 +    if (!sys->adjust_refresh_rate || pic_sys->displayed)
 +        return;
-
+ 
 -    vlc_mutex_lock(&sys->buffer_mutex);
 -    atomic_fetch_sub(&sys->buffers_in_transit, 1);
 -    vlc_cond_signal(&sys->buffer_cond);
@@ -12440,7 +12443,7 @@ Upstream-status: Pending
 +    picture->date += sys->phase_offset;
 +#endif
  }
-
+ 
 -static int query_resolution(vout_display_t *vd, unsigned *width, unsigned *height)
 +
 +static void vd_control_port_cb(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buffer)
@@ -12449,7 +12452,7 @@ Upstream-status: Pending
 -    int ret = 0;
 +    vout_display_t *vd = (vout_display_t *)port->userdata;
 +    MMAL_STATUS_T status;
-
+ 
 -    if (vc_tv_get_display_state(&display_state) == 0) {
 -        if (display_state.state & 0xFF) {
 -            *width = display_state.display.hdmi.width;
@@ -12468,23 +12471,23 @@ Upstream-status: Pending
 +        status = *(uint32_t *)buffer->data;
 +        msg_Err(vd, "MMAL error %"PRIx32" \"%s\"", status, mmal_status_to_string(status));
      }
-
+ 
 -    return ret;
 +    mmal_buffer_header_release(buffer);
  }
-
+ 
  static void tvservice_cb(void *callback_data, uint32_t reason, uint32_t param1, uint32_t param2)
 @@ -780,9 +1226,9 @@ static void adjust_refresh_rate(vout_dis
      double best_score, score;
      int i;
-
+ 
 -    vc_tv_get_display_state(&display_state);
 +    vc_tv_get_display_state_id(sys->display_id, &display_state);
      if(display_state.display.hdmi.mode != HDMI_MODE_OFF) {
 -        num_modes = vc_tv_hdmi_get_supported_modes_new(display_state.display.hdmi.group,
 +        num_modes = vc_tv_hdmi_get_supported_modes_new_id(sys->display_id, display_state.display.hdmi.group,
                          supported_modes, VC_TV_MAX_MODE_IDS, NULL, NULL);
-
+ 
          for (i = 0; i < num_modes; ++i) {
 @@ -810,7 +1256,7 @@ static void adjust_refresh_rate(vout_dis
          if((best_id >= 0) && (display_state.display.hdmi.mode != supported_modes[best_id].code)) {
@@ -12498,7 +12501,7 @@ Upstream-status: Pending
 @@ -828,148 +1274,12 @@ static void adjust_refresh_rate(vout_dis
      }
  }
-
+ 
 -static void display_subpicture(vout_display_t *vd, subpicture_t *subpicture)
 -{
 -    vout_display_sys_t *sys = vd->sys;
@@ -12648,7 +12651,7 @@ Upstream-status: Pending
 @@ -1012,32 +1322,436 @@ static void maintain_phase_sync(vout_dis
      }
  }
-
+ 
 -static void show_background(vout_display_t *vd, bool enable)
 +static void CloseMmalVout(vlc_object_t *object)
  {
@@ -13700,7 +13703,7 @@ Upstream-status: Pending
 @@ -43,6 +43,8 @@
  # include "../android/utils.h"
  #endif
-
+ 
 +#define REQUIRE_DMA_BUF_IMPORT 1
 +
  typedef struct vlc_gl_sys_t
@@ -13709,7 +13712,7 @@ Upstream-status: Pending
 @@ -355,6 +357,14 @@ static int Open (vlc_object_t *obj, cons
          goto error;
      }
-
+ 
 +#if REQUIRE_DMA_BUF_IMPORT
 +    if (!CheckToken(ext, "EGL_EXT_image_dma_buf_import"))
 +    {
@@ -13728,7 +13731,7 @@ Upstream-status: Pending
      p_owner->b_waiting = false;
      vlc_cond_signal( &p_owner->wait_request );
 +    vlc_mutex_unlock( &p_owner->lock );
-
+ 
      /* If the video output is paused or slow, or if the picture pool size was
       * under-estimated (e.g. greedy video filter, buggy decoder...), the
 @@ -2005,7 +2006,6 @@ void input_DecoderDelete( decoder_t *p_d
@@ -13736,9 +13739,9 @@ Upstream-status: Pending
      if( p_owner->p_vout != NULL )
          vout_Cancel( p_owner->p_vout, true );
 -    vlc_mutex_unlock( &p_owner->lock );
-
+ 
      vlc_join( p_owner->thread, NULL );
-
+ 
 --- a/src/misc/fourcc.c
 +++ b/src/misc/fourcc.c
 @@ -755,8 +755,13 @@ static const struct
@@ -13762,7 +13765,7 @@ Upstream-status: Pending
 @@ -365,10 +365,30 @@ void picture_CopyProperties( picture_t *
      p_dst->b_top_field_first = p_src->b_top_field_first;
  }
-
+ 
 +static inline bool is_zc_chroma(const vlc_fourcc_t i_chroma)
 +{
 +    return i_chroma == VLC_CODEC_MMAL_OPAQUE ||
@@ -13789,15 +13792,15 @@ Upstream-status: Pending
 +        for( int i = 0; i < p_src->i_planes; i++ )
 +            plane_CopyPixels( p_dst->p+i, p_src->p+i );
 +    }
-
+ 
      assert( p_dst->context == NULL );
-
+ 
 --- a/src/video_output/video_output.c
 +++ b/src/video_output/video_output.c
 @@ -964,6 +964,17 @@ static picture_t *ConvertRGB32AndBlend(v
      return NULL;
  }
-
+ 
 +
 +static inline bool is_zc_chroma(const vlc_fourcc_t i_chroma)
 +{
@@ -13814,7 +13817,7 @@ Upstream-status: Pending
      vout_thread_sys_t *sys = vout->p;
 @@ -1098,7 +1109,7 @@ static int ThreadDisplayRenderPicture(vo
      }
-
+ 
      assert(vout_IsDisplayFiltered(vd) == !sys->display.use_dr);
 -    if (sys->display.use_dr && !is_direct) {
 +    if (sys->display.use_dr && !is_direct && !is_zc_chroma(todisplay->format.i_chroma)) {

@@ -9,17 +9,25 @@ SRC_URI = "\
     git://git@github.com/RPi-Distro/vlc;protocol=https;branch=buster-rpt \
     file://0001-configure-fix-linking-on-RISC-V-ISA.patch \
     file://0002-Revert-configure-Require-libmodplug-0.8.9.patch \
-    file://0003-mmal_20.patch \
-    file://0004-mmal_exit_fix.patch \
-    file://0005-mmal_chain.patch \
-    file://0006-Use-packageconfig-to-detect-mmal-support.patch \
-    file://0007-use-vorbisidec.patch \
-    file://0008-fix-luaL-checkint.patch \
-    file://0009-fix-EGL-macro-undeclared-and-EGLImageKHR.patch \
-    file://0010-fix-numeric_limits-is-not-a-member-of-std.patch \
-"
+    file://0003-CVE-2022-41325.patch \
+    file://0004-mmal_20.patch \
+    file://0005-mmal_exit_fix.patch \
+    file://0006-mmal_chain.patch \
+    file://0007-armv6.patch \
+    file://2001-fix-luaL-checkint.patch \
+    file://2002-use-vorbisidec.patch \
+    file://3001-configure.ac-setup-for-OE-usage.patch \
+    file://3002-fix-EGL-macro-undeclared-and-EGLImageKHR.patch \
+    file://3003-codec-omxil_core-replace-opt-vc-path-with-usr-lib.patch \
+    file://3004-use-GLESv2-headers-over-GL-headers.patch \
+    file://3005-modules-remove-glspectrum-usage.patch \
+    file://3006-codec-omxil_core.h-fix-multiple-definition-of.patch \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'x11', '', 'file://3007-remove-xorg-related-link-libs.patch', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'opengl', '', 'file://3008-vo-Makefile.am-exclude-libgl_plugin.patch', d)} \
+    file://3009-vo-converter_vaapi-Fix-EGL-macro-undeclared.patch \
+    "
 
-SRCREV = "f7fd69f12a3b89d03768fa3bd468e8f33cd1dc7c"
+SRCREV = "b276eb0d7bc3213363e97dbb681ef7c927be6c73"
 
 S = "${WORKDIR}/git"
 
@@ -37,24 +45,29 @@ EXTRA_OECONF = "\
     --enable-run-as-root \
     --enable-xvideo \
     --disable-lua \
-    --disable-screen --disable-caca \
+    --disable-screen \
+    --disable-caca \
     --enable-vlm \
     --enable-tremor \
-    --disable-aa --disable-faad \
+    --disable-aa \
+    --disable-faad \
     --enable-dbus \
     --without-contrib \
     --without-kde-solid \
     --enable-realrtsp \
     --disable-libtar \
     --enable-avcodec \
-"
+    --disable-css \
+    "
 
 PACKAGECONFIG ?= "\
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'x11', '', d)} \
     ${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', '', 'mmal', d)} \
-    live555 dv1394 notify fontconfig fluidsynth freetype dvdread png udev \
-    x264 alsa harfbuzz jack neon fribidi dvbpsi a52 v4l2 gles2 \
-"
+    ${@bb.utils.contains('DISTRO_FEATURES', 'opengl', 'gles2', '', d)} \
+    ${@bb.utils.contains_any('DISTRO_FEATURES', 'x11', 'notify', '', d)} \
+    live555 dv1394 fontconfig fluidsynth freetype png udev \
+    x264 alsa harfbuzz jack neon fribidi dvbpsi a52 v4l2 \
+    "
 
 PACKAGECONFIG[mmal] = "--enable-omxil --enable-omxil-vout --enable-rpi-omxil --enable-mmal --enable-mmal-avcodec,,userland"
 PACKAGECONFIG[x264] = "--enable-x264,--disable-x264,x264"
@@ -65,13 +78,13 @@ PACKAGECONFIG[live555] = "--enable-live555 LIVE555_PREFIX=${STAGING_DIR_HOST}${p
 PACKAGECONFIG[libass] = "--enable-libass,--disable-libass,libass"
 PACKAGECONFIG[postproc] = "--enable-postproc,--disable-postproc,libpostproc"
 PACKAGECONFIG[libva] = "--enable-libva,--disable-libva,libva"
-PACKAGECONFIG[opencv] = "--enable-opencv,--disable-opencv,opencv"
+#PACKAGECONFIG[opencv] = "--enable-opencv,--disable-opencv,opencv"
 PACKAGECONFIG[speex] = "--enable-speex,--disable-speex,speex"
 PACKAGECONFIG[gstreamer] = "--enable-gst-decode,--disable-gst-decode,gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-bad"
 PACKAGECONFIG[vpx] = "--enable-vpx,--disable-vpx, libvpx"
-PACKAGECONFIG[freerdp] = "--enable-freerdp,--disable-freerdp, freerdp"
+#PACKAGECONFIG[freerdp] = "--enable-freerdp,--disable-freerdp, freerdp"
 PACKAGECONFIG[dvbpsi] = "--enable-dvbpsi,--disable-dvbpsi, libdvbpsi"
-PACKAGECONFIG[samba] = "--enable-smbclient,--disable-smbclient, samba"
+#PACKAGECONFIG[samba] = "--enable-smbclient,--disable-smbclient, samba"
 PACKAGECONFIG[upnp] = "--enable-upnp,--disable-upnp,libupnp"
 PACKAGECONFIG[dvdnav] = "--enable-dvdnav,--disable-dvdnav,libdvdnav libdvdcss"
 PACKAGECONFIG[sftp] = "--enable-sftp,--disable-sftp,libssh2"
@@ -84,14 +97,14 @@ PACKAGECONFIG[svgdec] = "--enable-svgdec,--disable-svgdec,librsvg cairo"
 PACKAGECONFIG[notify] = "--enable-notify,--disable-notify, libnotify gtk+3"
 PACKAGECONFIG[fontconfig] = "--enable-fontconfig,--disable-fontconfig, fontconfig"
 PACKAGECONFIG[freetype] = "--enable-freetype,--disable-freetype, freetype"
-PACKAGECONFIG[dvdread] = "--enable-dvdread,--disable-dvdread, libdvdread libdvdcss"
+#PACKAGECONFIG[dvdread] = "--enable-dvdread,--disable-dvdread, libdvdread libdvdcss"
 PACKAGECONFIG[vnc] = "--enable-vnc,--disable-vnc, libvncserver"
-PACKAGECONFIG[x11] = "--with-x --enable-xcb,--without-x --disable-xcb,  xcb-util-keysyms libxpm libxinerama"
+PACKAGECONFIG[x11] = "--with-x --enable-xcb,--without-x --disable-xcb, xcb-util-keysyms libxpm libxinerama"
 PACKAGECONFIG[png] = "--enable-png,--disable-png,libpng"
-PACKAGECONFIG[vdpau] = "--enable-vdpau,--disable-vdpau,libvdpau"
-PACKAGECONFIG[wayland] = "--enable-wayland,--disable-wayland,wayland wayland-native"
+#PACKAGECONFIG[vdpau] = "--enable-vdpau,--disable-vdpau,libvdpau"
+#PACKAGECONFIG[wayland] = "--enable-wayland,--disable-wayland,wayland wayland-native"
 PACKAGECONFIG[gles2] = "--enable-gles2,--disable-gles2,virtual/libgles2"
-PACKAGECONFIG[dca] = "--enable-dca,,"
+#PACKAGECONFIG[dca] = "--enable-dca,--disable-dca,libdca"
 PACKAGECONFIG[fribidi] = "--enable-fribidi,,fribidi"
 PACKAGECONFIG[gnutls] = "--enable-gnutls,,gnutls"
 PACKAGECONFIG[fluidsynth] = "--enable-fluidsynth,,fluidsynth"
@@ -105,25 +118,15 @@ PACKAGECONFIG[pulseaudio] = "--enable-pulse,--disable-pulse,pulseaudio"
 PACKAGECONFIG[sdl-image] = "--enable-sdl-image,,libsdl-image"
 PACKAGECONFIG[v4l2] = "--enable-v4l2,,v4l-utils"
 
-# Workaround for modules/codec/omxil/omxil_core.h
-#   multiple definition of `pf_enable_graphic_buffers'
-#   multiple definition of `pf_get_graphic_buffer_usage'
-#   multiple definition of `pf_get_hal_format'
-TARGET_CFLAGS:append = " -fcommon"
-TARGET_CXXFLAGS:append = " -fcommon"
+TARGET_CFLAGS:append = " -I${STAGING_INCDIR}/drm"
+TARGET_LDFLAGS:append = " ${@bb.utils.contains('DISTRO_FEATURES', 'opengl', '-lGLESv2', '', d)}"
 
 # Ensures the --enable-mmal-avcodec flag is available for usage
 do_configure:prepend() {
     olddir=`pwd`
     cd ${S}
     ./bootstrap
-    cd $olddir
-}
-
-do_configure:append() {
-    # https://forums.raspberrypi.com/viewtopic.php?p=1601535
-    sed -i "/GLAPI void APIENTRY glShaderSource (/d" ${STAGING_INCDIR}/GL/glext.h
-    #sed -i -e s:'${top_builddir_slash}libtool':'${top_builddir_slash}'${TARGET_SYS}-libtool:g ${B}/doltlibtool
+    cd $olddir 
 }
 
 # This recipe packages vlc as a library as well, so qt4 dependencies
@@ -140,17 +143,17 @@ FILES:${PN} += "\
     ${datadir}/vlc \
     ${datadir}/icons \
     ${datadir}/metainfo/vlc.appdata.xml \
-"
+    "
 
 FILES:${PN}-dbg += "\
     ${libdir}/vlc/*/.debug \
     ${libdir}/vlc/plugins/*/.debug \
-"
+    "
 
 FILES:${PN}-staticdev += "\
     ${libdir}/vlc/plugins/*/*.a \
     ${libdir}/vlc/libcompat.a \
-"
+    "
 
 # Only enable it for rpi class of machines
 COMPATIBLE_HOST = "null"

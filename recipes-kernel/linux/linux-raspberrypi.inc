@@ -15,6 +15,8 @@ SRC_URI += " \
     ${@bb.utils.contains("INITRAMFS_IMAGE_BUNDLE", "1", "file://initramfs-image-bundle.cfg", "", d)} \
     ${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", "file://vc4graphics.cfg", "", d)} \
     ${@bb.utils.contains("MACHINE_FEATURES", "wm8960", "file://wm8960.cfg", "", d)} \
+    ${@bb.utils.contains("DISTRO_FEATURES", "kvm", "file://host-kvm.scc", "", d)} \
+    ${@bb.utils.contains("DISTRO_FEATURES", "kvm", "file://host-kvm.cfg", "", d)} \
     "
 
 KCONFIG_MODE = "--alldefconfig"
@@ -38,3 +40,10 @@ KERNEL_EXTRA_ARGS += "LOADADDR=${UBOOT_ENTRYPOINT}"
 
 UBOOT_ENTRYPOINT =       "0x00008000"
 UBOOT_LOADADDRESS =      "0x00008000"
+
+# remove additions made by meta-virtualization
+KERNEL_FEATURES:remove:raspberrypi4-64 = "features/kvm/qemu-kvm-enable.scc"
+
+# set to knowm state
+KERNEL_FEATURES:append:raspberrypi4-64 = "${@bb.utils.contains("DISTRO_FEATURES", "kvm", " host-kvm.scc", "", d)}"
+

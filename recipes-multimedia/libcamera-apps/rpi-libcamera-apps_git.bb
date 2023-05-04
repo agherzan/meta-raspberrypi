@@ -9,6 +9,7 @@ LIC_FILES_CHKSUM = "file://license.txt;md5=a0013d1b383d72ba4bdc5b750e7d1d77"
 
 SRC_URI = "\
     git://github.com/raspberrypi/libcamera-apps.git;protocol=https;branch=main \
+    file://0001-utils-version.py-use-usr-bin-env-in-shebang.patch \
 "
 SRCREV = "22a52590c33a813743b4e6337478c208201c77b1"
 

@@ -11,7 +11,8 @@ SRC_URI = "\
     git://github.com/raspberrypi/libcamera-apps.git;protocol=https;branch=main \
     file://0001-utils-version.py-use-usr-bin-env-in-shebang.patch \
 "
-SRCREV = "22a52590c33a813743b4e6337478c208201c77b1"
+PV = "1.1.2+git${SRCPV}"
+SRCREV = "12098520a3dec36ba796655baac7efece457f8d8"
 
 S = "${WORKDIR}/git"
 
@@ -37,11 +38,7 @@ PACKAGECONFIG[qt] = "-DENABLE_QT=1,-DENABLE_QT=0"
 PACKAGECONFIG[opencv] = "-DENABLE_OPENCV=1,-DENABLE_OPENCV=0"
 PACKAGECONFIG[tensorflow-lite] = "-DENABLE_TFLITE=1,-DENABLE_TFLITE=0"
 
-# Build does not version solibs so we need to change the suffix
-SOLIBS = ".so"
-FILES_SOLIBSDEV = ""
-
 do_install:append() {
     # Requires python3-core which not all systems may have
-    rm ${D}/${bindir}/camera-bug-report
+    rm -v ${D}/${bindir}/camera-bug-report
 }

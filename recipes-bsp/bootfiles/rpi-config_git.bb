@@ -205,10 +205,10 @@ do_deploy() {
     fi
 
     # Choose Camera Sensor to be used, default imx477 sensor
-    #if [ "${RASPBERRYPI_HD_CAMERA}" = "1" ]; then
-    #    echo "# Enable Sony RaspberryPi Camera(imx477)" >> $CONFIG
-    #    echo "dtoverlay=imx477" >> $CONFIG
-    #fi
+    if [ "${RASPBERRYPI_HD_CAMERA}" = "1" ]; then
+       echo "# Enable Sony RaspberryPi Camera(imx477)" >> $CONFIG
+       echo "dtoverlay=imx477" >> $CONFIG
+    fi
 
     # Choose Camera Sensor to be used, default imx708 sensor
     if [ "${RASPBERRYPI_CAMERA_V3}" = "1" ]; then

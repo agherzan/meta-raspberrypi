@@ -16,8 +16,6 @@ SRCREV = "12098520a3dec36ba796655baac7efece457f8d8"
 
 S = "${WORKDIR}/git"
 
-COMPATIBLE_MACHINE = "^rpi$"
-
 DEPENDS = "libcamera libexif jpeg tiff libpng boost"
 
 inherit cmake pkgconfig

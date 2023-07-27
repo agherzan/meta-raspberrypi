@@ -38,7 +38,7 @@ PACKAGECONFIG[drm] = "-DENABLE_DRM=1,-DENABLE_DRM=0,libdrm"
 PACKAGECONFIG[x11] = "-DENABLE_X11=1,-DENABLE_X11=0"
 PACKAGECONFIG[qt] = "-DENABLE_QT=1,-DENABLE_QT=0"
 PACKAGECONFIG[opencv] = "-DENABLE_OPENCV=1,-DENABLE_OPENCV=0,opencv"
-PACKAGECONFIG[tensorflow-lite] = "-DENABLE_TFLITE=1,-DENABLE_TFLITE=0"
+PACKAGECONFIG[tflite] = "-DENABLE_TFLITE=1,-DENABLE_TFLITE=0,tensorflow-lite"
 
 do_install:append() {
     # Requires python3-core which not all systems may have

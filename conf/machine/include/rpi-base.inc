@@ -113,9 +113,6 @@ SERIAL_CONSOLES_CHECK ??= "${SERIAL_CONSOLES}"
 # This variable is referred to by recipes fetching / generating the files.
 BOOTFILES_DIR_NAME ?= "bootfiles"
 
-# Set Raspberrypi splash image
-SPLASH ?= "psplash-raspberrypi"
-
 def make_dtb_boot_files(d):
     # Generate IMAGE_BOOT_FILES entries for device tree files listed in
     # KERNEL_DEVICETREE.

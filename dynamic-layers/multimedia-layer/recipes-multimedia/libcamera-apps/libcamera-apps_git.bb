@@ -11,8 +11,8 @@ SRC_URI = "\
     git://github.com/raspberrypi/libcamera-apps.git;protocol=https;branch=main \
     file://0001-utils-version.py-use-usr-bin-env-in-shebang.patch \
 "
-PV = "1.1.2+git${SRCPV}"
-SRCREV = "12098520a3dec36ba796655baac7efece457f8d8"
+PV = "1.2.1+git${SRCPV}"
+SRCREV = "3d9ac1087b3d6aa9cf3758c088414d7cf518c395"
 
 S = "${WORKDIR}/git"
 

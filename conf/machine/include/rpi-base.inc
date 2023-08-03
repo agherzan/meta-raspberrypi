@@ -31,6 +31,10 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/i2c-gpio.dtbo \
     overlays/i2c-rtc.dtbo \
     overlays/imx219.dtbo \
+    overlays/imx290.dtbo \
+    overlays/imx296.dtbo \
+    overlays/imx327.dtbo \
+    overlays/imx378.dtbo \
     overlays/imx477.dtbo \
     overlays/imx708.dtbo \
     overlays/iqaudio-dac.dtbo \
@@ -42,6 +46,8 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/mcp2515-can1.dtbo \
     overlays/mcp3008.dtbo \
     overlays/miniuart-bt.dtbo \
+    overlays/ov5647.dtbo \
+    overlays/ov9281.dtbo \
     overlays/overlay_map.dtb \
     overlays/pitft22.dtbo \
     overlays/pitft28-capacitive.dtbo \

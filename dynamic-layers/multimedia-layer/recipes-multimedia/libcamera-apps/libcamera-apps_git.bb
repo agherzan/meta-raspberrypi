@@ -12,7 +12,7 @@ SRC_URI = "\
     file://0001-utils-version.py-use-usr-bin-env-in-shebang.patch \
 "
 PV = "1.2.1+git${SRCPV}"
-SRCREV = "3d9ac1087b3d6aa9cf3758c088414d7cf518c395"
+SRCREV = "1c1d1c1a2a86d70cf873edc8bb72d174f037973a"
 
 S = "${WORKDIR}/git"
 

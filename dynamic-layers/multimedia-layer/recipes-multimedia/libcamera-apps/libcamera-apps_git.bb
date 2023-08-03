@@ -1,4 +1,4 @@
-SUMMARY = "A suite of libcamera-based apps for the Raspberry Pi"
+SUMMARY = "A suite of libcamera-based apps"
 DESCRIPTION = "This is a small suite of libcamera-based apps that aim to \
 copy the functionality of the existing \"raspicam\" apps."
 HOMEPAGE = "https://github.com/raspberrypi/libcamera-apps"
@@ -18,27 +18,23 @@ S = "${WORKDIR}/git"
 
 DEPENDS = "libcamera libexif jpeg tiff libpng boost"
 
-inherit cmake pkgconfig
+PACKAGECONFIG ??= "drm"
+PACKAGECONFIG[libav] = "-Denable_libav=true, -Denable_libav=false, libav"
+PACKAGECONFIG[drm] = "-Denable_drm=true, -Denable_drm=false, libdrm"
+PACKAGECONFIG[egl] = "-Denable_egl=true, -Denable_egl=false, virtual/egl"
+PACKAGECONFIG[qt] = "-Denable_qt=true, -Denable_qt=false, qtbase"
+PACKAGECONFIG[opencv] = "-Denable_opencv=true, -Denable_opencv=false, opencv"
+PACKAGECONFIG[tflite] = "-Denable_tflite=true, -Denable_tflite=false, tensorflow-lite"
 
-EXTRA_OECMAKE = "\
-    -DCMAKE_BUILD_TYPE=Release \
-    -DBoost_INCLUDE_DIR=${STAGING_INCDIR} \
-    -DCMAKE_LIBRARY_PATH=${STAGING_LIBDIR} \
-"
+inherit meson pkgconfig
 
-LIBCAMERA_ARCH = "${TARGET_ARCH}"
-LIBCAMERA_ARCH:aarch64 = "arm64"
-LIBCAMERA_ARCH:arm:raspberrypi3 = "armv8-neon"
-LIBCAMERA_ARCH:arm:raspberrypi4 = "armv8-neon"
-EXTRA_OECMAKE += "-DENABLE_COMPILE_FLAGS_FOR_TARGET=${LIBCAMERA_ARCH}"
+NEON_FLAGS = ""
+NEON_FLAGS:aarch64 = "-Dneon_flags=arm64"
+NEON_FLAGS:arm:raspberrypi3 = "-Dneon_flags=armv8-neon"
+NEON_FLAGS:arm:raspberrypi4 = "-Dneon_flags=armv8-neon"
+EXTRA_OEMESON += "${NEON_FLAGS}"
 
-PACKAGECONFIG[drm] = "-DENABLE_DRM=1,-DENABLE_DRM=0,libdrm"
-PACKAGECONFIG[x11] = "-DENABLE_X11=1,-DENABLE_X11=0"
-PACKAGECONFIG[qt] = "-DENABLE_QT=1,-DENABLE_QT=0"
-PACKAGECONFIG[opencv] = "-DENABLE_OPENCV=1,-DENABLE_OPENCV=0,opencv"
-PACKAGECONFIG[tflite] = "-DENABLE_TFLITE=1,-DENABLE_TFLITE=0,tensorflow-lite"
-
+# QA Issue: /usr/bin/camera-bug-report contained in package libcamera-apps requires /usr/bin/python3
 do_install:append() {
-    # Requires python3-core which not all systems may have
     rm -v ${D}/${bindir}/camera-bug-report
 }

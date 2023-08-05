@@ -18,6 +18,7 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/overlay_map.dtb \
     overlays/at86rf233.dtbo \
     overlays/disable-bt.dtbo \
+    overlays/disable-wifi.dtbo \
     overlays/dwc2.dtbo \
     overlays/gpio-ir.dtbo \
     overlays/gpio-ir-tx.dtbo \
@@ -35,6 +36,7 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/i2c-rtc.dtbo \
     overlays/imx219.dtbo \
     overlays/imx477.dtbo \
+    overlays/imx708.dtbo \
     overlays/iqaudio-dac.dtbo \
     overlays/iqaudio-dacplus.dtbo \
     overlays/mcp2515-can0.dtbo \
@@ -68,11 +70,13 @@ RPI_KERNEL_DEVICETREE ?= " \
     bcm2710-rpi-2-b.dtb \
     bcm2710-rpi-3-b.dtb \
     bcm2710-rpi-3-b-plus.dtb \
+    bcm2710-rpi-zero-2.dtb \
     bcm2711-rpi-4-b.dtb \
     bcm2711-rpi-400.dtb \
     bcm2708-rpi-cm.dtb \
     bcm2710-rpi-cm3.dtb \
     bcm2711-rpi-cm4.dtb \
+    bcm2711-rpi-cm4s.dtb \
     "
 
 KERNEL_DEVICETREE ??= " \
@@ -109,13 +113,14 @@ SERIAL_CONSOLES_CHECK ??= "${SERIAL_CONSOLES}"
 # This variable is referred to by recipes fetching / generating the files.
 BOOTFILES_DIR_NAME ?= "bootfiles"
 
-# Set Raspberrypi splash image
-SPLASH ?= "psplash-raspberrypi"
-
 def make_dtb_boot_files(d):
     # Generate IMAGE_BOOT_FILES entries for device tree files listed in
     # KERNEL_DEVICETREE.
     alldtbs = d.getVar('KERNEL_DEVICETREE')
+
+    # DTBs may be built out of kernel with devicetree.bbclass
+    if not alldtbs:
+        return ''
 
     def transform(dtb):
         base = os.path.basename(dtb)
@@ -133,12 +138,15 @@ def make_dtb_boot_files(d):
 
     return ' '.join([transform(dtb) for dtb in alldtbs.split(' ') if dtb])
 
+RPI_EXTRA_IMAGE_BOOT_FILES ?= " \
+	${@bb.utils.contains('RPI_USE_U_BOOT', '1', \
+		'${KERNEL_IMAGETYPE} u-boot.bin;${SDIMG_KERNELIMAGE} boot.scr', \
+		'${KERNEL_IMAGETYPE};${SDIMG_KERNELIMAGE}', d)} \
+	"
 
 IMAGE_BOOT_FILES ?= "${BOOTFILES_DIR_NAME}/* \
                  ${@make_dtb_boot_files(d)} \
-                 ${@bb.utils.contains('RPI_USE_U_BOOT', '1', \
-                    '${KERNEL_IMAGETYPE} u-boot.bin;${SDIMG_KERNELIMAGE} boot.scr', \
-                    '${KERNEL_IMAGETYPE};${SDIMG_KERNELIMAGE}', d)} \
+                 ${RPI_EXTRA_IMAGE_BOOT_FILES} \
                  "
 do_image_wic[depends] += " \
     rpi-bootfiles:do_deploy \

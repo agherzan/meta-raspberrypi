@@ -2,18 +2,16 @@ DESCRIPTION = "Commented config.txt file for the Raspberry Pi. \
                The Raspberry Pi config.txt file is read by the GPU before \
                the ARM core is initialised. It can be used to set various \
                system configuration parameters."
+HOMEPAGE = "https://www.raspberrypi.com/documentation/computers/config_txt.html"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 COMPATIBLE_MACHINE = "^rpi$"
 
-SRCREV = "648ffc470824c43eb0d16c485f4c24816b32cd6f"
-SRC_URI = "git://github.com/Evilpaul/RPi-config.git;protocol=https;branch=master \
-          "
+SRC_URI = "file://config.txt"
 
-S = "${WORKDIR}/git"
-
-PR = "r5"
+S = "${WORKDIR}"
+B = "${WORKDIR}/build"
 
 INHIBIT_DEFAULT_DEPS = "1"
 
@@ -38,9 +36,8 @@ GPIO_SHUTDOWN_PIN ??= ""
 
 inherit deploy nopackages
 
-do_deploy() {
-    install -d ${DEPLOYDIR}/${BOOTFILES_DIR_NAME}
-    CONFIG=${DEPLOYDIR}/${BOOTFILES_DIR_NAME}/config.txt
+do_compile() {
+    CONFIG=${B}/config.txt
 
     cp ${S}/config.txt $CONFIG
 
@@ -318,7 +315,7 @@ do_deploy() {
     fi
 }
 
-do_deploy:append:raspberrypi3-64() {
+do_compile:append:raspberrypi3-64() {
     echo "# have a properly sized image" >> $CONFIG
     echo "disable_overscan=1" >> $CONFIG
 
@@ -326,7 +323,9 @@ do_deploy:append:raspberrypi3-64() {
     echo "dtparam=audio=on" >> $CONFIG
 }
 
-do_deploy:append() {
+do_deploy() {
+    install -D -m 600 ${B}/config.txt ${DEPLOYDIR}/${BOOTFILES_DIR_NAME}/config.txt
+
     if grep -q -E '^.{80}.$' ${DEPLOYDIR}/${BOOTFILES_DIR_NAME}/config.txt; then
         bbwarn "config.txt contains lines longer than 80 characters, this is not supported"
     fi

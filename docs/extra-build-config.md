@@ -108,13 +108,6 @@ Example to force HDMI output to 720p in CEA mode:
 
 See: <https://www.raspberrypi.com/documentation/computers/configuration.html#hdmi-configuration>
 
-## Video camera support with V4L2 drivers
-
-Set this variable to enable support for the video camera (Linux 3.12.4+
-required):
-
-    VIDEO_CAMERA = "1"
-
 ## Enable offline compositing support
 
 Set this variable to enable support for dispmanx offline compositing:
@@ -389,28 +382,25 @@ option:
         # Raspberry Pi 7\" display/touch screen \n \
         lcd_rotate=2 \n \
         '
-## Enable Raspberry Pi Camera Module
+## Camera Modules
 
-Raspberry Pi does not have the unicam device ( Raspberry Pi Camera ) enabled by default.
-Because this unicam device ( bcm2835-unicam ) as of now is used by libcamera opensource.
-So we have to explicitly enable it in local.conf.
+Automatic camera detection is enabled by default, which is equivalent to:
 
-    RASPBERRYPI_CAMERA_V2 = "1"
+    RASPBERRYPI_CAMERA = "auto"
 
-This will add the device tree overlay imx219 ( Raspberry Pi Camera Module V2 sensor driver 
-) to config.txt. Also, this will enable adding Contiguous Memory Allocation value in the 
-cmdline.txt.
+To override the automatic camera detection, clear `RASPBERRYPI_CAMERA`
+or specify an explicit camera module name. Common values are predefined to
+avoid case sensitivity issues or typos, like `${RASPBERRYPI_CAMERA_V2}`.
+For example, request the support for the Camera Module 3 with either:
 
-Similarly, the Raspberry Pi Camera Module v3 also has to be explicitly enabled in local.conf.
+    RASPBERRYPI_CAMERA = "${RASPBERRYPI_CAMERA_V3}"
 
-    RASPBERRYPI_CAMERA_V3 = "1"
+or directly:
 
-This will add the device tree overlay imx708 ( Raspberry Pi Camera Module V3 sensor driver ) 
-to config.txt.
+    RASPBERRYPI_CAMERA = "imx708"
 
 See:
-* <https://www.raspberrypi.com/documentation/computers/camera_software.html>
-* <https://www.raspberrypi.org/blog/an-open-source-camera-stack-for-raspberry-pi-using-libcamera/>
+* <https://www.raspberrypi.com/documentation/computers/camera_software.html#if-you-do-need-to-alter-the-configuration>
 
 ## WM8960 soundcard support
 

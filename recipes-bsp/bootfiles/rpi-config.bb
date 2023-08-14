@@ -36,6 +36,17 @@ GPIO_SHUTDOWN_PIN ??= ""
 
 inherit deploy nopackages
 
+# Camera configuration (see documentation for details)
+RASPBERRYPI_CAMERA ??= "auto"
+
+# TODO Drop the weak V2/V3 assignments once the support for
+# deprecated RASPBERRYPI_CAMERA_V2/V3 = "1" flags is dropped.
+RASPBERRYPI_CAMERA_V1 = "ov5647"
+RASPBERRYPI_CAMERA_V2 ?= "imx219"
+RASPBERRYPI_CAMERA_HQ = "imx477"
+RASPBERRYPI_CAMERA_GS = "imx296"
+RASPBERRYPI_CAMERA_V3 ?= "imx708"
+
 do_compile() {
     CONFIG=${B}/config.txt
 
@@ -122,8 +133,22 @@ do_compile() {
         echo "display_rotate=${DISPLAY_ROTATE}" >> $CONFIG
     fi
 
-    # Video camera support
     if [ "${VIDEO_CAMERA}" = "1" ]; then
+        bbwarn "The VIDEO_CAMERA variable is deprecated, see RASPBERRYPI_CAMERA instead."
+        RASPBERRYPI_CAMERA="auto"
+    fi
+
+    if [ "${RASPBERRYPI_CAMERA_V2}" = "1" ]; then
+        bbwarn "Setting RASPBERRYPI_CAMERA_V2 = \"1\" is deprecated, set RASPBERRYPI_CAMERA = \"imx219\" to enable support for V2 camera."
+        RASPBERRYPI_CAMERA="imx219"
+    fi
+
+    if [ "${RASPBERRYPI_CAMERA_V3}" = "1" ]; then
+        bbwarn "Setting RASPBERRYPI_CAMERA_V3 = \"1\" is deprecated, set RASPBERRYPI_CAMERA = \"imx708\" to enable support for Camera Module 3."
+        RASPBERRYPI_CAMERA="imx708"
+    fi
+
+    if [ -n "${RASPBERRYPI_CAMERA}" ]; then
         #   It has been observed that Raspberry Pi 4B 4GB may fail to enable the
         # camera if "start_x=1" is at the end of the file. Therefore,
         # "start_x=1" has been set to replace the original occurrence in
@@ -134,6 +159,21 @@ do_compile() {
         # variables. It was commented that this limitation could be 4k but
         # not proved.
         echo "start_x=1" >> $CONFIG
+
+        case "${RASPBERRYPI_CAMERA}" in
+            auto)
+                echo "camera_auto_detect=1" >> $CONFIG
+                ;;
+            imx290)
+                echo "dtoverlay=imx290,clock-frequency=74250000" >> $CONFIG
+                ;;
+            imx327)
+                echo "dtoverlay=imx290,clock-frequency=37125000" >> $CONFIG
+                ;;
+            *)
+                echo "dtoverlay=${RASPBERRYPI_CAMERA}" >> $CONFIG
+                ;;
+        esac
     fi
 
     # Offline compositing support
@@ -207,24 +247,6 @@ do_compile() {
     if [ "${VC4GRAPHICS}" = "1" ]; then
         echo "# Enable VC4 Graphics" >> $CONFIG
         echo "dtoverlay=${VC4DTBO}" >> $CONFIG
-    fi
-
-    # Choose Camera Sensor to be used, default imx219 sensor
-    if [ "${RASPBERRYPI_CAMERA_V2}" = "1" ]; then
-        echo "# Enable Sony RaspberryPi Camera(imx219)" >> $CONFIG
-        echo "dtoverlay=imx219" >> $CONFIG
-    fi
-
-    # Choose Camera Sensor to be used, default imx477 sensor
-    #if [ "${RASPBERRYPI_HD_CAMERA}" = "1" ]; then
-    #    echo "# Enable Sony RaspberryPi Camera(imx477)" >> $CONFIG
-    #    echo "dtoverlay=imx477" >> $CONFIG
-    #fi
-
-    # Choose Camera Sensor to be used, default imx708 sensor
-    if [ "${RASPBERRYPI_CAMERA_V3}" = "1" ]; then
-        echo "# Enable Sony RaspberryPi Camera(imx708)" >> $CONFIG
-        echo "dtoverlay=imx708" >> $CONFIG
     fi
 
     # Waveshare "C" 1024x600 7" Rev2.1 IPS capacitive touch (http://www.waveshare.com/7inch-HDMI-LCD-C.htm)

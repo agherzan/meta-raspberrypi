@@ -37,4 +37,7 @@ EXTRA_OEMESON += "${NEON_FLAGS}"
 # QA Issue: /usr/bin/camera-bug-report contained in package libcamera-apps requires /usr/bin/python3
 do_install:append() {
     rm -v ${D}/${bindir}/camera-bug-report
+
+    install -d ${D}/usr/share/${BPN}/assets
+    install -m 644 ${S}/assets/* ${D}/usr/share/${BPN}/assets
 }

@@ -7,10 +7,16 @@ SECTION = "console/utils"
 LICENSE = "BSD-2-Clause"
 LIC_FILES_CHKSUM = "file://license.txt;md5=a0013d1b383d72ba4bdc5b750e7d1d77"
 
+OBJECT_DETECT_TF ?= "coco_ssd_mobilenet_v1_1.0_quant_2018_06_29"
+
 SRC_URI = "\
     git://github.com/raspberrypi/libcamera-apps.git;protocol=https;branch=main \
     file://0001-utils-version.py-use-usr-bin-env-in-shebang.patch \
+    https://storage.googleapis.com/download.tensorflow.org/models/tflite/${OBJECT_DETECT_TF}.zip;name=object_detect_tf \
 "
+
+SRC_URI[object_detect_tf.sha256sum] = "a809cd290b4d6a2e8a9d5dad076e0bd695b8091974e0eed1052b480b2f21b6dc"
+
 PV = "1.2.1+git${SRCPV}"
 SRCREV = "1c1d1c1a2a86d70cf873edc8bb72d174f037973a"
 
@@ -40,4 +46,9 @@ do_install:append() {
 
     install -d ${D}/usr/share/${BPN}/assets
     install -m 644 ${S}/assets/* ${D}/usr/share/${BPN}/assets
+
+    install -d ${D}/usr/share/${BPN}/assets/${OBJECT_DETECT_TF}
+    install -m 644 ${WORKDIR}/detect.tflite ${D}/usr/share/${BPN}/assets/${OBJECT_DETECT_TF}
+    install -m 644 ${WORKDIR}/labelmap.txt ${D}/usr/share/${BPN}/assets/${OBJECT_DETECT_TF}
+    sed -i -e "s,/home/pi/models,/usr/share/${BPN}/assets,g" ${D}/usr/share/${BPN}/assets/object_detect_tf.json
 }

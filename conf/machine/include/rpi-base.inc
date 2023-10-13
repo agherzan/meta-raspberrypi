@@ -29,6 +29,7 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/miniuart-bt.dtbo \
     overlays/mcp2515-can0.dtbo \
     overlays/mcp2515-can1.dtbo \
+    overlays/piscreen2r.dtbo \
     overlays/pitft22.dtbo \
     overlays/pitft28-resistive.dtbo \
     overlays/pitft28-capacitive.dtbo \

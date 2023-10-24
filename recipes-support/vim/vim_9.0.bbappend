@@ -1,0 +1,1 @@
+RPROVIDES:${PN} += " xxd"

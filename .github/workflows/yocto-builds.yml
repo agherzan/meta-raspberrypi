@@ -23,6 +23,7 @@ jobs:
           - raspberrypi3
           - raspberrypi4-64
           - raspberrypi4
+          - raspberrypi5
           - raspberrypi-cm3
           - raspberrypi-cm
         image: [rpi-test-image]

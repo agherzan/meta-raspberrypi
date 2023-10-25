@@ -58,6 +58,10 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/wm8960-soundcard.dtbo \
     "
 
+RPI_KERNEL_DEVICETREE_OVERLAYS:append:raspberrypi5 = " \
+    overlays/vc4-kms-v3d-pi5.dtbo \
+"
+
 RPI_KERNEL_DEVICETREE ?= " \
     bcm2708-rpi-zero.dtb \
     bcm2708-rpi-zero-w.dtb \
@@ -73,6 +77,7 @@ RPI_KERNEL_DEVICETREE ?= " \
     bcm2708-rpi-cm.dtb \
     bcm2710-rpi-cm3.dtb \
     bcm2711-rpi-cm4.dtb \
+    bcm2711-rpi-cm4s.dtb \
     "
 
 KERNEL_DEVICETREE ??= " \

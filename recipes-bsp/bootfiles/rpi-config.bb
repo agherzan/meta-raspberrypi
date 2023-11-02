@@ -2,18 +2,16 @@ DESCRIPTION = "Commented config.txt file for the Raspberry Pi. \
                The Raspberry Pi config.txt file is read by the GPU before \
                the ARM core is initialised. It can be used to set various \
                system configuration parameters."
+HOMEPAGE = "https://www.raspberrypi.com/documentation/computers/config_txt.html"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 COMPATIBLE_MACHINE = "^rpi$"
 
-SRCREV = "648ffc470824c43eb0d16c485f4c24816b32cd6f"
-SRC_URI = "git://github.com/Evilpaul/RPi-config.git;protocol=https;branch=master \
-          "
+SRC_URI = "file://config.txt"
 
-S = "${WORKDIR}/git"
-
-PR = "r5"
+S = "${WORKDIR}"
+B = "${WORKDIR}/build"
 
 INHIBIT_DEFAULT_DEPS = "1"
 
@@ -38,95 +36,119 @@ GPIO_SHUTDOWN_PIN ??= ""
 
 inherit deploy nopackages
 
-do_deploy() {
-    install -d ${DEPLOYDIR}/${BOOTFILES_DIR_NAME}
-    CONFIG=${DEPLOYDIR}/${BOOTFILES_DIR_NAME}/config.txt
+# Camera configuration (see documentation for details)
+RASPBERRYPI_CAMERA ??= "auto"
+
+# TODO Drop the weak V2/V3 assignments once the support for
+# deprecated RASPBERRYPI_CAMERA_V2/V3 = "1" flags is dropped.
+RASPBERRYPI_CAMERA_V1 = "ov5647"
+RASPBERRYPI_CAMERA_V2 ?= "imx219"
+RASPBERRYPI_CAMERA_HQ = "imx477"
+RASPBERRYPI_CAMERA_GS = "imx296"
+RASPBERRYPI_CAMERA_V3 ?= "imx708"
+
+do_compile() {
+    CONFIG=${B}/config.txt
 
     cp ${S}/config.txt $CONFIG
 
     if [ -n "${KEY_DECODE_MPG2}" ]; then
-        sed -i '/#decode_MPG2=/ c\decode_MPG2=${KEY_DECODE_MPG2}' $CONFIG
+        echo "decode_MPG2=${KEY_DECODE_MPG2}" >> $CONFIG
     fi
     if [ -n "${KEY_DECODE_WVC1}" ]; then
-        sed -i '/#decode_WVC1=/ c\decode_WVC1=${KEY_DECODE_WVC1}' $CONFIG
+        echo "decode_WVC1=${KEY_DECODE_WVC1}" >> $CONFIG
     fi
     if [ -n "${DISABLE_OVERSCAN}" ]; then
-        sed -i '/#disable_overscan=/ c\disable_overscan=${DISABLE_OVERSCAN}' $CONFIG
+        echo "disable_overscan=${DISABLE_OVERSCAN}" >> $CONFIG
     fi
     if [ "${DISABLE_SPLASH}" = "1" ]; then
-        sed -i '/#disable_splash=/ c\disable_splash=${DISABLE_SPLASH}' $CONFIG
+        echo "disable_splash=${DISABLE_SPLASH}" >> $CONFIG
     fi
 
     # Set overclocking options
     if [ -n "${ARM_FREQ}" ]; then
-        sed -i '/#arm_freq=/ c\arm_freq=${ARM_FREQ}' $CONFIG
+        echo "arm_freq=${ARM_FREQ}" >> $CONFIG
     fi
     if [ -n "${GPU_FREQ}" ]; then
-        sed -i '/#gpu_freq=/ c\gpu_freq=${GPU_FREQ}' $CONFIG
+        echo "gpu_freq=${GPU_FREQ}" >> $CONFIG
     fi
     if [ -n "${CORE_FREQ}" ]; then
-        sed -i '/#core_freq=/ c\core_freq=${CORE_FREQ}' $CONFIG
+        echo "core_freq=${CORE_FREQ}" >> $CONFIG
     fi
     if [ -n "${SDRAM_FREQ}" ]; then
-        sed -i '/#sdram_freq=/ c\sdram_freq=${SDRAM_FREQ}' $CONFIG
+        echo "sdram_freq=${SDRAM_FREQ}" >> $CONFIG
     fi
     if [ -n "${OVER_VOLTAGE}" ]; then
-        sed -i '/#over_voltage=/ c\over_voltage=${OVER_VOLTAGE}' $CONFIG
+        echo "over_voltage=${OVER_VOLTAGE}" >> $CONFIG
     fi
 
     # GPU memory
     if [ -n "${GPU_MEM}" ]; then
-        sed -i '/#gpu_mem=/ c\gpu_mem=${GPU_MEM}' $CONFIG
+        echo "gpu_mem=${GPU_MEM}" >> $CONFIG
     fi
     if [ -n "${GPU_MEM_256}" ]; then
-        sed -i '/#gpu_mem_256=/ c\gpu_mem_256=${GPU_MEM_256}' $CONFIG
+        echo "gpu_mem_256=${GPU_MEM_256}" >> $CONFIG
     fi
     if [ -n "${GPU_MEM_512}" ]; then
-        sed -i '/#gpu_mem_512=/ c\gpu_mem_512=${GPU_MEM_512}' $CONFIG
+        echo "gpu_mem_512=${GPU_MEM_512}" >> $CONFIG
     fi
     if [ -n "${GPU_MEM_1024}" ]; then
-        sed -i '/#gpu_mem_1024=/ c\gpu_mem_1024=${GPU_MEM_1024}' $CONFIG
+        echo "gpu_mem_1024=${GPU_MEM_1024}" >> $CONFIG
     fi
 
     # Set boot delay
     if [ -n "${BOOT_DELAY}" ]; then
-        sed -i '/#boot_delay=/ c\boot_delay=${BOOT_DELAY}' $CONFIG
+        echo "boot_delay=${BOOT_DELAY}" >> $CONFIG
     fi
     if [ -n "${BOOT_DELAY_MS}" ]; then
-        sed -i '/#boot_delay_ms=/ c\boot_delay_ms=${BOOT_DELAY_MS}' $CONFIG
+        echo "boot_delay_ms=${BOOT_DELAY_MS}" >> $CONFIG
     fi
 
     # Set HDMI and composite video options
     if [ -n "${HDMI_FORCE_HOTPLUG}" ]; then
-        sed -i '/#hdmi_force_hotplug=/ c\hdmi_force_hotplug=${HDMI_FORCE_HOTPLUG}' $CONFIG
+        echo "hdmi_force_hotplug=${HDMI_FORCE_HOTPLUG}" >> $CONFIG
     fi
     if [ -n "${HDMI_DRIVE}" ]; then
-        sed -i '/#hdmi_drive=/ c\hdmi_drive=${HDMI_DRIVE}' $CONFIG
+        echo "hdmi_drive=${HDMI_DRIVE}" >> $CONFIG
     fi
     if [ -n "${HDMI_GROUP}" ]; then
-        sed -i '/#hdmi_group=/ c\hdmi_group=${HDMI_GROUP}' $CONFIG
+        echo "hdmi_group=${HDMI_GROUP}" >> $CONFIG
     fi
     if [ -n "${HDMI_MODE}" ]; then
-        sed -i '/#hdmi_mode=/ c\hdmi_mode=${HDMI_MODE}' $CONFIG
+        echo "hdmi_mode=${HDMI_MODE}" >> $CONFIG
     fi
     if [ -n "${HDMI_CVT}" ]; then
         echo 'hdmi_cvt=${HDMI_CVT}' >> $CONFIG
     fi
     if [ -n "${CONFIG_HDMI_BOOST}" ]; then
-        sed -i '/#config_hdmi_boost=/ c\config_hdmi_boost=${CONFIG_HDMI_BOOST}' $CONFIG
+        echo "config_hdmi_boost=${CONFIG_HDMI_BOOST}" >> $CONFIG
     fi
     if [ -n "${SDTV_MODE}" ]; then
-        sed -i '/#sdtv_mode=/ c\sdtv_mode=${SDTV_MODE}' $CONFIG
+        echo "sdtv_mode=${SDTV_MODE}" >> $CONFIG
     fi
     if [ -n "${SDTV_ASPECT}" ]; then
-        sed -i '/#sdtv_aspect=/ c\sdtv_aspect=${SDTV_ASPECT}' $CONFIG
+        echo "sdtv_aspect=${SDTV_ASPECT}" >> $CONFIG
     fi
     if [ -n "${DISPLAY_ROTATE}" ]; then
-        sed -i '/#display_rotate=/ c\display_rotate=${DISPLAY_ROTATE}' $CONFIG
+        echo "display_rotate=${DISPLAY_ROTATE}" >> $CONFIG
     fi
 
-    # Video camera support
     if [ "${VIDEO_CAMERA}" = "1" ]; then
+        bbwarn "The VIDEO_CAMERA variable is deprecated, see RASPBERRYPI_CAMERA instead."
+        RASPBERRYPI_CAMERA="auto"
+    fi
+
+    if [ "${RASPBERRYPI_CAMERA_V2}" = "1" ]; then
+        bbwarn "Setting RASPBERRYPI_CAMERA_V2 = \"1\" is deprecated, set RASPBERRYPI_CAMERA = \"imx219\" to enable support for V2 camera."
+        RASPBERRYPI_CAMERA="imx219"
+    fi
+
+    if [ "${RASPBERRYPI_CAMERA_V3}" = "1" ]; then
+        bbwarn "Setting RASPBERRYPI_CAMERA_V3 = \"1\" is deprecated, set RASPBERRYPI_CAMERA = \"imx708\" to enable support for Camera Module 3."
+        RASPBERRYPI_CAMERA="imx708"
+    fi
+
+    if [ -n "${RASPBERRYPI_CAMERA}" ]; then
         #   It has been observed that Raspberry Pi 4B 4GB may fail to enable the
         # camera if "start_x=1" is at the end of the file. Therefore,
         # "start_x=1" has been set to replace the original occurrence in
@@ -136,7 +158,22 @@ do_deploy() {
         # was that there could be a file size limitation affecting certain
         # variables. It was commented that this limitation could be 4k but
         # not proved.
-        sed -i '/#start_x=/ c\start_x=1' $CONFIG
+        echo "start_x=1" >> $CONFIG
+
+        case "${RASPBERRYPI_CAMERA}" in
+            auto)
+                echo "camera_auto_detect=1" >> $CONFIG
+                ;;
+            imx290)
+                echo "dtoverlay=imx290,clock-frequency=74250000" >> $CONFIG
+                ;;
+            imx327)
+                echo "dtoverlay=imx290,clock-frequency=37125000" >> $CONFIG
+                ;;
+            *)
+                echo "dtoverlay=${RASPBERRYPI_CAMERA}" >> $CONFIG
+                ;;
+        esac
     fi
 
     # Offline compositing support
@@ -210,24 +247,6 @@ do_deploy() {
     if [ "${VC4GRAPHICS}" = "1" ]; then
         echo "# Enable VC4 Graphics" >> $CONFIG
         echo "dtoverlay=${VC4DTBO}" >> $CONFIG
-    fi
-
-    # Choose Camera Sensor to be used, default imx219 sensor
-    if [ "${RASPBERRYPI_CAMERA_V2}" = "1" ]; then
-        echo "# Enable Sony RaspberryPi Camera(imx219)" >> $CONFIG
-        echo "dtoverlay=imx219" >> $CONFIG
-    fi
-
-    # Choose Camera Sensor to be used, default imx477 sensor
-    #if [ "${RASPBERRYPI_HD_CAMERA}" = "1" ]; then
-    #    echo "# Enable Sony RaspberryPi Camera(imx477)" >> $CONFIG
-    #    echo "dtoverlay=imx477" >> $CONFIG
-    #fi
-
-    # Choose Camera Sensor to be used, default imx708 sensor
-    if [ "${RASPBERRYPI_CAMERA_V3}" = "1" ]; then
-        echo "# Enable Sony RaspberryPi Camera(imx708)" >> $CONFIG
-        echo "dtoverlay=imx708" >> $CONFIG
     fi
 
     # Waveshare "C" 1024x600 7" Rev2.1 IPS capacitive touch (http://www.waveshare.com/7inch-HDMI-LCD-C.htm)
@@ -318,7 +337,7 @@ do_deploy() {
     fi
 }
 
-do_deploy:append:raspberrypi3-64() {
+do_compile:append:raspberrypi3-64() {
     echo "# have a properly sized image" >> $CONFIG
     echo "disable_overscan=1" >> $CONFIG
 
@@ -326,7 +345,9 @@ do_deploy:append:raspberrypi3-64() {
     echo "dtparam=audio=on" >> $CONFIG
 }
 
-do_deploy:append() {
+do_deploy() {
+    install -D -m 600 ${B}/config.txt ${DEPLOYDIR}/${BOOTFILES_DIR_NAME}/config.txt
+
     if grep -q -E '^.{80}.$' ${DEPLOYDIR}/${BOOTFILES_DIR_NAME}/config.txt; then
         bbwarn "config.txt contains lines longer than 80 characters, this is not supported"
     fi

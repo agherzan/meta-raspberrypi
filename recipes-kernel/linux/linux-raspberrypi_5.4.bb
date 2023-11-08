@@ -11,4 +11,5 @@ SRC_URI += "file://0001-Revert-selftests-bpf-Skip-perf-hw-events-test-if-the.pat
             file://0002-Revert-selftests-bpf-Fix-perf_buffer-test-on-systems.patch \
             file://powersave.cfg \
             file://android-drivers.cfg \
+	    file://my_config.cfg \
            "

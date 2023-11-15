@@ -43,6 +43,7 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/w1-gpio.dtbo \
     overlays/gpio-ir.dtbo \
     overlays/gpio-ir-tx.dtbo \
+    overlays/audremap.dtbo \
     "
 
 RPI_KERNEL_DEVICETREE ?= " \

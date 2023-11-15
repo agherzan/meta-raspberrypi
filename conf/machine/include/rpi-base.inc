@@ -44,6 +44,7 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/gpio-ir.dtbo \
     overlays/gpio-ir-tx.dtbo \
     overlays/audremap.dtbo \
+    overlays/uart1.dtbo \
     "
 
 RPI_KERNEL_DEVICETREE ?= " \

@@ -9,6 +9,7 @@ COMPATIBLE_MACHINE = "^rpi$"
 
 SRCREV = "6ac2d832c6c3b208e2669f50ec1abf2c20cb7ff4"
 SRC_URI = "git://github.com/Evilpaul/RPi-config.git;protocol=https;branch=master \
+           file://0001-config.txt-reintroduce-start_x.patch \
           "
 
 S = "${WORKDIR}/git"

@@ -18,6 +18,10 @@ SRC_URI += " \
     file://default-cpu-governor.cfg \
     "
 
+SRC_URI:append:raspberrypi4 = " \
+    file://rpi4-nvmem.cfg \
+"
+
 KCONFIG_MODE = "--alldefconfig"
 KBUILD_DEFCONFIG:raspberrypi0-wifi ?= "bcmrpi_defconfig"
 KBUILD_DEFCONFIG:raspberrypi ?= "bcmrpi_defconfig"

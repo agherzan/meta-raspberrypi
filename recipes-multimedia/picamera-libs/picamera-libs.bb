@@ -9,6 +9,7 @@ include recipes-bsp/common/raspberrypi-firmware.inc
 S = "${WORKDIR}/raspberrypi-firmware-1.${PV}"
 
 do_install(){
+    rm -f ${S}/opt/vc/lib/libGLES* ${S}/opt/vc/lib/libEGL* ${S}/opt/vc/lib/libWFC.so ${S}/opt/vc/lib/libOpenVG.so
     install -m 0755 -d ${D}${libdir}
     install -m 0755 ${S}/opt/vc/lib/*.so ${D}${libdir}
 }

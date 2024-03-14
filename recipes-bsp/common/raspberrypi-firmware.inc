@@ -1,9 +1,12 @@
-RPIFW_DATE ?= "20230509~buster"
-
-RPIFW_SRC_URI ?= "https://archive.raspberrypi.com/debian/pool/main/r/raspberrypi-firmware/raspberrypi-firmware_1.${RPIFW_DATE}.orig.tar.xz"
-RPIFW_S ?= "${WORKDIR}/raspberrypi-firmware-1.${RPIFW_DATE}"
+RPIFW_DATE ?= "20240312"
+SRCREV = "5689dd184872b809af91d6636a832b1484d90fef"
+RPIFW_SRC_URI ?= "git://github.com/raspberrypi/firmware;protocol=https;branch=master"
+RPIFW_S ?= "${WORKDIR}/git"
 
 SRC_URI = "${RPIFW_SRC_URI}"
-SRC_URI[sha256sum] = "1d9eb83111826b708f461101766fd2000d45f1c171ad573936d000f623ca8098"
 
 PV = "${RPIFW_DATE}"
+
+# Firmware repo is huge due to its content nature being binary blobs
+# use shallow clone to reduce amount of git metadata being pulled down
+BB_GIT_SHALLOW = "1"

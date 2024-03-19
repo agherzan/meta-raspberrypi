@@ -8,12 +8,12 @@ LICENSE = "BSD-2-Clause"
 LIC_FILES_CHKSUM = "file://license.txt;md5=a0013d1b383d72ba4bdc5b750e7d1d77"
 
 SRC_URI = "\
-    git://github.com/raspberrypi/libcamera-apps.git;protocol=https;branch=main \
+    git://github.com/raspberrypi/rpicam-apps.git;protocol=https;branch=main \
     file://0001-utils-version.py-use-usr-bin-env-in-shebang.patch \
     file://0002-Revert-Support-compressed-pixel-formats-when-saving-.patch \
 "
 PV = "1.4.2+git${SRCPV}"
-SRCREV = "9ae39f85ae6bee9761c36b9b5b80d675bc1fa369"
+SRCREV = "4ffc10ed0c65e0be30935037f43391c8395a685d"
 
 S = "${WORKDIR}/git"
 
@@ -33,7 +33,7 @@ NEON_FLAGS = ""
 NEON_FLAGS:aarch64 = "-Dneon_flags=arm64"
 NEON_FLAGS:arm:raspberrypi3 = "-Dneon_flags=armv8-neon"
 NEON_FLAGS:arm:raspberrypi4 = "-Dneon_flags=armv8-neon"
-EXTRA_OEMESON += "${NEON_FLAGS}"
+EXTRA_OEMESON += "${NEON_FLAGS} -Denable_opencv=true -Denable_tflite=true"
 
 # QA Issue: /usr/bin/camera-bug-report contained in package libcamera-apps requires /usr/bin/python3
 do_install:append() {

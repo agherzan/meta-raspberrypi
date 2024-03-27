@@ -14,7 +14,7 @@ DEPENDS += "python3-setuptools-scm-native"
 
 do_install:append() {
 # it ships ./bcm283x/pulseio/libgpiod_pulsein which is a prebuilt
-# 32bit binary therefore we should make this specific to 32bit rpi machines (based on bcm283x) only
+# 32bit binary for also 64bit machines, by changing permissions (otherwise the build will fail during QA task
     if [ ${@bb.utils.contains('TUNE_FEATURES', 'callconvention-hard', '1', '0', d)} = "0" ]; then
         chmod -R 0644 ${D}${PYTHON_SITEPACKAGES_DIR}/adafruit_blinka/microcontroller/bcm283x
     fi

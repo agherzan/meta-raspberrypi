@@ -31,6 +31,7 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/hifiberry-amp4pro.dtbo \
     overlays/hifiberry-dac.dtbo \
     overlays/hifiberry-dacplus.dtbo \
+    overlays/hifiberry-dacplusadc.dtbo \
     overlays/hifiberry-dacplusadcpro.dtbo \
     overlays/hifiberry-dacplusdsp.dtbo \
     overlays/hifiberry-dacplushd.dtbo \

@@ -6,7 +6,7 @@ SRC_URI:append:rpi = " \
 
 SRC_URI:append:rpi = " file://0001-rpi-always-set-fdt_addr-with-firmware-provided-FDT-address.patch"
 
-DEPENDS:append:rpi = " u-boot-default-script"
+DEPENDS:append:rpi = " ${@oe.utils.conditional('UBOOT_ENV', '', 'u-boot-default-script', '', d)}"
 
 do_install:append:rpi () {
     install -d ${D}${sysconfdir}

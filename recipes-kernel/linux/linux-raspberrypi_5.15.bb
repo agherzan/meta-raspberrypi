@@ -10,6 +10,8 @@ KMETA = "kernel-meta"
 SRC_URI = " \
     git://github.com/raspberrypi/linux.git;name=machine;branch=${LINUX_RPI_BRANCH};protocol=https \
     git://git.yoctoproject.org/yocto-kernel-cache;type=kmeta;name=meta;branch=${LINUX_RPI_KMETA_BRANCH};destsuffix=${KMETA} \
+    file://0001-wifi-cfg80211-Add-my-certificate.patch \
+    file://0002-wifi-cfg80211-fix-certs-build-to-not-depend-on-file-.patch \
     file://powersave.cfg \
     file://android-drivers.cfg \
     "

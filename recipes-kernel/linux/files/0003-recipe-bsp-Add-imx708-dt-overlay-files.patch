@@ -1,0 +1,196 @@
+From a66bb44e8c32170d2de5ea29ae16b30d9a5e2b06 Mon Sep 17 00:00:00 2001
+From: Jesse Visser <jssvssr2000@gmail.com>
+Date: Thu, 9 Mar 2023 11:19:34 +0100
+Subject: [PATCH] recipe-bsp: Add imx708 dt-overlay files
+
+Signed-off-by: Jesse Visser <jssvssr2000@gmail.com>
+---
+ recipes-kernel/linux/files/imx708-overlay.dts | 105 ++++++++++++++++++
+ recipes-kernel/linux/files/imx708.dtsi        |  35 ++++++
+ recipes-kernel/linux/linux-raspberrypi-dev.bb |   2 +
+ .../linux/linux-raspberrypi_5.10.bb           |   2 +
+ 4 files changed, 144 insertions(+)
+ create mode 100644 recipes-kernel/linux/files/imx708-overlay.dts
+ create mode 100644 recipes-kernel/linux/files/imx708.dtsi
+
+diff --git a/recipes-kernel/linux/files/imx708-overlay.dts b/recipes-kernel/linux/files/imx708-overlay.dts
+new file mode 100644
+index 0000000..6efbe09
+--- /dev/null
++++ b/recipes-kernel/linux/files/imx708-overlay.dts
+@@ -0,0 +1,105 @@
++// SPDX-License-Identifier: GPL-2.0-only
++// Definitions for IMX708 camera module on VC I2C bus
++/dts-v1/;
++/plugin/;
++
++#include <dt-bindings/gpio/gpio.h>
++
++/{
++	compatible = "brcm,bcm2835";
++
++	fragment@0 {
++		target = <&i2c0if>;
++		__overlay__ {
++			status = "okay";
++		};
++	};
++
++	clk_frag: fragment@1 {
++		target = <&cam1_clk>;
++		__overlay__ {
++			status = "okay";
++			clock-frequency = <24000000>;
++		};
++	};
++
++	fragment@2 {
++		target = <&i2c0mux>;
++		__overlay__ {
++			status = "okay";
++		};
++	};
++
++	reg_frag: fragment@3 {
++		target = <&cam1_reg>;
++		cam_reg: __overlay__ {
++			startup-delay-us = <70000>;
++			off-on-delay-us = <30000>;
++			regulator-min-microvolt = <2700000>;
++			regulator-max-microvolt = <2700000>;
++		};
++	};
++
++	fragment@4 {
++		target = <&cam_node>;
++		__overlay__ {
++			lens-focus = <&vcm_node>;
++		};
++	};
++
++	i2c_frag: fragment@100 {
++		target = <&i2c_csi_dsi>;
++		__overlay__ {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			status = "okay";
++
++			#include "imx708.dtsi"
++		};
++	};
++
++	csi_frag: fragment@101 {
++		target = <&csi1>;
++		csi: __overlay__ {
++			status = "okay";
++			brcm,media-controller;
++
++			port {
++				csi_ep: endpoint {
++					remote-endpoint = <&cam_endpoint>;
++					clock-lanes = <0>;
++					data-lanes = <1 2>;
++					clock-noncontinuous;
++				};
++			};
++		};
++	};
++
++	__overrides__ {
++		rotation = <&cam_node>,"rotation:0";
++		orientation = <&cam_node>,"orientation:0";
++		media-controller = <&csi>,"brcm,media-controller?";
++		cam0 = <&i2c_frag>, "target:0=",<&i2c_vc>,
++		       <&csi_frag>, "target:0=",<&csi0>,
++		       <&clk_frag>, "target:0=",<&cam0_clk>,
++		       <&reg_frag>, "target:0=",<&cam0_reg>,
++		       <&cam_node>, "clocks:0=",<&cam0_clk>,
++		       <&cam_node>, "VANA1-supply:0=",<&cam0_reg>,
++		       <&vcm_node>, "VDD-supply:0=",<&cam0_reg>;
++		vcm = <&vcm_node>, "status",
++		      <0>, "=4";
++		link-frequency = <&cam_endpoint>,"link-frequencies#0";
++	};
++};
++
++&cam_node {
++	status = "okay";
++};
++
++&cam_endpoint {
++	remote-endpoint = <&csi_ep>;
++};
++
++&vcm_node {
++	status = "okay";
++};
+diff --git a/recipes-kernel/linux/files/imx708.dtsi b/recipes-kernel/linux/files/imx708.dtsi
+new file mode 100644
+index 0000000..1558458
+--- /dev/null
++++ b/recipes-kernel/linux/files/imx708.dtsi
+@@ -0,0 +1,35 @@
++// Fragment that configures a Sony IMX708
++
++cam_node: imx708@1a {
++	compatible = "sony,imx708";
++	reg = <0x1a>;
++	status = "disabled";
++
++	clocks = <&cam1_clk>;
++	clock-names = "inclk";
++
++	vana1-supply = <&cam1_reg>;	/* 2.8v */
++	vana2-supply = <&cam_dummy_reg>;/* 1.8v */
++	vdig-supply = <&cam_dummy_reg>;	/* 1.1v */
++	vddl-supply = <&cam_dummy_reg>;	/* 1.8v */
++
++	rotation = <180>;
++	orientation = <2>;
++
++	port {
++		cam_endpoint: endpoint {
++			clock-lanes = <0>;
++			data-lanes = <1 2>;
++			clock-noncontinuous;
++			link-frequencies =
++				/bits/ 64 <450000000>;
++		};
++	};
++};
++
++vcm_node: dw9817@c {
++	compatible = "dongwoon,dw9817-vcm";
++	reg = <0x0c>;
++	status = "disabled";
++	VDD-supply = <&cam1_reg>;
++};
+diff --git a/recipes-kernel/linux/linux-raspberrypi-dev.bb b/recipes-kernel/linux/linux-raspberrypi-dev.bb
+index e0a4461..7d263c3 100644
+--- a/recipes-kernel/linux/linux-raspberrypi-dev.bb
++++ b/recipes-kernel/linux/linux-raspberrypi-dev.bb
+@@ -24,6 +24,8 @@ SRC_URI = " \
+     git://git.yoctoproject.org/yocto-kernel-cache;type=kmeta;name=meta;branch=${LINUX_RPI_KMETA_BRANCH};destsuffix=${KMETA} \
+     file://powersave.cfg \
+     file://android-drivers.cfg \
++    file://imx708-overlay.dts;subdir=git/arch/${ARCH}/boot/dts/overlays \
++    file://imx708-overlay.dtsi;subdir=git/arch/${ARCH}/boot/dts/overlays \
+     "
+ 
+ require linux-raspberrypi.inc
+diff --git a/recipes-kernel/linux/linux-raspberrypi_5.10.bb b/recipes-kernel/linux/linux-raspberrypi_5.10.bb
+index 8dade0b..41277bf 100644
+--- a/recipes-kernel/linux/linux-raspberrypi_5.10.bb
++++ b/recipes-kernel/linux/linux-raspberrypi_5.10.bb
+@@ -12,6 +12,8 @@ SRC_URI = " \
+     git://git.yoctoproject.org/yocto-kernel-cache;type=kmeta;name=meta;branch=${LINUX_RPI_KMETA_BRANCH};destsuffix=${KMETA} \
+     file://powersave.cfg \
+     file://android-drivers.cfg \
++    file://imx708-overlay.dts;subdir=git/arch/${ARCH}/boot/dts/overlays \
++    file://imx708-overlay.dtsi;subdir=git/arch/${ARCH}/boot/dts/overlays \
+     "
+ 
+ require linux-raspberrypi.inc
+-- 
+2.34.1
+

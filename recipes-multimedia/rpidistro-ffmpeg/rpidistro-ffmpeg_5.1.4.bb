@@ -33,27 +33,22 @@ RPROVIDES:${PN} = "${PROVIDES}"
 DEPENDS = "nasm-native"
 
 inherit autotools pkgconfig
-PACKAGECONFIG ??= "avdevice avfilter avcodec avformat swresample swscale postproc avresample ffplay \
+PACKAGECONFIG ??= "avdevice avfilter avcodec avformat swresample swscale postproc ffplay \
                    v4l2 drm udev alsa bzlib lzma pic pthreads shared theora zlib libvorbis x264 gpl \
-                   ${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', '', 'mmal rpi sand vout-drm', d)} \
+                   ${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', '', 'mmal sand vout-drm', d)} \
                    ${@bb.utils.contains('AVAILTUNES', 'mips32r2', 'mips32r2', '', d)} \
                    ${@bb.utils.contains('DISTRO_FEATURES', 'opengl', 'opengl', '', d)} \
-                   ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'xv xcb vout-egl epoxy', '', d)}"
+                   ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'xv xcb', '', d)} \
+                   ${@bb.utils.contains('DISTRO_FEATURES', 'x11 opengl', 'epoxy vout-egl', '', d)}"
 
 SRC_URI = "\
-    git://git@github.com/RPi-Distro/ffmpeg;protocol=https;branch=pios/bullseye \
-    file://0001-avcodec-arm-sbcenc-avoid-callee-preserved-vfp-regist.patch \
-    file://0002-Fix-build-on-powerpc-and-ppc64.patch \
-    file://0003-avcodec-pngenc-remove-monowhite-from-apng-formats.patch \
-    file://0004-ffmpeg-4.3.4-rpi_14.patch \
-    file://0005-fix-flags.diff \
+    git://git@github.com/RPi-Distro/ffmpeg;protocol=https;branch=pios/bookworm \
+    file://0001-ffmpeg-5.1.4-rpi_24.patch \
     file://2001-configure-setup-for-OE-core-usage.patch \
-    file://2002-libavdevice-opengl_enc-update-dynamic-function-loader.patch \
-    file://2003-libavcodec-fix-v4l2_req_devscan.patch \
     file://2004-libavcodec-omx-replace-opt-vc-path-with-usr-lib.patch \
     "
 
-SRCREV = "246e1a55a0eca931537d8706acd8b133c07beb05"
+SRCREV = "1c363463c432c5ed492c7b759abb6e015b93b6b5"
 
 S = "${WORKDIR}/git"
 
@@ -65,7 +60,7 @@ PACKAGECONFIG[avformat] = "--enable-avformat,--disable-avformat"
 PACKAGECONFIG[swresample] = "--enable-swresample,--disable-swresample"
 PACKAGECONFIG[swscale] = "--enable-swscale,--disable-swscale"
 PACKAGECONFIG[postproc] = "--enable-postproc,--disable-postproc"
-PACKAGECONFIG[avresample] = "--enable-avresample,--disable-avresample"
+#PACKAGECONFIG[avresample] = "--enable-avresample,--disable-avresample"
 
 # features to support
 PACKAGECONFIG[ffplay] = "--enable-ffplay,--disable-ffplay"
@@ -101,7 +96,6 @@ PACKAGECONFIG[epoxy] = "--enable-epoxy,--disable-epoxy,libepoxy"
 PACKAGECONFIG[v4l2] = "--enable-libv4l2 --enable-v4l2-m2m,,v4l-utils"
 PACKAGECONFIG[mmal] = "--enable-omx --enable-omx-rpi --enable-mmal,,userland"
 PACKAGECONFIG[sand] = "--enable-sand,,"
-PACKAGECONFIG[rpi] = "--enable-rpi,,"
 PACKAGECONFIG[vout-drm] = "--enable-vout-drm,,libdrm"
 PACKAGECONFIG[vout-egl] = "--enable-vout-egl,,virtual/egl"
 

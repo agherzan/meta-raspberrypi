@@ -81,7 +81,7 @@ a section as follows:
 local_conf_header:
   rpi-specific: |
     ENABLE_I2C = "1"
-    RPI_EXTRA_CONFIG = "dtoverlay=pi3-disable-bt"
+    RPI_EXTRA_CONFIG = "dtoverlay=disable-bt"
 ```
 
 To configure the machine, you have to update the `machine` variable.

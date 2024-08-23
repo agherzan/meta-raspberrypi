@@ -59,6 +59,17 @@ RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/pps-gpio.dtbo \
     overlays/rpi-ft5406.dtbo \
     overlays/rpi-poe.dtbo \
+    overlays/uart0.dtbo \
+    overlays/uart0-pi5.dtbo \
+    overlays/uart1.dtbo \
+    overlays/uart1-pi5.dtbo \
+    overlays/uart2.dtbo \
+    overlays/uart2-pi5.dtbo \
+    overlays/uart3.dtbo \
+    overlays/uart3-pi5.dtbo \
+    overlays/uart4.dtbo \
+    overlays/uart4-pi5.dtbo \
+    overlays/uart5.dtbo \
     overlays/vc4-fkms-v3d.dtbo \
     overlays/vc4-fkms-v3d-pi4.dtbo \
     overlays/vc4-kms-v3d.dtbo \

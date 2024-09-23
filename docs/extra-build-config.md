@@ -178,6 +178,7 @@ the following boards:
 * Raspberry Pi 3 64-bit
 * Raspberry Pi 4 32-bit
 * Raspberry Pi 4 64-bit
+
 It means that, for those boards, `RPI_USE_U_BOOT = "1"` is not compatible with
 `ENABLE_UART = "0"`.
 

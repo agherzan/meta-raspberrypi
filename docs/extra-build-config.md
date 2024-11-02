@@ -487,14 +487,15 @@ MMAL is not enabled by default. To enable it add
 
     DISABLE_VC4GRAPHICS = "1"
 
-to `local.conf`. Adding `vlc` to `IMAGE_INSTALL` will then default to building the Raspberry
-Pi's Distro implementation of VLC with HW accelerated video decode through MMAL into the system
-image. It also defaults to building VLC with Raspberry PI's Distro implementation of ffmpeg. The
-oe-core implementation of ffmpeg and the meta-openembedded/meta-multimedia implementation of VLC
-can however be selected via:
+to `local.conf`. Adding `vlc` to `IMAGE_INSTALL` will then default to building the oe-core
+implementation of ffmpeg and the meta-openembedded/meta-multimedia implementation of VLC.
+The Raspberry Pi's Distro implementation of VLC with HW accelerated video decode through
+MMAL and the Raspberry PI's Distro implementation of ffmpeg. Can however be selected via:
 
-    PREFERRED_PROVIDER_ffmpeg = "ffmpeg"
-    PREFERRED_PROVIDER_vlc = "vlc"
+    PREFERRED_PROVIDER_vlc = "rpidistro-vlc"
+    PREFERRED_PROVIDER_ffmpeg = "rpidistro-ffmpeg"
+    PREFERRED_PROVIDER_libav = "rpidistro-ffmpeg"
+    PREFERRED_PROVIDER_libpostproc = "rpidistro-ffmpeg"
 
 Usage example: Start VLC with mmal_vout plugin and without an active display server.
 

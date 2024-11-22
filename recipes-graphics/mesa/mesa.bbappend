@@ -1,6 +1,27 @@
-# DRI3 note:
-# With oe-core commit 8509e2e1a87578882b71948ccef3b50ccf1228b3 dri3 is set
-# as default. To state out clearly that Raspi needs dri3 and to avoid surprises
-# in case oe-core changes this default, we set dri3 explicitly.
-PACKAGECONFIG:append:rpi = " gallium vc4 v3d kmsro ${@bb.utils.contains('DISTRO_FEATURES', 'x11 opengl', 'x11 dri3', '', d)} ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'vulkan broadcom', '', d)}"
+PACKAGECONFIG:append:rpi = " gallium gallium-llvm vc4 v3d ${@bb.utils.contains('DISTRO_FEATURES', 'x11 opengl', 'x11', '', d)} ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'vulkan broadcom', '', d)}"
 DRIDRIVERS:class-target:rpi = ""
+
+# Remove unused patches
+SRC_URI = "https://mesa.freedesktop.org/archive/mesa-${PV}.tar.xz \
+           file://0001-meson-misdetects-64bit-atomics-on-mips-clang.patch \
+"
+
+SRC_URI[sha256sum] = "97813fe65028ef21b4d4e54164563059e8408d8fee3489a2323468d198bf2efc"
+PV = "24.3.0"
+
+# -Dglvnd is deprecated from true/false to enabled/disabled 
+PACKAGECONFIG[glvnd] = "-Dglvnd=enabled, -Dglvnd=disabled, libglvnd"
+
+# DRI3 note:
+# DRI3 Build option is removed from meson.
+PACKAGECONFIG_CONFARGS:remove = "-Ddri3=enabled, -Ddri3=disabled"
+
+DEPENDS += " wayland-protocols llvm python3-pyyaml python3-pyyaml-native"
+
+RDEPENDS:libgl-mesa += " llvm wayland-protocols"
+
+FILES:libgbm += " ${libdir}/gbm/dri_gbm*.so"
+
+FILES:libgl-mesa += " ${libdir}/libgallium*.so"
+
+FILES:libgbm-dev += " ${includedir}/gbm.h"

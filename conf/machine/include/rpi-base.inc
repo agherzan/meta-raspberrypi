@@ -86,7 +86,6 @@ RPI_KERNEL_DEVICETREE ?= " \
     broadcom/bcm2710-rpi-cm3.dtb \
     broadcom/bcm2711-rpi-cm4.dtb \
     broadcom/bcm2711-rpi-cm4s.dtb \
-    broadcom/bcm2712-rpi-5-b.dtb \
     "
 
 KERNEL_DEVICETREE ??= " \

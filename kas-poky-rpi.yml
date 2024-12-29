@@ -48,7 +48,7 @@ local_conf_header:
     USER_CLASSES = "buildstats"
     PATCHRESOLVE = "noop"
   debug-tweaks: |
-    EXTRA_IMAGE_FEATURES = "debug-tweaks"
+    IMAGE_FEATURES += "empty-root-password allow-empty-password allow-root-login post-install-logging"
   diskmon: |
     BB_DISKMON_DIRS = "\
         STOPTASKS,${TMPDIR},1G,100K \

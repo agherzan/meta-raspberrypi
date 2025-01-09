@@ -17,6 +17,7 @@ LICENSE_FLAGS = "synaptics-killswitch"
 
 SRC_URI = "git://github.com/RPi-Distro/firmware-nonfree;branch=bookworm;protocol=https \
     file://0001-Default-43455-firmware-to-standard-variant.patch \
+    file://0002-Default-all-RPi-43455-boards-to-standard-variant.patch \
 "
 SRCREV = "4b356e134e8333d073bd3802d767a825adec3807"
 PV = "20230625-2+rpt3"

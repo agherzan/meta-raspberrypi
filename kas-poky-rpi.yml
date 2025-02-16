@@ -12,7 +12,8 @@ repos:
   poky:
     url: https://git.yoctoproject.org/git/poky
     path: layers/poky
-    refspec: master
+    branch: kirkstone
+    commit: b5aa03f336c121269551f9e7baed4c677c76bb39
     layers:
       meta:
       meta-poky:
@@ -21,7 +22,8 @@ repos:
   meta-openembedded:
     url: http://git.openembedded.org/meta-openembedded
     path: layers/meta-openembedded
-    refspec: master
+    branch: kirkstone
+    commit: de8681b4a2a101b99dd2c48d89a7de2ccd9a961f
     layers:
       meta-oe:
       meta-python:
@@ -31,7 +33,8 @@ repos:
   meta-qt5:
     url: https://github.com/meta-qt5/meta-qt5/
     path: layers/meta-qt5
-    refspec: master
+    branch: kirkstone
+    commit: 644ebf220245bdc06e7696ccc90acc97a0dd2566
 
 bblayers_conf_header:
   standard: |
@@ -55,7 +58,7 @@ local_conf_header:
         STOPTASKS,${DL_DIR},1G,100K \
         STOPTASKS,${SSTATE_DIR},1G,100K \
         STOPTASKS,/tmp,100M,100K \
-        ABORT,${TMPDIR},100M,1K \
-        ABORT,${DL_DIR},100M,1K \
-        ABORT,${SSTATE_DIR},100M,1K \
-        ABORT,/tmp,10M,1K"
+        HALT,${TMPDIR},100M,1K \
+        HALT,${DL_DIR},100M,1K \
+        HALT,${SSTATE_DIR},100M,1K \
+        HALT,/tmp,10M,1K"

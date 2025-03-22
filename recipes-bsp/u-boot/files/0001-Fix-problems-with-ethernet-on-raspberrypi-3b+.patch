@@ -3,9 +3,14 @@ From: Jakub Szczudlo <jakubszczudlo40@gmail.com>
 Date: Tue, 4 Mar 2025 22:53:53 +0100
 Subject: [PATCH] Fix problems with ethernet on raspberrypi 3b+
 
-When initializing network devices on raspberry pi 3b+ the lan78xx_eth get seq 1. Because of that this network device doesn't get MAC address from BCM2835_MBOX and fail
-to bind device with driver and make using TFTP impossible without debugging. To address this issue and don't make much changes in uboot we can also add MAC address for
-device of sequence number=1
+When initializing network devices on raspberry pi 3b+ the lan78xx_eth get seq 1. Because of that 
+this network device doesn't get MAC address from BCM2835_MBOX and fail to bind device with driver
+and make using TFTP impossible without debugging. To address this issue and don't make much changes
+in uboot we can also add MAC address for device of sequence number=1
+
+Upstream-Status: Inappropriate [configuration]
+
+Signed-off-by: Jakub Szczudlo <jakubszczudlo40@gmail.com>
 ---
  board/raspberrypi/rpi/rpi.c | 3 +++
  1 file changed, 3 insertions(+)

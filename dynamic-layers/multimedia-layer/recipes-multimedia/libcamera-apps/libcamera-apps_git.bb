@@ -40,3 +40,5 @@ do_install:append() {
 
 # not picked automatically, because it's missing common 'lib' prefix
 FILES:${PN}-dev += "${libdir}/rpicam_app.so"
+
+FILES:${PN} += "${libdir}/rpicam_app.so.${@d.getVar("PV", False).__str__().split('+')[0]}"

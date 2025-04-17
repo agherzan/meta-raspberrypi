@@ -5,14 +5,14 @@ LIC_FILES_CHKSUM = "file://LICENCE.broadcom;md5=c403841ff2837657b2ed8e5bb474ac8d
 
 inherit deploy nopackages
 
-RPIFW_DATE ?= "20250326"
-SRCREV = "f49a3960223f20ea0b2e30646f65be67bafe30dc"
+RPIFW_DATE ?= "20250430"
+SRCREV = "bc7f439c234e19371115e07b57c366df59cc1bc7"
 SHORTREV = "${@d.getVar("SRCREV", False).__str__()[:7]}"
-RPIFW_SRC_URI ?= "https://api.github.com/repos/raspberrypi/firmware/tarball/f49a3960223f20ea0b2e30646f65be67bafe30dc;downloadfilename=raspberrypi-firmware-${SHORTREV}.tar.gz"
+RPIFW_SRC_URI ?= "https://api.github.com/repos/raspberrypi/firmware/tarball/${SRCREV};downloadfilename=raspberrypi-firmware-${SHORTREV}.tar.gz"
 RPIFW_S ?= "${WORKDIR}/raspberrypi-firmware-${SHORTREV}"
 
 SRC_URI = "${RPIFW_SRC_URI}"
-SRC_URI[sha256sum] = "26926a9c56be907a87fafb5bc8add431ec6b763598de340e7401ce5684d2c55b"
+SRC_URI[sha256sum] = "2c027debbef53c86c9ff9197d056d501b95f6ad214ad4db00a8a59b947574eb1"
 
 PV = "${RPIFW_DATE}"
 

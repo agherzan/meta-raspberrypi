@@ -30,6 +30,9 @@ RUN eatmydata apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN echo "dash dash/sh boolean false" | debconf-set-selections \
  && dpkg-reconfigure dash
 
+# Fix the resource exhaustion problem on the build infrastructure
+RUN echo 'vm.max_map_count = 4048576' >> /etc/sysctl.conf
+
 # Run under normal user called 'ci'
 RUN useradd --create-home --uid 1000 --shell /usr/bin/bash ci
 USER ci

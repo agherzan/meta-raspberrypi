@@ -67,6 +67,7 @@ jobs:
       - name: Build the image
         run: |
           docker run --rm --security-opt apparmor=unconfined \
+            --security-opt seccomp=unconfined \
             -v "$GITHUB_WORKSPACE:/work:ro" \
             -v "$DL_DIR:$DL_DIR:rw" \
             -v "$SSTATE_DIR:$SSTATE_DIR:rw" \

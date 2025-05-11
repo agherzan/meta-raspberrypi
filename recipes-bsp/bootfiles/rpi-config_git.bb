@@ -336,6 +336,11 @@ do_deploy:append:raspberrypi3-64() {
     echo "dtparam=audio=on" >> $CONFIG
 }
 
+do_deploy:append:raspberrypi5() {
+    echo "max_framebuffers=2" >> $CONFIG
+    echo "disable_fw_kms_setup=1" >> $CONFIG
+}
+
 do_deploy:append() {
     if grep -q -E '^.{80}.$' ${DEPLOYDIR}/${BOOTFILES_DIR_NAME}/config.txt; then
         bbwarn "config.txt contains lines longer than 80 characters, this is not supported"

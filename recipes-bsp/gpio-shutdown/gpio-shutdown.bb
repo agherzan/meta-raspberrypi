@@ -6,6 +6,8 @@ SRC_URI = "file://bind_gpio_shutdown.tab \
     file://gpio-shutdown-keymap.sh \
 "
 
+S = "${UNPACKDIR}"
+
 inherit  update-rc.d
 
 INITSCRIPT_NAME = "gpio-shutdown-keymap.sh"

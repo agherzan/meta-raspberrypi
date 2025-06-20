@@ -20,7 +20,6 @@ SRC_URI = "git://github.com/RPi-Distro/firmware-nonfree;branch=bookworm;protocol
 "
 SRCREV = "4b356e134e8333d073bd3802d767a825adec3807"
 PV = "20230625-2+rpt3"
-S = "${WORKDIR}/git"
 
 inherit allarch
 

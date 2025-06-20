@@ -12,7 +12,6 @@ SRC_URI = "git://github.com/Evilpaul/RPi-config.git;protocol=https;branch=master
            file://0001-config.txt-reintroduce-start_x.patch \
           "
 
-S = "${WORKDIR}/git"
 
 PR = "r5"
 

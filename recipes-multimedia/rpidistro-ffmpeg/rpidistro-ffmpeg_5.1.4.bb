@@ -50,7 +50,6 @@ SRC_URI = "\
 
 SRCREV = "1c363463c432c5ed492c7b759abb6e015b93b6b5"
 
-S = "${WORKDIR}/git"
 
 # libraries to build in addition to avutil
 PACKAGECONFIG[avdevice] = "--enable-avdevice,--disable-avdevice"

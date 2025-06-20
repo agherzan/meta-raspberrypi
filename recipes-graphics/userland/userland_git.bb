@@ -51,7 +51,6 @@ SRC_URI = "\
 
 SRC_URI:remove:toolchain-clang = "file://0021-cmake-Disable-format-overflow-warning-as-error.patch"
 
-S = "${WORKDIR}/git"
 
 inherit cmake pkgconfig
 

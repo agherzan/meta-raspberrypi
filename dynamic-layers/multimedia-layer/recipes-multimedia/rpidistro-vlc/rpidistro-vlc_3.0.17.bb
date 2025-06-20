@@ -32,7 +32,6 @@ SRC_URI = "\
 
 SRCREV = "b276eb0d7bc3213363e97dbb681ef7c927be6c73"
 
-S = "${WORKDIR}/git"
 
 PROVIDES = "vlc"
 RPROVIDES:${PN} = "${PROVIDES}"

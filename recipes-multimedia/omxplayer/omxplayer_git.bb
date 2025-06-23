@@ -40,7 +40,6 @@ SRC_URI = "git://github.com/popcornmix/omxplayer.git;protocol=https;branch=maste
 
 SRC_URI:append = "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", " file://0001-Fix-build-with-vc4-driver.patch ", "", d)}"
 
-
 COMPATIBLE_MACHINE = "^rpi$"
 COMPATIBLE_HOST:aarch64 = "null"
 

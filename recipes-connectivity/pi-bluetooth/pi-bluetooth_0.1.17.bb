@@ -12,7 +12,6 @@ SRC_URI = "\
 "
 SRCREV = "fd4775bf90e037551532fc214a958074830bb80d"
 
-
 inherit ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd', 'update-rc.d', d)}
 # hciuart.service replaces what was brcm43438.service 
 SYSTEMD_SERVICE:${PN} = "\

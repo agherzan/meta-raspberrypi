@@ -51,7 +51,6 @@ SRC_URI = "\
 
 SRC_URI:remove:toolchain-clang = "file://0021-cmake-Disable-format-overflow-warning-as-error.patch"
 
-
 inherit cmake pkgconfig
 
 ASNEEDED = ""
@@ -61,7 +60,6 @@ EXTRA_OECMAKE = "-DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS='-Wl,--no-a
 "
 
 EXTRA_OECMAKE:append:aarch64 = " -DARM64=ON "
-
 
 PACKAGECONFIG ?= "${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)}"
 

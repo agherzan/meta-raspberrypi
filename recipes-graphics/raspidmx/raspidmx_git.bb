@@ -20,7 +20,6 @@ SRC_URI = "git://github.com/AndrewFromMelbourne/raspidmx;protocol=https;branch=m
 PV = "0.0+git${SRCPV}"
 SRCREV = "e2ee6faa0d01a5ece06bcc74a47f37d7e6837310"
 
-
 inherit pkgconfig
 
 DEPENDS += "libpng userland"

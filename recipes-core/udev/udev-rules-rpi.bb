@@ -8,7 +8,6 @@ SRC_URI = " \
 	"
 SRCREV = "5ce3ef2b7f377c23fea440ca9df0e30f3f8447cf"
 
-
 INHIBIT_DEFAULT_DEPS = "1"
 
 do_install () {

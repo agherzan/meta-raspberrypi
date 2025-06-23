@@ -15,7 +15,6 @@ SRC_URI = "git://github.com/raspberrypi/utils;protocol=https;branch=master"
 
 SRCREV = "b9c63214c535d7df2b0fa6743b7b3e508363c25a"
 
-
 FILES:${PN}:append = " \
     ${datadir}/bash-completion/completions/pinctrl \
     ${datadir}/bash-completion/completions/vcgencmd \

@@ -6,7 +6,6 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=b72678307cc7c10910b5ef460216af07"
 SRC_URI = "git://github.com/adafruit/Adafruit_CircuitPython_Motor.git;branch=main;protocol=https"
 SRCREV = "2251bfc0501d0acfb96c0a43f4f2b4c6a10ca14e"
 
-
 inherit setuptools3
 
 DEPENDS += "python3-setuptools-scm-native"

@@ -12,7 +12,6 @@ SRC_URI = "git://github.com/Evilpaul/RPi-config.git;protocol=https;branch=master
            file://0001-config.txt-reintroduce-start_x.patch \
           "
 
-
 PR = "r5"
 
 INHIBIT_DEFAULT_DEPS = "1"
@@ -276,7 +275,6 @@ do_deploy() {
         echo "# Enable CAN" >>$CONFIG
         echo "dtoverlay=mcp2515-can0,oscillator=${CAN_OSCILLATOR},interrupt=${CAN0_INTERRUPT_PIN}" >>$CONFIG
     fi
-
 
     if [ "${ENABLE_GPIO_SHUTDOWN}" = "1" ]; then
         if ([ "${ENABLE_I2C}" = "1" ] || [ "${PITFT}" = "1" ]) && [ -z "${GPIO_SHUTDOWN_PIN}" ]; then

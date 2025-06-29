@@ -25,7 +25,7 @@ SRCREV_default = "1f1d0ccd65d3a1caa86dc79d2863a8f067c8e3f8"
 SRCREV_ffmpeg = "fcbd117df3077bad495e99e20f01cf93737bce76"
 
 SRC_URI = "git://github.com/popcornmix/omxplayer.git;protocol=https;branch=master \
-           git://github.com/FFmpeg/FFmpeg;branch=release/4.0;protocol=https;depth=1;name=ffmpeg;destsuffix=git/ffmpeg \
+           git://github.com/FFmpeg/FFmpeg;branch=release/4.0;protocol=https;depth=1;name=ffmpeg;destsuffix=${BB_GIT_DEFAULT_DESTSUFFIX}/ffmpeg \
            file://0002-Libraries-and-headers-from-ffmpeg-are-installed-in-u.patch \
            file://0003-Remove-strip-step-in-Makefile.patch \
            file://0004-Add-FFMPEG_EXTRA_CFLAGS-and-FFMPEG_EXTRA_LDFLAGS.patch \

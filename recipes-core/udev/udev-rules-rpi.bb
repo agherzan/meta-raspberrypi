@@ -8,7 +8,6 @@ SRC_URI = " \
 	"
 SRCREV = "5ce3ef2b7f377c23fea440ca9df0e30f3f8447cf"
 
-S = "${WORKDIR}/git"
 
 INHIBIT_DEFAULT_DEPS = "1"
 

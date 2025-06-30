@@ -8,7 +8,6 @@ SRC_URI = "git://github.com/sarfata/pi-blaster;branch=master;protocol=https \
            file://remove-initscript-lsb-dependency.patch \
            "
 
-S = "${WORKDIR}/git"
 
 SRCREV = "fbba9a7dcef0f352a11f8a2a5f6cbc15b62c0829"
 

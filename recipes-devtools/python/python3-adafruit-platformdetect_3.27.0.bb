@@ -5,7 +5,6 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=fccd531dce4b989c05173925f0bbb76c"
 
 SRC_URI = "git://github.com/adafruit/Adafruit_Python_PlatformDetect.git;branch=main;protocol=https"
 SRCREV = "e1460098eeca5ea573f92814691bb378e15530d9"
-S = "${WORKDIR}/git"
 
 inherit setuptools3
 

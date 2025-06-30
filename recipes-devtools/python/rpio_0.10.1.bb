@@ -9,7 +9,6 @@ SRC_URI = "\
     git://github.com/metachris/RPIO.git;protocol=https;branch=master \
     "
 SRCREV = "be1942a69b2592ddacd9dc833d2668a19aafd8d2"
-S = "${WORKDIR}/git"
 
 inherit setuptools3
 

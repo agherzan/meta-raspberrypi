@@ -15,7 +15,6 @@ SRC_URI = "\
 PV = "1.4.2+git${SRCPV}"
 SRCREV = "9ae39f85ae6bee9761c36b9b5b80d675bc1fa369"
 
-S = "${WORKDIR}/git"
 
 DEPENDS = "libcamera libexif jpeg tiff libpng boost"
 

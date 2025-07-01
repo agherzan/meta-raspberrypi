@@ -9,7 +9,7 @@ RPIFW_DATE ?= "20250430"
 SRCREV = "bc7f439c234e19371115e07b57c366df59cc1bc7"
 SHORTREV = "${@d.getVar("SRCREV", False).__str__()[:7]}"
 RPIFW_SRC_URI ?= "https://api.github.com/repos/raspberrypi/firmware/tarball/${SRCREV};downloadfilename=raspberrypi-firmware-${SHORTREV}.tar.gz"
-RPIFW_S ?= "${WORKDIR}/raspberrypi-firmware-${SHORTREV}"
+RPIFW_S ?= "${UNPACKDIR}/raspberrypi-firmware-${SHORTREV}"
 
 SRC_URI = "${RPIFW_SRC_URI}"
 SRC_URI[sha256sum] = "2c027debbef53c86c9ff9197d056d501b95f6ad214ad4db00a8a59b947574eb1"

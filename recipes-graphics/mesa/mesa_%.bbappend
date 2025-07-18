@@ -44,9 +44,17 @@ GALLIUMDRIVERS = "softpipe"
 
 PACKAGECONFIG[opencl] = "-Dgallium-opencl=icd,-Dgallium-opencl=disabled,"
 
-DEPENDS += " wayland-protocols llvm python3-pyyaml python3-pyyaml-native"
+DEPENDS += " \
+	${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland-protocols', '', d)} \
+	llvm \
+	python3-pyyaml \
+	python3-pyyaml-native \
+"
 
-RDEPENDS:libgl-mesa += " llvm wayland-protocols"
+RDEPENDS:libgl-mesa += " \
+	llvm \
+	${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland-protocols', '', d)} \
+"
 
 PACKAGES =+ " \
              libgallium \

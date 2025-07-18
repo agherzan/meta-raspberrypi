@@ -12,8 +12,8 @@ SRC_URI = "https://mesa.freedesktop.org/archive/mesa-${PV}.tar.xz \
            file://0001-dont-build-clover-frontend.patch \
 "
 
-SRC_URI[sha256sum] = "ffcb6cadb5fd356d56008e6308641dfe4b2929f30139f6585436ca6e3cddba7f"
-PV = "25.1.3"
+SRC_URI[sha256sum] = "9f2b69eb39d2d8717d30a9868fdda3e0c0d3708ba32778bbac8ddb044538ce84"
+PV = "25.1.6"
 
 # -Dglvnd is deprecated from true/false to enabled/disabled 
 PACKAGECONFIG[glvnd] = "-Dglvnd=enabled, -Dglvnd=disabled, libglvnd"

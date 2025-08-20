@@ -10,20 +10,19 @@ LIC_FILES_CHKSUM = "file://license.txt;md5=a0013d1b383d72ba4bdc5b750e7d1d77"
 SRC_URI = "\
     git://github.com/raspberrypi/libcamera-apps.git;protocol=https;branch=main \
     file://0001-utils-version.py-use-usr-bin-env-in-shebang.patch \
-    file://0002-Revert-Support-compressed-pixel-formats-when-saving-.patch \
 "
-PV = "1.4.2+git${SRCPV}"
-SRCREV = "9ae39f85ae6bee9761c36b9b5b80d675bc1fa369"
+PV = "1.5.2+git${SRCPV}"
+SRCREV = "50958df98d3cf77b54706a794226d556d649981c"
 
 DEPENDS = "libcamera libexif jpeg tiff libpng boost"
 
 PACKAGECONFIG ??= "drm"
-PACKAGECONFIG[libav] = "-Denable_libav=true, -Denable_libav=false, libav"
-PACKAGECONFIG[drm] = "-Denable_drm=true, -Denable_drm=false, libdrm"
-PACKAGECONFIG[egl] = "-Denable_egl=true, -Denable_egl=false, virtual/egl"
-PACKAGECONFIG[qt] = "-Denable_qt=true, -Denable_qt=false, qtbase"
-PACKAGECONFIG[opencv] = "-Denable_opencv=true, -Denable_opencv=false, opencv"
-PACKAGECONFIG[tflite] = "-Denable_tflite=true, -Denable_tflite=false, tensorflow-lite"
+PACKAGECONFIG[libav] = "-Denable_libav=enabled, -Denable_libav=disabled, libav"
+PACKAGECONFIG[drm] = "-Denable_drm=enabled, -Denable_drm=disabled, libdrm"
+PACKAGECONFIG[egl] = "-Denable_egl=enabled, -Denable_egl=disabled, virtual/egl"
+PACKAGECONFIG[qt] = "-Denable_qt=enabled, -Denable_qt=disabled, qtbase"
+PACKAGECONFIG[opencv] = "-Denable_opencv=enabled, -Denable_opencv=disabled, opencv"
+PACKAGECONFIG[tflite] = "-Denable_tflite=enabled, -Denable_tflite=disabled, tensorflow-lite"
 
 inherit meson pkgconfig
 
@@ -37,6 +36,13 @@ EXTRA_OEMESON += "${NEON_FLAGS}"
 do_install:append() {
     rm -v ${D}/${bindir}/camera-bug-report
 }
+
+FILES:${PN}:append = " \
+  /usr/share/rpi-camera-assets/negate.json \
+  /usr/share/rpi-camera-assets/hdr.json \
+  /usr/share/rpi-camera-assets/motion_detect.json \
+  /usr/lib/rpicam-apps-postproc/core-postproc.so \
+"
 
 # not picked automatically, because it's missing common 'lib' prefix
 FILES:${PN}-dev += "${libdir}/rpicam_app.so"

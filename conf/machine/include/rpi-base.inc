@@ -161,7 +161,7 @@ def make_dtb_boot_files(d):
             #     destination: bcm2708-rpi-b.dtb
             return base
 
-    return ' '.join([transform(dtb) for dtb in alldtbs.split(' ') if dtb])
+    return ' '.join(x for x in (transform(dtb) for dtb in alldtbs.split(' ') if dtb) if x is not None)
 
 RPI_EXTRA_IMAGE_BOOT_FILES ?= " \
 	${@bb.utils.contains('RPI_USE_U_BOOT', '1', \

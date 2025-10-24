@@ -40,5 +40,5 @@ do_install:append() {
     rm -v ${D}/${bindir}/camera-bug-report
 }
 
-# not picked automatically, because it's missing common 'lib' prefix
+FILES:${PN} += "${libdir}/rpicam_app.so*"
 FILES:${PN}-dev += "${libdir}/rpicam_app.so"

@@ -16,6 +16,7 @@ XSERVER = " \
 
 RPI_KERNEL_DEVICETREE_OVERLAYS ?= " \
     overlays/overlay_map.dtb \
+    overlays/hat_map.dtb \
     overlays/at86rf233.dtbo \
     overlays/disable-bt.dtbo \
     overlays/disable-bt-pi5.dtbo \
@@ -152,7 +153,7 @@ def make_dtb_boot_files(d):
 
     def transform(dtb):
         base = os.path.basename(dtb)
-        if dtb.endswith('dtbo') or base == 'overlay_map.dtb':
+        if dtb.endswith('dtbo') or base == 'overlay_map.dtb' or base == 'hat_map.dtb':
             # overlay dtb:
             # eg: overlays/hifiberry-amp.dtbo has:
             #     DEPLOYDIR file: hifiberry-amp.dtbo

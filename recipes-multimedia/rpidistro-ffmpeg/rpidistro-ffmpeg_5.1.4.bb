@@ -34,18 +34,18 @@ DEPENDS = "nasm-native"
 
 inherit autotools pkgconfig
 PACKAGECONFIG ??= "avdevice avfilter avcodec avformat swresample swscale postproc ffplay \
-                   v4l2 drm udev alsa bzlib lzma pic pthreads shared theora zlib libvorbis x264 gpl \
+                   v4l2 drm udev alsa bzlib lzma pic pthreads shared theora zlib gpl \
                    ${@bb.utils.contains('MACHINE_FEATURES', 'vc4graphics', '', 'mmal sand vout-drm', d)} \
                    ${@bb.utils.contains('AVAILTUNES', 'mips32r2', 'mips32r2', '', d)} \
-                   ${@bb.utils.contains('DISTRO_FEATURES', 'opengl', 'opengl', '', d)} \
-                   ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'xv xcb', '', d)} \
-                   ${@bb.utils.contains('DISTRO_FEATURES', 'x11 opengl', 'epoxy vout-egl', '', d)}"
+                   ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'xv xcb', '', d)}"
+ 
 
 SRC_URI = "\
     git://git@github.com/RPi-Distro/ffmpeg;protocol=https;branch=pios/bookworm \
     file://0001-ffmpeg-5.1.4-rpi_24.patch \
     file://2001-configure-setup-for-OE-core-usage.patch \
     file://2004-libavcodec-omx-replace-opt-vc-path-with-usr-lib.patch \
+    file://2024-fix-compile-newer-binutils.patch \
     "
 
 SRCREV = "1c363463c432c5ed492c7b759abb6e015b93b6b5"

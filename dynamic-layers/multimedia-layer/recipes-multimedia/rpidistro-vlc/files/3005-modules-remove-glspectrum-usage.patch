@@ -1,4 +1,4 @@
-From 5f1bb5889d838719e381350b25c00ef3a75d0e02 Mon Sep 17 00:00:00 2001
+From 943c17cac7e3aea10067861b63d4dc4114e6b521 Mon Sep 17 00:00:00 2001
 From: Vincent Davis Jr <vince@underview.tech>
 Date: Fri, 9 Dec 2022 01:07:55 -0600
 Subject: [PATCH] modules: remove glspectrum usage
@@ -13,37 +13,38 @@ while we only want to utilize GLESv2.
 
 Signed-off-by: Vincent Davis Jr <vince@underview.tech>
 ---
- modules/Makefile.in               | 24 ------------------------
+ modules/Makefile.in               | 25 -------------------------
  modules/visualization/Makefile.am | 10 ----------
- 2 files changed, 34 deletions(-)
+ 2 files changed, 35 deletions(-)
 
 diff --git a/modules/Makefile.in b/modules/Makefile.in
-index bde45db53..c9c4342ad 100644
+index ad6ee2b89..ee2308a2a 100644
 --- a/modules/Makefile.in
 +++ b/modules/Makefile.in
-@@ -481,7 +481,6 @@ TESTS = hpack_test$(EXEEXT) hpackenc_test$(EXEEXT) \
- @HAVE_WIN32_FALSE@am__append_247 = $(X_LIBS) $(X_PRE_LIBS) -lX11
- @HAVE_DARWIN_FALSE@@HAVE_WIN32_FALSE@am__append_248 = $(X_LIBS) $(X_PRE_LIBS) -lX11
- @HAVE_EVAS_TRUE@am__append_249 = libevas_plugin.la
--@HAVE_GL_TRUE@am__append_250 = libglspectrum_plugin.la
- @ENABLE_SOUT_TRUE@@HAVE_GCRYPT_TRUE@am__append_251 = libaccess_output_livehttp_plugin.la
- @ENABLE_SOUT_TRUE@am__append_252 = libaccess_output_shout_plugin.la \
+@@ -489,7 +489,6 @@ TESTS = hpack_test$(EXEEXT) hpackenc_test$(EXEEXT) \
+ @HAVE_WIN32_FALSE@am__append_257 = $(X_LIBS) $(X_PRE_LIBS) -lX11
+ @HAVE_DARWIN_FALSE@@HAVE_WIN32_FALSE@am__append_258 = $(X_LIBS) $(X_PRE_LIBS) -lX11
+ @HAVE_EVAS_TRUE@am__append_259 = libevas_plugin.la
+-@HAVE_GL_TRUE@am__append_260 = libglspectrum_plugin.la
+ @ENABLE_SOUT_TRUE@@HAVE_GCRYPT_TRUE@am__append_261 = libaccess_output_livehttp_plugin.la
+ @ENABLE_SOUT_TRUE@am__append_262 = libaccess_output_shout_plugin.la \
  @ENABLE_SOUT_TRUE@	libaccess_output_srt_plugin.la \
-@@ -2028,13 +2027,7 @@ libgles2_plugin_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
- 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
- 	$(libgles2_plugin_la_CFLAGS) $(CFLAGS) \
- 	$(libgles2_plugin_la_LDFLAGS) $(LDFLAGS) -o $@
+@@ -2066,14 +2065,6 @@ libglinterop_dxva2_plugin_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+ 	$(LDFLAGS) -o $@
+ @HAVE_GL_TRUE@@HAVE_WIN32_DESKTOP_TRUE@am_libglinterop_dxva2_plugin_la_rpath =  \
+ @HAVE_GL_TRUE@@HAVE_WIN32_DESKTOP_TRUE@	-rpath $(voutdir)
 -libglspectrum_plugin_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
- 	$(am__DEPENDENCIES_1)
+-	$(am__DEPENDENCIES_1)
 -am_libglspectrum_plugin_la_OBJECTS = visualization/glspectrum.lo \
 -	visualization/visual/fft.lo visualization/visual/window.lo
 -libglspectrum_plugin_la_OBJECTS =  \
 -	$(am_libglspectrum_plugin_la_OBJECTS)
 -@HAVE_GL_TRUE@am_libglspectrum_plugin_la_rpath = -rpath $(visudir)
- libglwin32_plugin_la_DEPENDENCIES = libchroma_copy.la \
+-libglwin32_plugin_la_DEPENDENCIES = libchroma_copy.la \
  	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_5)
- am__objects_23 =  \
-@@ -6507,7 +6500,6 @@ am__depfiles_remade =  \
+ am__objects_27 =  \
+ 	video_output/opengl/libglwin32_plugin_la-vout_helper.lo \
+@@ -6556,7 +6547,6 @@ am__depfiles_remade =  \
  	video_splitter/$(DEPDIR)/clone.Plo \
  	video_splitter/$(DEPDIR)/libpanoramix_plugin_la-panoramix.Plo \
  	video_splitter/$(DEPDIR)/wall.Plo \
@@ -51,37 +52,37 @@ index bde45db53..c9c4342ad 100644
  	visualization/$(DEPDIR)/libgoom_plugin_la-goom.Plo \
  	visualization/$(DEPDIR)/libprojectm_plugin_la-projectm.Plo \
  	visualization/$(DEPDIR)/libvsxu_plugin_la-vsxu.Plo \
-@@ -6731,7 +6723,6 @@ SOURCES = $(liba52_plugin_la_SOURCES) $(libaa_plugin_la_SOURCES) \
- 	$(libglconv_vaapi_x11_plugin_la_SOURCES) \
+@@ -6781,7 +6771,6 @@ SOURCES = $(liba52_plugin_la_SOURCES) $(libaa_plugin_la_SOURCES) \
  	$(libglconv_vdpau_plugin_la_SOURCES) \
  	$(libgles2_plugin_la_SOURCES) \
+ 	$(libglinterop_dxva2_plugin_la_SOURCES) \
 -	$(libglspectrum_plugin_la_SOURCES) \
  	$(libglwin32_plugin_la_SOURCES) $(libglx_plugin_la_SOURCES) \
  	$(libgme_plugin_la_SOURCES) $(libgnutls_plugin_la_SOURCES) \
  	$(libgoom_plugin_la_SOURCES) $(libgradfun_plugin_la_SOURCES) \
-@@ -7130,7 +7121,6 @@ DIST_SOURCES = $(liba52_plugin_la_SOURCES) $(libaa_plugin_la_SOURCES) \
- 	$(libglconv_vaapi_x11_plugin_la_SOURCES) \
+@@ -7181,7 +7170,6 @@ DIST_SOURCES = $(liba52_plugin_la_SOURCES) $(libaa_plugin_la_SOURCES) \
  	$(libglconv_vdpau_plugin_la_SOURCES) \
  	$(libgles2_plugin_la_SOURCES) \
+ 	$(libglinterop_dxva2_plugin_la_SOURCES) \
 -	$(libglspectrum_plugin_la_SOURCES) \
  	$(libglwin32_plugin_la_SOURCES) $(libglx_plugin_la_SOURCES) \
  	$(libgme_plugin_la_SOURCES) $(libgnutls_plugin_la_SOURCES) \
  	$(libgoom_plugin_la_SOURCES) $(libgradfun_plugin_la_SOURCES) \
-@@ -12696,13 +12686,6 @@ libevent_thread_la_LDFLAGS = -static
+@@ -12789,13 +12777,7 @@ libevent_thread_la_LDFLAGS = -static
  visudir = $(pluginsdir)/visualization
- visu_LTLIBRARIES = $(am__append_250) $(LTLIBgoom) $(LTLIBprojectm) \
+ visu_LTLIBRARIES = $(am__append_260) $(LTLIBgoom) $(LTLIBprojectm) \
  	libvisual_plugin.la $(LTLIBvsxu)
 -libglspectrum_plugin_la_SOURCES = \
 -	visualization/glspectrum.c \
 -	visualization/visual/fft.c visualization/visual/fft.h \
 -	visualization/visual/window.c visualization/visual/window.h \
 -	visualization/visual/window_presets.h
--
+ 
 -libglspectrum_plugin_la_LIBADD = $(GL_LIBS) $(LIBM)
  libgoom_plugin_la_SOURCES = visualization/goom.c
  libgoom_plugin_la_CPPFLAGS = $(AM_CPPFLAGS) $(GOOM_CFLAGS)
  libgoom_plugin_la_LDFLAGS = $(AM_LDFLAGS) -rpath '$(visudir)'
-@@ -15715,8 +15698,6 @@ visualization/$(am__dirstamp):
+@@ -15841,8 +15823,6 @@ visualization/$(am__dirstamp):
  visualization/$(DEPDIR)/$(am__dirstamp):
  	@$(MKDIR_P) visualization/$(DEPDIR)
  	@: > visualization/$(DEPDIR)/$(am__dirstamp)
@@ -90,7 +91,7 @@ index bde45db53..c9c4342ad 100644
  visualization/visual/$(am__dirstamp):
  	@$(MKDIR_P) visualization/visual
  	@: > visualization/visual/$(am__dirstamp)
-@@ -15728,8 +15709,6 @@ visualization/visual/fft.lo: visualization/visual/$(am__dirstamp) \
+@@ -15854,8 +15834,6 @@ visualization/visual/fft.lo: visualization/visual/$(am__dirstamp) \
  visualization/visual/window.lo: visualization/visual/$(am__dirstamp) \
  	visualization/visual/$(DEPDIR)/$(am__dirstamp)
  
@@ -99,7 +100,7 @@ index bde45db53..c9c4342ad 100644
  video_output/opengl/libglwin32_plugin_la-vout_helper.lo:  \
  	video_output/opengl/$(am__dirstamp) \
  	video_output/opengl/$(DEPDIR)/$(am__dirstamp)
-@@ -21420,7 +21399,6 @@ distclean-compile:
+@@ -21568,7 +21546,6 @@ distclean-compile:
  @AMDEP_TRUE@@am__include@ @am__quote@video_splitter/$(DEPDIR)/clone.Plo@am__quote@ # am--include-marker
  @AMDEP_TRUE@@am__include@ @am__quote@video_splitter/$(DEPDIR)/libpanoramix_plugin_la-panoramix.Plo@am__quote@ # am--include-marker
  @AMDEP_TRUE@@am__include@ @am__quote@video_splitter/$(DEPDIR)/wall.Plo@am__quote@ # am--include-marker
@@ -107,7 +108,7 @@ index bde45db53..c9c4342ad 100644
  @AMDEP_TRUE@@am__include@ @am__quote@visualization/$(DEPDIR)/libgoom_plugin_la-goom.Plo@am__quote@ # am--include-marker
  @AMDEP_TRUE@@am__include@ @am__quote@visualization/$(DEPDIR)/libprojectm_plugin_la-projectm.Plo@am__quote@ # am--include-marker
  @AMDEP_TRUE@@am__include@ @am__quote@visualization/$(DEPDIR)/libvsxu_plugin_la-vsxu.Plo@am__quote@ # am--include-marker
-@@ -30324,7 +30302,6 @@ distclean: distclean-recursive
+@@ -30529,7 +30506,6 @@ distclean: distclean-recursive
  	-rm -f video_splitter/$(DEPDIR)/clone.Plo
  	-rm -f video_splitter/$(DEPDIR)/libpanoramix_plugin_la-panoramix.Plo
  	-rm -f video_splitter/$(DEPDIR)/wall.Plo
@@ -115,7 +116,7 @@ index bde45db53..c9c4342ad 100644
  	-rm -f visualization/$(DEPDIR)/libgoom_plugin_la-goom.Plo
  	-rm -f visualization/$(DEPDIR)/libprojectm_plugin_la-projectm.Plo
  	-rm -f visualization/$(DEPDIR)/libvsxu_plugin_la-vsxu.Plo
-@@ -31722,7 +31699,6 @@ maintainer-clean: maintainer-clean-recursive
+@@ -31939,7 +31915,6 @@ maintainer-clean: maintainer-clean-recursive
  	-rm -f video_splitter/$(DEPDIR)/clone.Plo
  	-rm -f video_splitter/$(DEPDIR)/libpanoramix_plugin_la-panoramix.Plo
  	-rm -f video_splitter/$(DEPDIR)/wall.Plo
@@ -124,7 +125,7 @@ index bde45db53..c9c4342ad 100644
  	-rm -f visualization/$(DEPDIR)/libprojectm_plugin_la-projectm.Plo
  	-rm -f visualization/$(DEPDIR)/libvsxu_plugin_la-vsxu.Plo
 diff --git a/modules/visualization/Makefile.am b/modules/visualization/Makefile.am
-index 10619e030..aafc97f87 100644
+index 677a28824..dacbb53f0 100644
 --- a/modules/visualization/Makefile.am
 +++ b/modules/visualization/Makefile.am
 @@ -1,16 +1,6 @@
@@ -144,6 +145,3 @@ index 10619e030..aafc97f87 100644
  libgoom_plugin_la_SOURCES = visualization/goom.c
  libgoom_plugin_la_CPPFLAGS = $(AM_CPPFLAGS) $(GOOM_CFLAGS)
  libgoom_plugin_la_LDFLAGS = $(AM_LDFLAGS) -rpath '$(visudir)'
--- 
-2.38.1
-

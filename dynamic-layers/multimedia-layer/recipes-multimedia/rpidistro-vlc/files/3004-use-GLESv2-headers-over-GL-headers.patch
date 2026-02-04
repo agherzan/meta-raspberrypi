@@ -1,4 +1,4 @@
-From 377a67af6c3f7c38f6f7ba24f042ba1a6cfd3f24 Mon Sep 17 00:00:00 2001
+From 8b5eefe781d39ea019af58b9cd0af8207b91bb49 Mon Sep 17 00:00:00 2001
 From: Vincent Davis Jr <vince@underview.tech>
 Date: Fri, 9 Dec 2022 00:21:43 -0600
 Subject: [PATCH] use GLESv2 headers over GL headers
@@ -41,7 +41,7 @@ index 7000e1f38..a3fe32671 100644
  
  #define VLCGL_PICTURE_MAX 128
 diff --git a/modules/visualization/glspectrum.c b/modules/visualization/glspectrum.c
-index 06f8d1bdf..470080b1a 100644
+index 832a52d0f..f1f6bda88 100644
 --- a/modules/visualization/glspectrum.c
 +++ b/modules/visualization/glspectrum.c
 @@ -37,7 +37,9 @@
@@ -55,6 +55,3 @@ index 06f8d1bdf..470080b1a 100644
  #endif
  
  #include <math.h>
--- 
-2.38.1
-

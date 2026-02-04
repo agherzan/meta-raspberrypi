@@ -1,5 +1,6 @@
+From 567938b0861f2986b729c9aba7388e1531cbbd90 Mon Sep 17 00:00:00 2001
 From: Vincent Davis Jr <vince@underview.tech>
-Date: Fri, 07 Jan 2022 07:01:47 PM CST
+Date: Fri, 7 Jan 2022 19:01:47 -0600
 Subject: [PATCH] Fix EGL macro undeclared and EGLImageKHR
 
 Upstream-Status: Inappropriate
@@ -11,14 +12,67 @@ raspiberry pi support.
 * Updates EGLImage to EGLImageKHR
 
 Signed-off-by: Vincent Davis Jr <vince@underview.tech>
+---
+ modules/hw/drm/drm_gl_conv.c     | 37 ++++++++++++++++++++++++++++++++
+ modules/hw/mmal/converter_mmal.c | 30 +++++++++++++++++++++++++-
+ 2 files changed, 66 insertions(+), 1 deletion(-)
+
+diff --git a/modules/hw/drm/drm_gl_conv.c b/modules/hw/drm/drm_gl_conv.c
+index 157d4a9c7..b88087ac3 100644
+--- a/modules/hw/drm/drm_gl_conv.c
++++ b/modules/hw/drm/drm_gl_conv.c
+@@ -21,6 +21,43 @@
+ 
+ #define ICACHE_SIZE 2
+ 
++// Pass Yocto related build errors
++#ifndef EGL_LINUX_DMA_BUF_EXT
++#define EGL_LINUX_DMA_BUF_EXT           0x3270
++#define EGL_LINUX_DRM_FOURCC_EXT        0x3271
++#define EGL_DMA_BUF_PLANE0_FD_EXT       0x3272
++#define EGL_DMA_BUF_PLANE0_OFFSET_EXT   0x3273
++#define EGL_DMA_BUF_PLANE0_PITCH_EXT    0x3274
++#define EGL_DMA_BUF_PLANE1_FD_EXT       0x3275
++#define EGL_DMA_BUF_PLANE1_OFFSET_EXT   0x3276
++#define EGL_DMA_BUF_PLANE1_PITCH_EXT    0x3277
++#define EGL_DMA_BUF_PLANE2_FD_EXT       0x3278
++#define EGL_DMA_BUF_PLANE2_OFFSET_EXT   0x3279
++#define EGL_DMA_BUF_PLANE2_PITCH_EXT    0x327A
++#define EGL_YUV_COLOR_SPACE_HINT_EXT    0x327B
++#define EGL_SAMPLE_RANGE_HINT_EXT       0x327C
++#define EGL_YUV_CHROMA_HORIZONTAL_SITING_HINT_EXT  0x327D
++#define EGL_YUV_CHROMA_VERTICAL_SITING_HINT_EXT    0x327E
++#define EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT 0x3443
++#define EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT 0x3444
++#define EGL_DMA_BUF_PLANE1_MODIFIER_LO_EXT 0x3445
++#define EGL_DMA_BUF_PLANE1_MODIFIER_HI_EXT 0x3446
++#define EGL_DMA_BUF_PLANE2_MODIFIER_LO_EXT 0x3447
++#define EGL_DMA_BUF_PLANE2_MODIFIER_HI_EXT 0x3448
++#define EGL_DMA_BUF_PLANE3_FD_EXT          0x3440
++#define EGL_DMA_BUF_PLANE3_OFFSET_EXT      0x3441
++#define EGL_DMA_BUF_PLANE3_PITCH_EXT       0x3442
++#define EGL_DMA_BUF_PLANE3_MODIFIER_LO_EXT 0x3449
++#define EGL_DMA_BUF_PLANE3_MODIFIER_HI_EXT 0x344A
++#define EGL_YUV_FULL_RANGE_EXT        0x3282
++#define EGL_YUV_NARROW_RANGE_EXT      0x3283
++#define EGL_YUV_CHROMA_SITING_0_EXT   0x3284
++#define EGL_YUV_CHROMA_SITING_0_5_EXT 0x3285
++#define EGL_ITU_REC601_EXT    0x327F
++#define EGL_ITU_REC709_EXT    0x3280
++#define EGL_ITU_REC2020_EXT   0x3281
++#endif
++
+ typedef struct drm_gl_converter_s
+ {
+     EGLint drm_fourcc;
 diff --git a/modules/hw/mmal/converter_mmal.c b/modules/hw/mmal/converter_mmal.c
-index f31cb81d8..426af668b 100644
+index 44333c43f..f00196b94 100644
 --- a/modules/hw/mmal/converter_mmal.c
 +++ b/modules/hw/mmal/converter_mmal.c
 @@ -28,6 +28,34 @@
-
+ 
  #define TRACE_ALL 0
-
+ 
 +// Pass Yocto related build errors
 +#define EGL_LINUX_DMA_BUF_EXT           0x3270
 +#define EGL_LINUX_DRM_FOURCC_EXT        0x3271
@@ -51,9 +105,9 @@ index f31cb81d8..426af668b 100644
  {
      EGLint drm_fourcc;
 @@ -199,7 +227,7 @@ static tex_context_t * get_tex_context(const opengl_tex_converter_t * const tc,
-
+ 
          *a = EGL_NONE;
-
+ 
 -        const EGLImage image = tc->gl->egl.createImageKHR(tc->gl, EGL_LINUX_DMA_BUF_EXT, NULL, attribs);
 +        const EGLImageKHR image = tc->gl->egl.createImageKHR(tc->gl, EGL_LINUX_DMA_BUF_EXT, NULL, attribs);
          if (!image) {

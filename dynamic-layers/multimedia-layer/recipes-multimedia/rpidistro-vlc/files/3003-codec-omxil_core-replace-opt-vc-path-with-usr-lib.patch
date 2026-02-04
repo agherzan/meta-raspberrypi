@@ -1,4 +1,4 @@
-From 85f6603aca1d174848b42e696a4cff8af57613d6 Mon Sep 17 00:00:00 2001
+From 0445a52c1d4c89d8abdd28fc0ccf9058385c1659 Mon Sep 17 00:00:00 2001
 From: Vincent Davis Jr <vince@underview.tech>
 Date: Thu, 8 Dec 2022 23:38:36 -0600
 Subject: [PATCH] codec: omxil_core replace /opt/vc path with /usr/lib
@@ -17,7 +17,7 @@ Signed-off-by: Vincent Davis Jr <vince@underview.tech>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/modules/codec/omxil/omxil_core.c b/modules/codec/omxil/omxil_core.c
-index 5098f517a..5922d9034 100644
+index e55488c9d..fb60e1ae6 100644
 --- a/modules/codec/omxil/omxil_core.c
 +++ b/modules/codec/omxil/omxil_core.c
 @@ -56,7 +56,7 @@ static const char *ppsz_dll_list[] =
@@ -38,6 +38,3 @@ index 5098f517a..5922d9034 100644
      0
  };
  #endif
--- 
-2.38.1
-

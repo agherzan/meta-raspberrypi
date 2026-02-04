@@ -1,0 +1,60 @@
+From 961c7aceea69070509979bed89f67955ba5089cb Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Tue, 25 Apr 2023 16:33:34 +0000
+Subject: [PATCH 24/41] audio_output: When padding with silence add zeros in
+ multiple small buffers
+
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ src/audio_output/dec.c | 35 +++++++++++++++++++++--------------
+ 1 file changed, 21 insertions(+), 14 deletions(-)
+
+--- a/src/audio_output/dec.c
++++ b/src/audio_output/dec.c
+@@ -217,20 +217,27 @@ static void aout_DecSilence (audio_outpu
+ {
+     aout_owner_t *owner = aout_owner (aout);
+     const audio_sample_format_t *fmt = &owner->mixer_format;
+-    size_t frames = (fmt->i_rate * length) / CLOCK_FREQ;
++    size_t frame_count = (fmt->i_rate * length) / CLOCK_FREQ;
+ 
+-    block_t *block = block_Alloc (frames * fmt->i_bytes_per_frame
+-                                  / fmt->i_frame_length);
+-    if (unlikely(block == NULL))
+-        return; /* uho! */
++    msg_Dbg (aout, "inserting %zu zero frames", frame_count);
++    while (frame_count != 0)
++    {
++        // Block into something that has a multiple of 3 in case this is spdif
++        // and we are going to substitute with pause blocks with a rep count of 3
++        const size_t frames = frame_count > 3072 ? 3072 : frame_count;
++        block_t *block = block_Alloc((size_t)((uint_fast64_t)frames * fmt->i_bytes_per_frame
++                                      / fmt->i_frame_length));
++        if (unlikely(block == NULL))
++            return; /* uho! */
+ 
+-    msg_Dbg (aout, "inserting %zu zeroes", frames);
+-    memset (block->p_buffer, 0, block->i_buffer);
+-    block->i_nb_samples = frames;
+-    block->i_pts = pts;
+-    block->i_dts = pts;
+-    block->i_length = length;
+-    aout_OutputPlay (aout, block);
++        memset (block->p_buffer, 0, block->i_buffer);
++        block->i_nb_samples = frames;
++        block->i_pts = pts;
++        block->i_dts = pts;
++        block->i_length = length;
++        aout_OutputPlay (aout, block);
++        frame_count -= frames;
++    }
+ }
+ 
+ static void aout_DecSynchronize (audio_output_t *aout, vlc_tick_t dec_pts,

@@ -1,0 +1,30 @@
+From f22ee6b8681623fd1276a0f69ab28476de912a00 Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Tue, 11 Jun 2024 17:10:30 +0100
+Subject: [PATCH 21/41] avcommon: Add ffmpeg trace output for -vvvv
+
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ modules/codec/avcodec/avcommon.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+--- a/modules/codec/avcodec/avcommon.h
++++ b/modules/codec/avcodec/avcommon.h
+@@ -84,7 +84,10 @@ static inline void vlc_init_avutil(vlc_o
+             break;
+         case VLC_MSG_DBG+1:
+             level = AV_LOG_DEBUG;
++            break;
+         default:
++            if (verbose + VLC_MSG_ERR >= VLC_MSG_DBG+2)
++                level = AV_LOG_TRACE;
+             break;
+         }
+     }

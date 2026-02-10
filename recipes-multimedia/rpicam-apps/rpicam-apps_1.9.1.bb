@@ -1,6 +1,6 @@
-SUMMARY = "A suite of libcamera-based apps"
-DESCRIPTION = "This is a small suite of libcamera-based apps that aim to \
-copy the functionality of the existing \"raspicam\" apps."
+SUMMARY = "suite of libcamera-based applications"
+DESCRIPTION = "This is a small suite of libcamera-based applications to \
+drive the cameras on a Raspberry Pi platform."
 HOMEPAGE = "https://github.com/raspberrypi/rpicam-apps"
 SECTION = "console/utils"
 
@@ -9,15 +9,11 @@ LIC_FILES_CHKSUM = "file://license.txt;md5=a0013d1b383d72ba4bdc5b750e7d1d77"
 
 SRC_URI = "\
     git://github.com/raspberrypi/rpicam-apps.git;protocol=https;branch=main \
-    file://0001-utils-version.py-use-usr-bin-env-in-shebang.patch \
-    file://add-missing-header.patch \
 "
+PV = "1.9.1+git${SRCPV}"
+SRCREV = "6782818adcb8b5559c2657bb144e78d69607681f"
 
-SRCREV = "eca9928b76c106141667288f1cef935d02ba59b3"
-
-PROVIDES += "rpicam-apps"
-
-DEPENDS = "libcamera libexif jpeg tiff libpng boost"
+DEPENDS = "rpi-libcamera libexif jpeg tiff libpng boost"
 
 PACKAGECONFIG ??= "drm"
 PACKAGECONFIG[libav] = "-Denable_libav=enabled, -Denable_libav=disabled, libav"
@@ -36,12 +32,17 @@ NEON_FLAGS:arm:raspberrypi4 = "-Dneon_flags=armv8-neon"
 EXTRA_OEMESON += "${NEON_FLAGS}"
 
 # QA Issue: /usr/bin/camera-bug-report contained in package libcamera-apps requires /usr/bin/python3
-# QA Issue: File /usr/lib/pkgconfig/rpicam_app.pc in package libcamera-apps-dev contains reference to TMPDIR
 do_install:append() {
     rm -v ${D}/${bindir}/camera-bug-report
-    sed -i "s,${RECIPE_SYSROOT}${libdir},$\{libdir},g" ${D}${libdir}/pkgconfig/rpicam_app.pc
 }
 
-FILES:${PN} += "${libdir}/rpicam-apps-postproc \
-                ${libdir}/rpicam-apps-preview \
-                ${datadir}/rpi-camera-assets"
+# not picked automatically, because it's missing common 'lib' prefix
+FILES:${PN}-dev += "${libdir}/rpicam_app.so"
+
+FILES:${PN} += "\
+    ${libdir}/rpicam_app.so.${@d.getVar("PV", False).__str__().split('+')[0]} \
+    ${libdir}/rpicam-apps* \
+    ${datadir}/rpi-camera-assets/* \
+"
+
+INSANE_SKIP:${PN}-dev = "buildpaths"

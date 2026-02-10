@@ -343,6 +343,11 @@ do_deploy:append:raspberrypi3-64() {
     echo "dtparam=audio=on" >> $CONFIG
 }
 
+do_deploy:append:raspberrypi5() {
+    echo "# Setting usb_max_current_enable=1 allows up to 1.6A (1600mA), enabling extra USB devices. " >> $CONFIG
+    echo "usb_max_current_enable=1" >> $CONFIG
+}
+
 do_deploy:append() {
     if grep -q -E '^.{80}.$' ${DEPLOYDIR}/${BOOTFILES_DIR_NAME}/config.txt; then
         bbwarn "config.txt contains lines longer than 80 characters, this is not supported"

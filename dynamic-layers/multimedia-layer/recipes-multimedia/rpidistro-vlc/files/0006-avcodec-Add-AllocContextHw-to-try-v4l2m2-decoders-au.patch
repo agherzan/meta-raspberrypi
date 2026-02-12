@@ -1,0 +1,115 @@
+From e3cdb4f22ecc480179a6d501dbbe6c82fed3fcdf Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Tue, 11 Jun 2024 16:25:24 +0100
+Subject: [PATCH 06/41] avcodec: Add AllocContextHw to try v4l2m2 decoders
+ automatically
+
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ modules/codec/avcodec/avcodec.c | 47 ++++++++++++++++++++++++++++-----
+ modules/codec/avcodec/avcodec.h |  1 +
+ 2 files changed, 42 insertions(+), 6 deletions(-)
+
+--- a/modules/codec/avcodec/avcodec.c
++++ b/modules/codec/avcodec/avcodec.c
+@@ -252,17 +252,41 @@ vlc_module_begin ()
+ #endif
+ vlc_module_end ()
+ 
+-AVCodecContext *ffmpeg_AllocContext( decoder_t *p_dec,
+-                                     const AVCodec **restrict codecp )
++static const char *
++hw_v4l2m2m_dec_str(const unsigned i_codec_id)
++{
++    switch( i_codec_id )
++    {
++        case AV_CODEC_ID_MPEG2VIDEO:
++            return "mpeg2_v4l2m2m";
++        case AV_CODEC_ID_H264:
++            return "h264_v4l2m2m";
++        default:
++            break;
++    }
++    return NULL;
++}
++
++AVCodecContext *ffmpeg_AllocContextHw( decoder_t *p_dec,
++                                     const AVCodec **restrict codecp, const int hw )
+ {
+     unsigned i_codec_id;
+     const char *psz_namecodec;
+     const AVCodec *p_codec = NULL;
++    const char * hw_dec_name = NULL;
++    const char * const psz_decoder = var_InheritString( p_dec, "avcodec-codec" );
++
++    // If named decoder do not attempt hw override - wait for non-hw pass
++    if( hw != 0 && psz_decoder != NULL )
++        goto fail_free_psz_decoder;
+ 
+     /* *** determine codec type *** */
+     if( !GetFfmpegCodec( p_dec->fmt_in.i_cat, p_dec->fmt_in.i_codec,
+                          &i_codec_id, &psz_namecodec ) )
+-         return NULL;
++        goto fail_free_psz_decoder;
++
++    if( hw != 0 && (hw_dec_name = hw_v4l2m2m_dec_str(i_codec_id)) == NULL )
++        goto fail_free_psz_decoder;
+ 
+     msg_Dbg( p_dec, "using %s %s", AVPROVIDER(LIBAVCODEC), LIBAVCODEC_IDENT );
+ 
+@@ -270,7 +294,6 @@ AVCodecContext *ffmpeg_AllocContext( dec
+     vlc_init_avcodec(VLC_OBJECT(p_dec));
+ 
+     /* *** ask ffmpeg for a decoder *** */
+-    char *psz_decoder = var_InheritString( p_dec, "avcodec-codec" );
+     if( psz_decoder != NULL )
+     {
+         p_codec = avcodec_find_decoder_by_name( psz_decoder );
+@@ -282,9 +305,11 @@ AVCodecContext *ffmpeg_AllocContext( dec
+                     psz_decoder, (char*)&p_dec->fmt_in.i_codec );
+             p_codec = NULL;
+         }
+-        free( psz_decoder );
++        free( (char*)psz_decoder );
+     }
+-    if( !p_codec )
++    if( hw_dec_name != NULL )
++        p_codec = avcodec_find_decoder_by_name(hw_dec_name);
++    else if( !p_codec )
+         p_codec = avcodec_find_decoder( i_codec_id );
+     if( !p_codec )
+     {
+@@ -302,6 +327,16 @@ AVCodecContext *ffmpeg_AllocContext( dec
+     avctx->debug = var_InheritInteger( p_dec, "avcodec-debug" );
+     avctx->opaque = p_dec;
+     return avctx;
++
++fail_free_psz_decoder:
++    free((char*)psz_decoder);
++    return NULL;
++}
++
++AVCodecContext *ffmpeg_AllocContext( decoder_t *p_dec,
++                                     const AVCodec **restrict codecp )
++{
++    return ffmpeg_AllocContextHw(p_dec, codecp, 0);
+ }
+ 
+ /*****************************************************************************
+--- a/modules/codec/avcodec/avcodec.h
++++ b/modules/codec/avcodec/avcodec.h
+@@ -48,6 +48,7 @@ int InitSubtitleDec( vlc_object_t * );
+ void EndSubtitleDec( vlc_object_t * );
+ 
+ /* Initialize decoder */
++AVCodecContext *ffmpeg_AllocContextHw( decoder_t *p_dec, const AVCodec **restrict codecp, const int hw );
+ AVCodecContext *ffmpeg_AllocContext( decoder_t *, const AVCodec ** );
+ int ffmpeg_OpenCodec( decoder_t *p_dec, AVCodecContext *, const AVCodec * );
+ 

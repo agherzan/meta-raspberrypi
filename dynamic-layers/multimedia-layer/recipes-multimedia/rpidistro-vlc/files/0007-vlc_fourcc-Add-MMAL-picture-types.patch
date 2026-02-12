@@ -1,0 +1,31 @@
+From bc5d50fb29b5fb8c3db7409f241510effe00d85c Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Tue, 11 Jun 2024 16:28:46 +0100
+Subject: [PATCH 07/41] vlc_fourcc: Add MMAL picture types
+
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ include/vlc_fourcc.h | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/include/vlc_fourcc.h
++++ b/include/vlc_fourcc.h
+@@ -378,6 +378,11 @@
+ 
+ /* Broadcom MMAL opaque buffer type */
+ #define VLC_CODEC_MMAL_OPAQUE     VLC_FOURCC('M','M','A','L')
++#define VLC_CODEC_MMAL_ZC_SAND8   VLC_FOURCC('Z','S','D','8')
++#define VLC_CODEC_MMAL_ZC_SAND10  VLC_FOURCC('Z','S','D','0')
++#define VLC_CODEC_MMAL_ZC_SAND30  VLC_FOURCC('Z','S','D','3')
++#define VLC_CODEC_MMAL_ZC_I420    VLC_FOURCC('Z','4','2','0')
++#define VLC_CODEC_MMAL_ZC_RGB32   VLC_FOURCC('Z','R','G','B')
+ 
+ /* DXVA2 opaque video surface for use with D3D9 */
+ #define VLC_CODEC_D3D9_OPAQUE     VLC_FOURCC('D','X','A','9') /* 4:2:0  8 bpc */

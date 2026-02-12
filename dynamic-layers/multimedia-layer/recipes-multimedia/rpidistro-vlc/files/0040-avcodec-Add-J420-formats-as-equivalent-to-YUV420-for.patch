@@ -1,0 +1,41 @@
+From ca780ff30f8b6efa9ab35d1dc30445074335a30b Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Mon, 8 Sep 2025 13:58:45 +0100
+Subject: [PATCH 40/41] avcodec: Add J420 formats as equivalent to YUV420 for
+ rpi h/w
+
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ modules/codec/avcodec/va.c    | 1 +
+ modules/codec/avcodec/video.c | 3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+--- a/modules/codec/avcodec/va.c
++++ b/modules/codec/avcodec/va.c
+@@ -60,6 +60,7 @@ vlc_fourcc_t vlc_va_GetChroma(enum Pixel
+         case AV_PIX_FMT_DRM_PRIME:
+             switch (swfmt)
+             {
++                case AV_PIX_FMT_YUVJ420P:
+                 case AV_PIX_FMT_YUV420P:
+                     return VLC_CODEC_DRM_PRIME_I420;
+                 case AV_PIX_FMT_NV12:
+--- a/modules/codec/avcodec/video.c
++++ b/modules/codec/avcodec/video.c
+@@ -1979,7 +1979,8 @@ no_reuse:
+         {
+             if (swfmt == AV_PIX_FMT_P010)
+                 defsw = AV_PIX_FMT_RPI4_10;
+-            if (swfmt == AV_PIX_FMT_YUV420P)
++            if (swfmt == AV_PIX_FMT_YUV420P ||
++                swfmt == AV_PIX_FMT_YUVJ420P)
+                 defsw = AV_PIX_FMT_RPI4_8;
+         }
+ #endif

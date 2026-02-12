@@ -1,0 +1,50 @@
+From f3e2e48bf0fad5327c74e383affc026576bb0b7d Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Tue, 11 Jun 2024 18:43:19 +0100
+Subject: [PATCH 28/41] qt: Disable HiDPIScaling if ratio is implausible
+
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ modules/gui/qt/qt.cpp | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+--- a/modules/gui/qt/qt.cpp
++++ b/modules/gui/qt/qt.cpp
+@@ -31,6 +31,7 @@
+ #include <QApplication>
+ #include <QDate>
+ #include <QMutex>
++#include <QScreen>
+ 
+ #include "qt.hpp"
+ 
+@@ -588,6 +589,22 @@ static void *ThreadPlatform( void *obj,
+     QApplication::setAttribute( Qt::AA_UseStyleSheetPropagationInWidgetStyles, true);
+ #endif
+ 
++    bool do_disable = false;
++    {
++        QVLCApp app( argc, argv );
++        const double dpr = app.devicePixelRatio();
++        if( dpr > 2.1 )
++        {
++            do_disable = true;
++            msg_Warn(p_intf, "devicePixelRatio (%g) > 2.1: assuming broken", dpr);
++        }
++        app.quit();
++    }
++    if( do_disable )
++    {
++        QApplication::setAttribute( Qt::AA_DisableHighDpiScaling );
++    }
++
+     /* Start the QApplication here */
+     QVLCApp app( argc, argv );
+ 

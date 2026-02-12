@@ -1,0 +1,60 @@
+From 259c8b0791efb93d670d6ef29af7440f3902b360 Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Tue, 22 Oct 2024 15:59:50 +0100
+Subject: [PATCH 41/41] RPICHANGES: Add change log
+
+As codebase is now arranged to squash fixes into existing patches
+add a changelog so we know what deltas have occured
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ RPICHANGES | 37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+ create mode 100644 RPICHANGES
+
+--- /dev/null
++++ b/RPICHANGES
+@@ -0,0 +1,37 @@
++pi/3.0.21/rpi_48
++----------------
++Improve wl_xdg_shell so it is actually usable
++Change --wl-dmabuf-disable to --no-wl-dmabuf
++Set a malloc mmap threshold of 128k. This helps avoid bad memory fragmentation
++Add ability for video output to tell when output is scaled to enable correct
++use of native surfaces.
++Fix crash when playing video on a scaled Wayland output
++Fix output scaling on a scaled Wayland output
++
++pi/3.0.21-trixie/rpi_49
++-----------------------
++Rebase onto the point that debian trixie has picked. This doesn't appear to
++affect any of our patches, but it does compile a lot better.
++Fix a live555 compile error in trixie
++Fix Alsa TRUEHD passthrough rates when the notional sample rate is > 48k
++Add a --wl-dmabuf-stats option that collects data on frames presented and
++frames droped by wayland.
++Fix a segfault on VLC exit when using wl-dmabuf in fullscreen
++
++pi/3.0.21-trixie/rpi_50
++-----------------------
++Add YUV420J (i.e. full range YUV420) aliases to DRMPRIME processing. This fixes
++issues with a few 420J streams not getting h/w acceleration correctly.
++
++pi/3.0.21-trixie/rpi_51
++-----------------------
++Add colour_representation support to wl_dmabuf. This should enable correct
++color representation of BT470 and BT2020 videos under wayland (as long as the
++compositor supports the extension).
++Add the ability to rotate video with DRM output. So far this is only the video,
++subtitles etc. are not rotated and so entire display rotation is currently not
++supported.
++When terminating with Alt-F4 under wayland NULL out the current surface, this
++fixes a segfault on exit.
++In wl_dmabuf deal with a a NULL background surface better, fixes a stall on
++close (terminated by VLC shutdown timeout) when shutting down with Alt-F4.

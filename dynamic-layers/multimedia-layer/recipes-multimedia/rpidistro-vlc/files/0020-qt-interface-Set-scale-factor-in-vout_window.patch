@@ -1,0 +1,37 @@
+From d34f564c2a765f59ff1da1753e236623a2402c43 Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Tue, 22 Oct 2024 15:48:45 +0100
+Subject: [PATCH 20/41] qt/interface: Set scale factor in vout_window
+
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ modules/gui/qt/components/interface_widgets.cpp | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+--- a/modules/gui/qt/components/interface_widgets.cpp
++++ b/modules/gui/qt/components/interface_widgets.cpp
+@@ -282,6 +282,17 @@ void VideoWidget::reportSize()
+ 
+     refreshHandle();
+ 
++    if (p_window && p_window->type == VOUT_WINDOW_TYPE_WAYLAND && p_window->handle.wl != NULL)
++    {
++#if HAS_QT56
++        qreal dpr = devicePixelRatioF();
++#else
++        qreal dpr = devicePixelRatio();
++#endif
++        p_window->scale_num = (int)(0x10000 * dpr + 0.5);
++        p_window->scale_den = 0x10000;
++    }
++
+     QSize size = physicalSize();
+     WindowResized(p_window, size);
+ }

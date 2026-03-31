@@ -29,8 +29,10 @@ REPOS=" \
     git://git.yoctoproject.org/meta-yocto \
 "
 for repo in $REPOS; do
-    log "Cloning $repo on branch $BASE_REF..."
-    git clone --depth 1 --branch "$BASE_REF" "$repo"
+    BRANCH="$BASE_REF"
+    [ "$repo" =  "git://git.openembedded.org/bitbake" -a "$BASE_REF" = "whinlatter" ] && BRANCH=2.16
+    log "Cloning $repo on branch $BRANCH..."
+    git clone --depth 1 --branch "$BRANCH" "$repo"
 done
 
 # shellcheck disable=SC1091,SC2240

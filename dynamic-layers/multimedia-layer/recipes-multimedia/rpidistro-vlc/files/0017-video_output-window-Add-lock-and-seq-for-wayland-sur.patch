@@ -1,0 +1,85 @@
+From e7ed4b929377bf28cd3fbf5ebe7f308ac7514c72 Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Wed, 1 Nov 2023 10:42:57 +0000
+Subject: [PATCH 17/41] video_output/window: Add lock and seq for wayland
+ surface handle sync
+
+Qt + Wayland can sometimes change the surface handle. Provide a lock
+so that this can be guarded against whilst video display is actively
+using it and a sequence number for reliable detection (the handle is the
+address of a malloced block so might change without changing the
+handle).
+
+It might well be better to have a proper message / callback mechanism
+but this works and is fairly simple.
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ include/vlc_vout_window.h |  8 ++++++++
+ src/video_output/window.c | 18 ++++++++++++++----
+ 2 files changed, 22 insertions(+), 4 deletions(-)
+
+--- a/include/vlc_vout_window.h
++++ b/include/vlc_vout_window.h
+@@ -197,6 +197,14 @@ struct vout_window_t {
+     vout_window_sys_t *sys;
+ 
+     vout_window_owner_t owner;
++
++    /* Wayland handle sync objects  - potentially other windowing systems
++     * too if the handle might change
++     * handle seq incremented if there is a possibility that the handle has
++     * changed - 0 => handle is fixed
++     */
++     vlc_mutex_t handle_lock;
++     unsigned int handle_seq;
+ };
+ 
+ /**
+--- a/src/video_output/window.c
++++ b/src/video_output/window.c
+@@ -51,6 +51,12 @@ static int vout_window_start(void *func,
+     return activate(wnd, cfg);
+ }
+ 
++static void vout_window_destructor(vlc_object_t *obj)
++{
++    vout_window_t *window = (vout_window_t *)obj;
++    vlc_mutex_destroy(&window->handle_lock);
++}
++
+ vout_window_t *vout_window_New(vlc_object_t *obj, const char *module,
+                                const vout_window_cfg_t *cfg,
+                                const vout_window_owner_t *owner)
+@@ -58,10 +64,7 @@ vout_window_t *vout_window_New(vlc_objec
+     window_t *w = vlc_custom_create(obj, sizeof(*w), "window");
+     vout_window_t *window = &w->wnd;
+ 
+-    memset(&window->handle, 0, sizeof(window->handle));
+-    window->info.has_double_click = false;
+-    window->control = NULL;
+-    window->sys = NULL;
++    memset((char*)window + sizeof(window->obj), 0, sizeof(*window) - sizeof(window->obj));
+ 
+     if (owner != NULL)
+         window->owner = *owner;
+@@ -87,6 +90,13 @@ vout_window_t *vout_window_New(vlc_objec
+     }
+     else
+         w->inhibit = NULL;
++
++    if (window->type == VOUT_WINDOW_TYPE_WAYLAND)
++    {
++        vlc_mutex_init(&window->handle_lock);
++        vlc_object_set_destructor(window, vout_window_destructor);
++    }
++
+     return window;
+ }
+ 

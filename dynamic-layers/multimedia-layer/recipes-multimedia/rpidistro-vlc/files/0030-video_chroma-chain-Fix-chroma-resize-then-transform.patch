@@ -1,7 +1,20 @@
+From 6002e02ead769e116f2a0dfbe2e4a2517d26aa85 Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Wed, 12 Jun 2024 10:03:51 +0100
+Subject: [PATCH 30/41] video_chroma/chain: Fix chroma+resize then transform
+
+* Would be worth finding a test case for this
+
+
 Upstream-Status: Inappropriate
 
 RPI-Distro repo forks original vlc and applies patches
+
 to enable raspiberry pi support.
+---
+
+ modules/video_chroma/chain.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
 --- a/modules/video_chroma/chain.c
 +++ b/modules/video_chroma/chain.c

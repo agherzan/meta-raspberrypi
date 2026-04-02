@@ -1,0 +1,208 @@
+From 934f5197daf29d02099bcffe73789e153fbac778 Mon Sep 17 00:00:00 2001
+From: Gijs Peskens <gijs.peskens@munisense.com>
+Date: Mon, 26 Jan 2026 16:36:55 +0100
+Subject: [PATCH] Remove DRMU X-libs dependency
+
+RPI-Distro repo forks original vlc and applies patches
+to enable raspiberry pi support.
+
+If x11 isn't defined in DISTRO_FEATURES
+required xorg related libs are not included
+in recipe-sysroot resulting in compilation
+failure.
+
+Upstream-Status: Inappropriate
+---
+ modules/video_output/Makefile.am        |   6 +-
+ modules/video_output/drmu/drm_vout.c    |   2 -
+ modules/video_output/drmu/drmu_xlease.c | 143 ------------------------
+ 3 files changed, 3 insertions(+), 148 deletions(-)
+ delete mode 100644 modules/video_output/drmu/drmu_xlease.c
+
+diff --git a/modules/video_output/Makefile.am b/modules/video_output/Makefile.am
+index cf9336d84..8dcaa7e73 100644
+--- a/modules/video_output/Makefile.am
++++ b/modules/video_output/Makefile.am
+@@ -201,7 +201,7 @@ libdrm_vout_plugin_la_SOURCES = video_output/drmu/drm_vout.c \
+ 	video_output/drmu/drmu_writeback.h video_output/drmu/drmu_writeback.c \
+ 	video_output/drmu/drmu_poll.h video_output/drmu/drmu_poll.c \
+ 	video_output/drmu/drmu_log.h video_output/drmu/drmu.c \
+-	video_output/drmu/drmu_xlease.c video_output/drmu/drmu_atomic.c \
++	video_output/drmu/drmu_atomic.c \
+ 	video_output/drmu/drmu_util.c video_output/drmu/drmu_util.h \
+ 	video_output/drmu/drmu_output.c video_output/drmu/drmu_output.h \
+ 	video_output/drmu/drmu_scan.c video_output/drmu/drmu_scan.h \
+@@ -210,9 +210,9 @@ libdrm_vout_plugin_la_SOURCES = video_output/drmu/drm_vout.c \
+ 	video_output/drmu/drmu_pool.c video_output/drmu/drmu_pool.h \
+ 	video_output/drmu/drmu_math.c video_output/drmu/drmu_math.h \
+ 	video_output/drmu/pollqueue.c video_output/drmu/pollqueue.h
+-libdrm_vout_plugin_la_CFLAGS = $(AM_CFLAGS) -pthread -I/usr/include/libdrm
++libdrm_vout_plugin_la_CFLAGS = $(AM_CFLAGS) -pthread 
+ libdrm_vout_plugin_la_LDFLAGS = $(AM_LDFLAGS) -pthread
+-libdrm_vout_plugin_la_LIBADD = -ldrm -lxcb-randr -lxcb
++libdrm_vout_plugin_la_LIBADD = -ldrm
+ if HAVE_MMAL
+ libdrm_vout_plugin_la_CFLAGS += -DHAS_ZC_CMA=1
+ libdrm_vout_plugin_la_SOURCES += hw/mmal/mmal_cma_pic.h
+diff --git a/modules/video_output/drmu/drm_vout.c b/modules/video_output/drmu/drm_vout.c
+index de56f6bff..794002541 100644
+--- a/modules/video_output/drmu/drm_vout.c
++++ b/modules/video_output/drmu/drm_vout.c
+@@ -1268,8 +1268,6 @@ static int OpenDrmVout(vlc_object_t *object)
+ 
+         dname = conn_name != NULL ? conn_name : "<auto>";
+ 
+-        sys->du = drmu_env_new_xlease(&log);
+-
+         if (sys->du == NULL) {
+             if (drmu_scan_output(conn_name, &log, &sys->du, &sys->dout) == 0)
+                 msg_Dbg(vd, "Using conn %s", dname);
+diff --git a/modules/video_output/drmu/drmu_xlease.c b/modules/video_output/drmu/drmu_xlease.c
+deleted file mode 100644
+index 9bf2d7b25..000000000
+--- a/modules/video_output/drmu/drmu_xlease.c
++++ /dev/null
+@@ -1,143 +0,0 @@
+-#include "drmu.h"
+-#include "drmu_log.h"
+-
+-#include <xcb/xcb.h>
+-#include <xcb/randr.h>
+-
+-static int
+-get_lease_fd(const drmu_log_env_t * const log)
+-{
+-    xcb_generic_error_t *xerr;
+-
+-    int screen = 0;
+-    xcb_connection_t * const connection = xcb_connect(NULL, &screen);
+-    if (!connection) {
+-        drmu_warn_log(log, "Connection to X server failed");
+-        return -1;
+-    }
+-
+-    {
+-        xcb_randr_query_version_cookie_t rqv_c = xcb_randr_query_version(connection,
+-                                                                         XCB_RANDR_MAJOR_VERSION,
+-                                                                         XCB_RANDR_MINOR_VERSION);
+-        xcb_randr_query_version_reply_t *rqv_r = xcb_randr_query_version_reply(connection, rqv_c, NULL);
+-
+-        if (!rqv_r) {
+-            drmu_warn_log(log, "Failed to get XCB RandR version");
+-            return -1;
+-        }
+-
+-        uint32_t major = rqv_r->major_version;
+-        uint32_t minor = rqv_r->minor_version;
+-        free(rqv_r);
+-
+-        if (minor < 6) {
+-            drmu_warn_log(log, "XCB RandR version %d.%d too low for lease support", major, minor);
+-            return -1;
+-        }
+-    }
+-
+-    xcb_window_t root;
+-
+-    {
+-        xcb_screen_iterator_t s_i = xcb_setup_roots_iterator(xcb_get_setup(connection));
+-        int i;
+-
+-        for (i = 0; i != screen && s_i.rem != 0; ++i) {
+-             xcb_screen_next(&s_i);
+-        }
+-
+-        if (s_i.rem == 0) {
+-            drmu_err_log(log, "Failed to get root for screen %d", screen);
+-            return -1;
+-        }
+-
+-        drmu_debug_log(log, "index %d screen %d rem %d", s_i.index, screen, s_i.rem);
+-        root = s_i.data->root;
+-    }
+-
+-    xcb_randr_output_t output = 0;
+-    xcb_randr_crtc_t crtc = 0;
+-
+-    /* Find a connected in-use output */
+-    {
+-        xcb_randr_get_screen_resources_cookie_t gsr_c = xcb_randr_get_screen_resources(connection, root);
+-
+-        xcb_randr_get_screen_resources_reply_t *gsr_r = xcb_randr_get_screen_resources_reply(connection, gsr_c, NULL);
+-        int o;
+-
+-        if (!gsr_r) {
+-            drmu_err_log(log, "get_screen_resources failed");
+-            return -1;
+-        }
+-
+-        xcb_randr_output_t * const ro = xcb_randr_get_screen_resources_outputs(gsr_r);
+-
+-        for (o = 0; output == 0 && o < gsr_r->num_outputs; o++) {
+-            xcb_randr_get_output_info_cookie_t goi_c = xcb_randr_get_output_info(connection, ro[o], gsr_r->config_timestamp);
+-
+-            xcb_randr_get_output_info_reply_t *goi_r = xcb_randr_get_output_info_reply(connection, goi_c, NULL);
+-
+-            drmu_debug_log(log, "output[%d/%d] %d: conn %d/%d crtc %d", o, gsr_r->num_outputs, ro[o], goi_r->connection, XCB_RANDR_CONNECTION_CONNECTED, goi_r->crtc);
+-
+-            /* Find the first connected and used output */
+-            if (goi_r->connection == XCB_RANDR_CONNECTION_CONNECTED &&
+-                goi_r->crtc != 0) {
+-                output = ro[o];
+-                crtc = goi_r->crtc;
+-            }
+-
+-            free(goi_r);
+-        }
+-
+-        free(gsr_r);
+-
+-        if (output == 0) {
+-            drmu_warn_log(log, "Failed to find active output (outputs=%d)", o);
+-            return -1;
+-        }
+-    }
+-
+-    int fd = -1;
+-
+-    {
+-        xcb_randr_lease_t lease = xcb_generate_id(connection);
+-
+-        xcb_randr_create_lease_cookie_t rcl_c = xcb_randr_create_lease(connection,
+-                                                                       root,
+-                                                                       lease,
+-                                                                       1,
+-                                                                       1,
+-                                                                       &crtc,
+-                                                                       &output);
+-        xcb_randr_create_lease_reply_t *rcl_r = xcb_randr_create_lease_reply(connection, rcl_c, &xerr);
+-
+-        if (!rcl_r) {
+-            drmu_err_log(log, "create_lease failed: Xerror %d", xerr->error_code);
+-            return -1;
+-        }
+-
+-        int *rcl_f = xcb_randr_create_lease_reply_fds(connection, rcl_r);
+-
+-        fd = rcl_f[0];
+-
+-        free(rcl_r);
+-    }
+-
+-    drmu_debug_log(log, "%s OK: fd=%d", __func__, fd);
+-    return fd;
+-}
+-
+-drmu_env_t *
+-drmu_env_new_xlease(const drmu_log_env_t * const log2)
+-{
+-    const struct drmu_log_env_s * const log = (log2 == NULL) ? &drmu_log_env_none : log2;
+-    const int fd = get_lease_fd(log);
+-
+-    if (fd == -1) {
+-        drmu_err_log(log, "Failed to get xlease");
+-        return NULL;
+-    }
+-    return drmu_env_new_fd(fd, log);
+-}
+-

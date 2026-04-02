@@ -1,0 +1,66 @@
+From 950f11fb09624129cb8b089d90a0cafa5818f7f7 Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Fri, 11 Nov 2022 15:55:11 +0000
+Subject: [PATCH 11/41] egl: add queryDmaBufModifiersEXT to interface
+
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ include/vlc_opengl.h              |  3 +++
+ modules/video_output/opengl/egl.c | 13 +++++++++++++
+ 2 files changed, 16 insertions(+)
+
+--- a/include/vlc_opengl.h
++++ b/include/vlc_opengl.h
+@@ -68,6 +68,9 @@ struct vlc_gl_t
+                                     const int32_t *attrib_list);
+             /* call eglDestroyImageKHR() with current display, can be NULL */
+             bool (*destroyImageKHR)(vlc_gl_t *, void *image);
++            bool (*queryDmaBufModifiersEXT)(vlc_gl_t *gl, uint32_t format,
++                                            unsigned int max_modifiers, uint64_t *modifiers,
++                                            unsigned int *external_only, int32_t *num_modifiers);
+         } egl;
+         /* if ext == VLC_GL_EXT_WGL */
+         struct
+--- a/modules/video_output/opengl/egl.c
++++ b/modules/video_output/opengl/egl.c
+@@ -58,6 +58,7 @@ typedef struct vlc_gl_sys_t
+ #endif
+     PFNEGLCREATEIMAGEKHRPROC    eglCreateImageKHR;
+     PFNEGLDESTROYIMAGEKHRPROC   eglDestroyImageKHR;
++    PFNEGLQUERYDMABUFMODIFIERSEXTPROC eglQueryDmaBufModifiersEXT;
+ } vlc_gl_sys_t;
+ 
+ static int MakeCurrent (vlc_gl_t *gl)
+@@ -129,6 +130,15 @@ static bool DestroyImageKHR(vlc_gl_t *gl
+     return sys->eglDestroyImageKHR(sys->display, image);
+ }
+ 
++static bool QueryDmaBufModifiersEXT(vlc_gl_t *gl, uint32_t format,
++                                    unsigned int max_modifiers, uint64_t *modifiers,
++                                    unsigned int *external_only, int32_t *num_modifiers)
++{
++    vlc_gl_sys_t *sys = gl->sys;
++
++    return sys->eglQueryDmaBufModifiersEXT(sys->display, format, max_modifiers, modifiers, external_only, num_modifiers);
++}
++
+ static bool CheckToken(const char *haystack, const char *needle)
+ {
+     size_t len = strlen(needle);
+@@ -427,6 +437,9 @@ static int Open (vlc_object_t *obj, cons
+         gl->egl.createImageKHR = CreateImageKHR;
+         gl->egl.destroyImageKHR = DestroyImageKHR;
+     }
++    sys->eglQueryDmaBufModifiersEXT = (void *)eglGetProcAddress("eglQueryDmaBufModifiersEXT");
++    if (sys->eglQueryDmaBufModifiersEXT)
++        gl->egl.queryDmaBufModifiersEXT = QueryDmaBufModifiersEXT;
+ 
+     return VLC_SUCCESS;
+ 

@@ -1,0 +1,31 @@
+From: Sebastian Ramacher <sramacher@debian.org>
+Date: Wed, 28 Feb 2024 23:55:22 +0100
+Subject: Bump module ABI for time_t transition
+
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ include/vlc_plugin.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/vlc_plugin.h b/include/vlc_plugin.h
+index ce28562..00f5667 100644
+--- a/include/vlc_plugin.h
++++ b/include/vlc_plugin.h
+@@ -188,8 +188,8 @@ enum vlc_module_properties
+ /**
+  * Current plugin ABI version
+  */
+-# define MODULE_SYMBOL 3_0_0f
+-# define MODULE_SUFFIX "__3_0_0f"
++# define MODULE_SYMBOL 3_0_0ft64
++# define MODULE_SUFFIX "__3_0_0ft64"
+ 
+ /*****************************************************************************
+  * Add a few defines. You do not want to read this section. Really.

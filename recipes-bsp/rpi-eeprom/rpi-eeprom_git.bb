@@ -11,11 +11,14 @@ SRC_URI = " \
 SRCREV = "2349daafacfb7a7abe2cfecf30a49ae837bdf2c6"
 PV = "v2025.07.17-2712"
 
-RDEPENDS:${PN} += " \
+RDEPENDS:${PN}:append = " \
     coreutils \
     python3 \
     python3-pycryptodomex \
     openssl \
+"
+
+RDEPENDS:${PN}:append:class-target = " \
     xxd \
     pciutils \
 "
@@ -64,4 +67,4 @@ INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 # need to disable arch check for it otherwise it cannot packed.
 QAPATHTEST[arch] = ""
 
-COMPATIBLE_MACHINE = "raspberrypi4|raspberrypi4-64|raspberrypi5"
+BBCLASSEXTEND = "native"

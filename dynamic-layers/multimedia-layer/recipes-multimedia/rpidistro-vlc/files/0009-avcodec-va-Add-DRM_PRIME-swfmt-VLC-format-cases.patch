@@ -1,0 +1,44 @@
+From 52a5dfaebf90f220d9e556a40b2652512cfda60c Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Tue, 11 Jun 2024 16:32:50 +0100
+Subject: [PATCH 09/41] avcodec/va: Add DRM_PRIME+swfmt->VLC format cases
+
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ modules/codec/avcodec/va.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+--- a/modules/codec/avcodec/va.c
++++ b/modules/codec/avcodec/va.c
+@@ -57,6 +57,24 @@ vlc_fourcc_t vlc_va_GetChroma(enum Pixel
+                     return VLC_CODEC_D3D9_OPAQUE;
+             }
+             break;
++        case AV_PIX_FMT_DRM_PRIME:
++            switch (swfmt)
++            {
++                case AV_PIX_FMT_YUV420P:
++                    return VLC_CODEC_DRM_PRIME_I420;
++                case AV_PIX_FMT_NV12:
++                    return VLC_CODEC_DRM_PRIME_NV12;
++                case AV_PIX_FMT_RPI4_8:
++                    return VLC_CODEC_DRM_PRIME_SAND8;
++                case AV_PIX_FMT_RPI4_10:
++                case AV_PIX_FMT_YUV420P10LE:  // When probing this is the swfmt given
++                    return VLC_CODEC_DRM_PRIME_SAND30;
++                case AV_PIX_FMT_BGR0:
++                    return VLC_CODEC_DRM_PRIME_RGB32;
++                default:
++                    return 0;
++            }
++            break;
+ 
+ #if LIBAV_UTIL_VERSION_CHECK(54, 13, 1, 24, 100)
+         case AV_PIX_FMT_D3D11VA_VLD:

@@ -1,0 +1,145 @@
+From 55b8159f069285b9e5bb792f3af3260f1c53e6cd Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Tue, 11 Jun 2024 18:00:33 +0100
+Subject: [PATCH 25/41] drm_pic: Add DRM_PRIME picture type code
+
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ modules/codec/Makefile.am       |  1 +
+ modules/codec/avcodec/drm_pic.c | 62 +++++++++++++++++++++++++++++++++
+ modules/codec/avcodec/drm_pic.h | 46 ++++++++++++++++++++++++
+ 3 files changed, 109 insertions(+)
+ create mode 100644 modules/codec/avcodec/drm_pic.c
+ create mode 100644 modules/codec/avcodec/drm_pic.h
+
+--- a/modules/codec/Makefile.am
++++ b/modules/codec/Makefile.am
+@@ -378,6 +378,7 @@ libavcodec_plugin_la_SOURCES = \
+ 	codec/avcodec/subtitle.c \
+ 	codec/avcodec/audio.c \
+ 	codec/avcodec/va.c codec/avcodec/va.h \
++	codec/avcodec/drm_pic.c codec/avcodec/drm_pic.h \
+ 	codec/avcodec/avcodec.c codec/avcodec/avcodec.h \
+ 	packetizer/av1_obu.c packetizer/av1_obu.h packetizer/av1.h
+ if ENABLE_SOUT
+--- /dev/null
++++ b/modules/codec/avcodec/drm_pic.c
+@@ -0,0 +1,62 @@
++#ifdef HAVE_CONFIG_H
++# include "config.h"
++#endif
++
++#include <vlc_common.h>
++#include <vlc_picture.h>
++
++#include <libavutil/buffer.h>
++#include <libavutil/frame.h>
++
++#include "drm_pic.h"
++
++static picture_context_t *
++drm_prime_picture_context_new(AVBufferRef * const buf, const void * data, AVBufferRef * const hw_frames_ctx);
++
++static void
++drm_prime_pic_ctx_destroy(struct picture_context_t * ctx)
++{
++    drm_prime_video_sys_t * const pctx = (drm_prime_video_sys_t *)ctx;
++    av_buffer_unref(&pctx->buf);
++    av_buffer_unref(&pctx->hw_frames_ctx);
++    free(pctx);
++}
++
++static picture_context_t *
++drm_prime_pic_ctx_copy(struct picture_context_t * src)
++{
++    drm_prime_video_sys_t * const pctx = (drm_prime_video_sys_t *)src;
++
++    // We could ref count this structure but easier to just create a new one
++    // (which will ref the buf)
++    return drm_prime_picture_context_new(pctx->buf, pctx->desc, pctx->hw_frames_ctx);
++}
++
++static picture_context_t *
++drm_prime_picture_context_new(AVBufferRef * const buf, const void * data, AVBufferRef * const hw_frames_ctx)
++{
++    drm_prime_video_sys_t * const pctx = calloc(1, sizeof(*pctx));
++
++    if (pctx == NULL)
++        return NULL;
++
++    pctx->cmn.copy = drm_prime_pic_ctx_copy;
++    pctx->cmn.destroy = drm_prime_pic_ctx_destroy;
++
++    pctx->buf = av_buffer_ref(buf);
++    pctx->desc = data;
++    pctx->hw_frames_ctx = !hw_frames_ctx ? NULL : av_buffer_ref(hw_frames_ctx);
++    return &pctx->cmn;
++}
++
++int drm_prime_attach_buf_to_pic(picture_t *pic, AVFrame *frame)
++{
++    if (pic->context)
++        return VLC_EGENERIC;
++
++    pic->context = drm_prime_picture_context_new(frame->buf[0], frame->data[0], frame->hw_frames_ctx);
++    return VLC_SUCCESS;
++}
++
++
++
+--- /dev/null
++++ b/modules/codec/avcodec/drm_pic.h
+@@ -0,0 +1,46 @@
++#include <vlc_fourcc.h>
++#include <vlc_picture.h>
++
++struct picture_t;
++struct AVFrame;
++struct AVBufferRef;
++struct AVDRMFrameDescriptor;
++
++typedef struct drm_prime_video_sys_s {
++    picture_context_t cmn;  // PARENT: Common els at start
++
++    struct AVBufferRef * buf;
++    const struct AVDRMFrameDescriptor * desc;
++    struct AVBufferRef * hw_frames_ctx;
++} drm_prime_video_sys_t;
++
++static inline const struct AVDRMFrameDescriptor *
++drm_prime_get_desc(picture_t *pic)
++{
++    drm_prime_video_sys_t * const pctx = (drm_prime_video_sys_t *)pic->context;
++
++    return !pctx ? NULL : pctx->desc;
++}
++
++static inline char safechar(unsigned int x)
++{
++    const unsigned int c = x & 0xff;
++    return c > ' ' && c < 0x7f ? (char)c : '.';
++}
++
++static inline const char *
++str_fourcc(char buf[5], const uint32_t fcc)
++{
++    buf[0] = safechar(fcc);
++    buf[1] = safechar(fcc >> 8);
++    buf[2] = safechar(fcc >> 16);
++    buf[3] = safechar(fcc >> 24);
++    buf[4] = 0;
++    return buf;
++}
++
++#define fourcc2str(fcc) \
++    str_fourcc((char[5]){0}, fcc)
++
++int drm_prime_attach_buf_to_pic(struct picture_t *pic, struct AVFrame *frame);
++

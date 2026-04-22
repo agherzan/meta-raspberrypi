@@ -1,0 +1,32 @@
+diff --git a/ta/trusted_keys/entry.c b/ta/trusted_keys/entry.c
+index a806e7240..08be85723 100644
+--- a/ta/trusted_keys/entry.c
++++ b/ta/trusted_keys/entry.c
+@@ -299,26 +299,7 @@ TEE_Result TA_OpenSessionEntryPoint(uint32_t pt __unused,
+ 				    TEE_Param params[TEE_NUM_PARAMS] __unused,
+ 				    void **session __unused)
+ {
+-	TEE_Result res = TEE_ERROR_GENERIC;
+-	TEE_PropSetHandle h = TEE_HANDLE_NULL;
+-	TEE_Identity id = { };
+-
+-	res = TEE_AllocatePropertyEnumerator(&h);
+-	if (res)
+-		goto out;
+-
+-	TEE_StartPropertyEnumerator(h, TEE_PROPSET_CURRENT_CLIENT);
+-
+-	res = TEE_GetPropertyAsIdentity(h, NULL, &id);
+-	if (res)
+-		goto out;
+-
+-	if (id.login != TEE_LOGIN_REE_KERNEL)
+-		res = TEE_ERROR_ACCESS_DENIED;
+-
+-out:
+-	if (h)
+-		TEE_FreePropertyEnumerator(h);
++	TEE_Result res = TEE_SUCCESS;
+ 	return res;
+ }
+ 

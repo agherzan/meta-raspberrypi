@@ -14,6 +14,9 @@ SRC_URI = " \
     file://0002-wifi-cfg80211-fix-certs-build-to-not-depend-on-file-.patch \
     file://powersave.cfg \
     file://android-drivers.cfg \
+    file://tee-driver.cfg \
+    file://optee_dtb_entry.patch \
+    file://fscrypt.cfg \
     "
 
 require linux-raspberrypi.inc

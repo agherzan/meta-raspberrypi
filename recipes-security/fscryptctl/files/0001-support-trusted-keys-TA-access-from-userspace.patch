@@ -1,0 +1,426 @@
+diff --git a/Makefile b/Makefile
+index 9b28c8c..4ade46a 100644
+--- a/Makefile
++++ b/Makefile
+@@ -44,16 +44,29 @@ LDFLAGS ?=
+ VERSION ?= $(shell git describe --tags 2>/dev/null)
+ override CPPFLAGS += $(if $(VERSION),-DVERSION="\"$(VERSION)\"")
+ 
++CFG_TRUSTED_KEYS ?= n
++ifeq ($(CFG_TRUSTED_KEYS),y)
++	ifeq ($(TEEC_EXPORT),)
++		$(error "TEEC_EXPORT is required")
++	endif
++	override CFLAGS += -DTRUSTED_KEYS -I$(TEEC_EXPORT)/include
++	override LDADD += -lteec -L$(TEEC_EXPORT)/lib
++endif
++
++
+ ##############################################################################
+ 
+ # Build the binary
+ 
+-SRC := $(wildcard *.c)
++SRC := fscryptctl.c
++ifeq ($(CFG_TRUSTED_KEYS),y)
++	SRC += trusted_keys.c
++endif
+ OBJ := $(SRC:.c=.o)
+ HDRS := $(wildcard *.h)
+ 
+ fscryptctl: $(OBJ)
+-	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $+
++	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) $(LDADD)
+ 
+ $(OBJ): %.o: %.c $(HDRS)
+ 	$(CC) -o $@ -c $(CPPFLAGS) $(CFLAGS) $<
+diff --git a/fscryptctl.c b/fscryptctl.c
+index 801ea5d..9c59b2a 100644
+--- a/fscryptctl.c
++++ b/fscryptctl.c
+@@ -88,6 +88,108 @@ static void wipe_and_free(void *v, size_t n) {
+ #define FSCRYPT_KEY_DESCRIPTOR_HEX_SIZE ((2 * FSCRYPT_KEY_DESCRIPTOR_SIZE) + 1)
+ #define FSCRYPT_KEY_IDENTIFIER_HEX_SIZE ((2 * FSCRYPT_KEY_IDENTIFIER_SIZE) + 1)
+ 
++#if defined(TRUSTED_KEYS)
++#include "trusted_keys.h"
++
++static int string_to_trusted_key_size(uint32_t *key_size, const char *str) {
++  int istr;
++
++  if (!key_size || !str) {
++    return -EINVAL;
++  }
++
++  istr = atoi(str);
++  if (istr < FSCRYPT_MIN_KEY_SIZE || istr > FSCRYPT_MAX_KEY_SIZE ||
++    istr < TRUSTED_KEYS_MIN_KEY_SIZE || istr > TRUSTED_KEYS_MAX_KEY_SIZE) {
++    return -EINVAL;
++  }
++
++  *key_size = (uint32_t)istr;
++  return 0;
++}
++
++static int trusted_keys_write(const char *filename, const char *key, uint32_t key_size) {
++  size_t wsz;
++  FILE *fp = NULL;
++  int r = 0;
++  char blob[TRUSTED_KEYS_MAX_BLOB_SIZE];
++  size_t blob_size = sizeof(blob);
++
++  if (trusted_keys_seal(blob, &blob_size, key, key_size) < 0) {
++    return -EFAULT;
++  }
++
++  fp = fopen(filename, "w");
++  if (!fp) {
++    return -errno;
++  }
++
++  wsz = fwrite(blob, 1, blob_size, fp);
++  if (wsz != blob_size) {
++    r = -EIO;
++  }
++
++cleanup:
++  if (fp) {
++    fclose(fp);
++  }
++  return r;
++}
++
++static int trusted_keys_read(const char *filename, char *key, uint32_t *key_size) {
++  long tsz;
++  size_t rsz;
++  size_t ksz = *key_size;
++  FILE *fp = fopen(filename, "r");
++  int r = 0;
++  char blob[TRUSTED_KEYS_MAX_BLOB_SIZE];
++
++  if (!fp) {
++    return -errno;
++  }
++
++  if (fseek(fp, 0, SEEK_END) < 0) {
++    r = -errno;
++    goto cleanup;
++  }
++
++  tsz = ftell(fp);
++  if (tsz < 0) {
++    r = -errno;
++    goto cleanup;
++  }
++
++  if (TRUSTED_KEYS_MAX_BLOB_SIZE < (size_t)tsz) {
++    r = -EINVAL;
++    goto cleanup;
++  }
++
++  if (fseek(fp, 0, SEEK_SET) < 0) {
++    r = -errno;
++    goto cleanup;
++  }
++
++  rsz = fread(blob, 1, tsz, fp);
++  if (rsz != tsz) {
++    r = -EIO;
++    goto cleanup;
++  }
++
++  if (trusted_keys_unseal(key, &ksz, blob, rsz) < 0) {
++    r = -EFAULT;
++  }
++
++  *key_size = (uint32_t)ksz;
++
++cleanup:
++  if (fp) {
++    fclose(fp);
++  }
++  return r;
++}
++#endif
++
++
+ // Human-readable strings for encryption modes, indexed by the encryption mode
+ static const char *const mode_strings[] = {
+     [FSCRYPT_MODE_AES_256_XTS] = "AES-256-XTS",
+@@ -113,6 +215,10 @@ enum {
+   OPT_IV_INO_LBLK_32,
+   OPT_IV_INO_LBLK_64,
+   OPT_PADDING,
++#if defined(TRUSTED_KEYS)
++  OPT_GENERATE_TRUSTED_KEY,
++  OPT_TRUSTED_KEY_FILENAME,
++#endif
+ };
+ 
+ /* util-linux style usage */
+@@ -147,9 +253,18 @@ static void __attribute__((__noreturn__)) usage(FILE *out) {
+       "        print this help screen\n"
+       "    -v, --version\n"
+       "        print the version of fscryptctl\n"
++      // "    add_key\n"
++      // "        --hw-wrapped-key\n"
++      // "            add a hardware-wrapped key (rather than a raw key)\n"
++#if defined(TRUSTED_KEYS)
+       "    add_key\n"
+-      "        --hw-wrapped-key\n"
+-      "            add a hardware-wrapped key (rather than a raw key)\n"
++      "        --generate-trusted-key=<key size>\n"
++      "            generate a trusted key and use it.\n"
++      "        --trusted-key-filename=<filename>\n"
++      "            read a encrypted trusted key from the file.\n"
++      "            if it used with --generate-trusted-key, the generated trusted\n"
++      "            key is written in the file.\n"
++#endif
+       "    remove_key\n"
+       "        --all-users\n"
+       "            force-remove all users' claims to the key (requires root)\n"
+@@ -437,8 +552,16 @@ static bool set_policy(const char *path,
+ // -----------------------------------------------------------------------------
+ 
+ static int cmd_add_key(int argc, char *const argv[]) {
++#if defined(TRUSTED_KEYS)
++  uint32_t trusted_key_size = 0;
++  char *trusted_key_filename = NULL;
++#endif
+   static const struct option add_key_options[] = {
+       {"hw-wrapped-key", no_argument, NULL, OPT_HW_WRAPPED_KEY},
++#if defined(TRUSTED_KEYS)
++      {"generate-trusted-key", required_argument, NULL, OPT_GENERATE_TRUSTED_KEY},
++      {"trusted-key-filename", required_argument, NULL, OPT_TRUSTED_KEY_FILENAME},
++#endif
+       {NULL, 0, NULL, 0}};
+   int max_size = FSCRYPT_MAX_KEY_SIZE;
+   __u32 flags = 0;
+@@ -450,6 +573,23 @@ static int cmd_add_key(int argc, char *const argv[]) {
+         flags |= FSCRYPT_ADD_KEY_FLAG_HW_WRAPPED;
+         max_size = MAX_WRAPPED_KEY_SIZE;
+         break;
++#if defined(TRUSTED_KEYS)
++      case OPT_GENERATE_TRUSTED_KEY:
++        if (string_to_trusted_key_size(&trusted_key_size, optarg) < 0) {
++          fputs("error: invalid trusted key size\n", stderr);
++          free(trusted_key_filename);
++          return EXIT_FAILURE;
++        }
++        break;
++      case OPT_TRUSTED_KEY_FILENAME:
++        free(trusted_key_filename);
++        trusted_key_filename = strdup(optarg);
++        if (!trusted_key_filename) {
++          fputs("error: failed to allocate memory\n", stderr);
++          return EXIT_FAILURE;
++        }
++        break;
++#endif
+       default:
+         usage(stderr);
+     }
+@@ -464,6 +604,27 @@ static int cmd_add_key(int argc, char *const argv[]) {
+ 
+   struct fscrypt_add_key_arg *arg = xzalloc(sizeof(*arg) + max_size);
+   int status = EXIT_FAILURE;
++#if defined(TRUSTED_KEYS)
++  if (trusted_key_filename) {
++    if (trusted_key_size > 0) {
++      arg->raw_size = trusted_key_size;
++      if (trusted_keys_generate((char *)arg->raw, arg->raw_size) < 0) {
++        fputs("error: failed to generate a trusted key\n", stderr);
++        goto cleanup;
++      }
++      if (trusted_keys_write(trusted_key_filename, (char *)arg->raw, arg->raw_size) < 0) {
++        fputs("error: failed to save a trusted key blob\n", stderr);
++        goto cleanup;
++      }
++    } else {
++      arg->raw_size = FSCRYPT_MAX_KEY_SIZE;
++      if (trusted_keys_read(trusted_key_filename, (char *)arg->raw, &arg->raw_size) < 0) {
++        fputs("error: failed to load a trusted key blob\n", stderr);
++        goto cleanup;
++      }
++    }
++  } else
++#endif
+   arg->raw_size = read_key(arg->raw, max_size);
+   if (arg->raw_size == 0) {
+     goto cleanup;
+@@ -490,6 +651,9 @@ static int cmd_add_key(int argc, char *const argv[]) {
+   puts(identifier_hex);
+   status = EXIT_SUCCESS;
+ cleanup:
++#if defined(TRUSTED_KEYS)
++  free(trusted_key_filename);
++#endif
+   wipe_and_free(arg, sizeof(*arg) + max_size);
+   return status;
+ }
+diff --git a/trusted_keys.c b/trusted_keys.c
+new file mode 100644
+index 0000000..dd2f619
+--- /dev/null
++++ b/trusted_keys.c
+@@ -0,0 +1,139 @@
++#include <errno.h>
++#include <stddef.h>
++#include <stdint.h>
++#include <stdio.h>
++#include <string.h>
++
++#include <tee_client_api.h>
++
++#include "trusted_keys.h"
++
++#define TA_TRUSTED_KEYS_UUID \
++  { 0xf04a0fe7, 0x1f5d, 0x4b9b, \
++    {0xab, 0xf7, 0x61, 0x9b, 0x85, 0xb4, 0xce, 0x8c } }
++
++#define TA_CMD_GET_RANDOM   0x0
++#define TA_CMD_SEAL         0x1
++#define TA_CMD_UNSEAL       0x2
++
++#define TA_CMD_GET_RANDOM   0x0
++#define TA_CMD_SEAL         0x1
++#define TA_CMD_UNSEAL       0x2
++
++static TEEC_Result teec_invoke_command(const char *tag, uint32_t cmd, TEEC_Operation *op)
++{
++  TEEC_Result r = TEEC_SUCCESS;
++  TEEC_Context ctx;
++  TEEC_Session sess;
++  TEEC_UUID uuid = TA_TRUSTED_KEYS_UUID;
++  uint32_t err = 0;
++
++  r = TEEC_InitializeContext(NULL, &ctx);
++  if (r != TEEC_SUCCESS) {
++    fprintf(stderr, "%s: Failed to TEEC_InitializeContext: 0x%x\n", tag, r);
++    return r;
++  }
++
++  r = TEEC_OpenSession(&ctx, &sess, &uuid, TEEC_LOGIN_PUBLIC, NULL, NULL, &err);
++  if (r != TEEC_SUCCESS) {
++    fprintf(stderr, "%s: Failed to TEEC_OpenSession: 0x%x, err_origin: 0x%x\n", tag, r, err);
++    TEEC_FinalizeContext(&ctx);
++    return r;
++  }
++
++  r = TEEC_InvokeCommand(&sess, cmd, op, &err);
++  if (r != TEEC_SUCCESS) {
++    fprintf(stderr, "%s: Failed to TEEC_InvokeCommand: 0x%x, err_origin: 0x%x\n", tag, r, err);
++  }
++
++  TEEC_CloseSession(&sess);
++  TEEC_FinalizeContext(&ctx);
++
++  return r;
++}
++
++int trusted_keys_generate(char *key, size_t key_size)
++{
++  TEEC_Operation op;
++
++  if (!key || key_size < TRUSTED_KEYS_MIN_KEY_SIZE || key_size > TRUSTED_KEYS_MAX_KEY_SIZE) {
++    return -EINVAL;
++  }
++
++  memset(&op, 0, sizeof(op));
++  op.paramTypes = TEEC_PARAM_TYPES(TEEC_MEMREF_TEMP_OUTPUT,
++      TEEC_NONE,
++      TEEC_NONE,
++      TEEC_NONE);
++  op.params[0].tmpref.buffer = (void *)key;
++  op.params[0].tmpref.size = key_size;
++
++  return teec_invoke_command(__FUNCTION__, TA_CMD_GET_RANDOM, &op) != TEEC_SUCCESS ? -EFAULT : 0;
++}
++
++int trusted_keys_seal(char *blob, size_t *blob_size, const char *key, size_t key_size)
++{
++  TEEC_Result r = TEEC_SUCCESS;
++  TEEC_Operation op;
++
++  if (!blob || *blob_size > TRUSTED_KEYS_MAX_BLOB_SIZE) {
++    return -EINVAL;
++  }
++
++  if (!key || key_size < TRUSTED_KEYS_MIN_KEY_SIZE || key_size > TRUSTED_KEYS_MAX_KEY_SIZE) {
++    return -EINVAL;
++  }
++
++  memset(&op, 0, sizeof(op));
++  op.paramTypes = TEEC_PARAM_TYPES(TEEC_MEMREF_TEMP_INPUT,
++      TEEC_MEMREF_TEMP_OUTPUT,
++      TEEC_NONE,
++      TEEC_NONE);
++  op.params[0].tmpref.buffer = (void *)key;
++  op.params[0].tmpref.size = key_size;
++  op.params[1].tmpref.buffer = (void *)blob;
++  op.params[1].tmpref.size = *blob_size;
++
++  r = teec_invoke_command(__FUNCTION__, TA_CMD_SEAL, &op);
++
++  if (r != TEEC_SUCCESS) {
++    return -EFAULT;
++  }
++
++  *blob_size = op.params[1].tmpref.size;
++
++  return 0;
++}
++
++int trusted_keys_unseal(char *key, size_t *key_size, const char *blob, size_t blob_size)
++{
++  TEEC_Result r = TEEC_SUCCESS;
++  TEEC_Operation op;
++
++  if (!key || *key_size < TRUSTED_KEYS_MIN_KEY_SIZE || *key_size > TRUSTED_KEYS_MAX_KEY_SIZE) {
++    return -EINVAL;
++  }
++
++  if (!blob || blob_size > TRUSTED_KEYS_MAX_BLOB_SIZE) {
++    return -EINVAL;
++  }
++
++  memset(&op, 0, sizeof(op));
++  op.paramTypes = TEEC_PARAM_TYPES(TEEC_MEMREF_TEMP_INPUT,
++      TEEC_MEMREF_TEMP_OUTPUT,
++      TEEC_NONE,
++      TEEC_NONE);
++  op.params[0].tmpref.buffer = (void *)blob;
++  op.params[0].tmpref.size = blob_size;
++  op.params[1].tmpref.buffer = (void *)key;
++  op.params[1].tmpref.size = *key_size;
++
++  r = teec_invoke_command(__FUNCTION__, TA_CMD_UNSEAL, &op);
++  if (r != TEEC_SUCCESS) {
++    return -EFAULT;
++  }
++
++  *key_size = op.params[1].tmpref.size;
++
++  return 0;
++}
+diff --git a/trusted_keys.h b/trusted_keys.h
+new file mode 100644
+index 0000000..3b8848a
+--- /dev/null
++++ b/trusted_keys.h
+@@ -0,0 +1,15 @@
++#ifndef FSCRYPT_TRUSTED_KEYS_H
++#define FSCRYPT_TRUSTED_KEYS_H
++
++#include <stddef.h>
++#include <stdint.h>
++
++#define TRUSTED_KEYS_MIN_KEY_SIZE   32
++#define TRUSTED_KEYS_MAX_KEY_SIZE   128
++#define TRUSTED_KEYS_MAX_BLOB_SIZE  512
++
++int trusted_keys_generate(char *key, size_t key_size);
++int trusted_keys_seal(char *blob, size_t *blob_size, const char *key, size_t key_size);
++int trusted_keys_unseal(char *key, size_t *key_size, const char *blob, size_t blob_size);
++
++#endif /* FSCRYPT_TRUSTED_KEYS_H */

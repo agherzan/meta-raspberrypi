@@ -1,0 +1,42 @@
+From: Fix OP-TEE not receiving DTB on RPi3
+Subject: [PATCH] rpi3: pass preloaded DTB address to BL32 (OP-TEE)
+
+Uncomment the block that sets bl32_image_ep_info.args.arg2 to
+RPI3_PRELOADED_DTB_BASE so OP-TEE receives the DTB address in
+register x2 at startup. Without this, OP-TEE prints "No fdt" and
+"No non-secure external DT", disabling ASLR seeding and console
+auto-detection from the device tree.
+
+Signed-off-by: Fix <fix@fix.com>
+---
+ plat/rpi/rpi3/rpi3_bl31_setup.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/plat/rpi/rpi3/rpi3_bl31_setup.c b/plat/rpi/rpi3/rpi3_bl31_setup.c
+index xxxxxxx..yyyyyyy 100644
+--- a/plat/rpi/rpi3/rpi3_bl31_setup.c
++++ b/plat/rpi/rpi3/rpi3_bl31_setup.c
+@@ -111,13 +111,11 @@ void bl31_early_platform_setup2(u_register_t arg0, u_register_t arg1,
+ 		panic();
+ 	}
+ 
+-// #ifdef RPI3_PRELOADED_DTB_BASE
+-// 	/*
+-// 	 * If we have a preloaded DTB, pass its physical address to BL32
+-// 	 * through the BL32 entry args so that OP-TEE can pick it up as the
+-// 	 * external DT. BL32 (OP-TEE) expects the DT address in register a2.
+-// 	 */
+-// 	if (bl32_image_ep_info.pc)
+-// 		bl32_image_ep_info.args.arg2 = (u_register_t)RPI3_PRELOADED_DTB_BASE;
+-// #endif
++#ifdef RPI3_PRELOADED_DTB_BASE
++	/*
++	 * If we have a preloaded DTB, pass its physical address to BL32
++	 * through the BL32 entry args so that OP-TEE can pick it up as the
++	 * external DT. BL32 (OP-TEE) expects the DT address in register a2.
++	 */
++	if (bl32_image_ep_info.pc)
++		bl32_image_ep_info.args.arg2 = (u_register_t)RPI3_PRELOADED_DTB_BASE;
++#endif
+ 
+ #if RPI3_DIRECT_LINUX_BOOT

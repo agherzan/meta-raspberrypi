@@ -32,7 +32,7 @@ CAN_OSCILLATOR ?= "16000000"
 CAN0_INTERRUPT_PIN ?= "25"
 CAN1_INTERRUPT_PIN ?= "24"
 
-ENABLE_UART ??= ""
+ENABLE_UART = "1"
 
 WM8960="${@bb.utils.contains("MACHINE_FEATURES", "wm8960", "1", "0", d)}"
 
@@ -308,11 +308,14 @@ do_deploy() {
 }
 
 do_deploy:append:raspberrypi3-64() {
-    echo "# have a properly sized image" >> $CONFIG
-    echo "disable_overscan=1" >> $CONFIG
-
-    echo "# Enable audio (loads snd_bcm2835)" >> $CONFIG
-    echo "dtparam=audio=on" >> $CONFIG
+    echo "enable_uart=1" >> $CONFIG
+    echo "kernel_address=0x02000000" >> $CONFIG
+    echo "device_tree=bcm2710-rpi-3-b-plus.dtb" >> $CONFIG
+    echo "device_tree_address=0x01000000" >> $CONFIG
+    echo "cpu=armv8" >> $CONFIG
+    echo "smp=on" >> $CONFIG
+    echo "core_freq=250" >> $CONFIG
+    echo "core_freq_min=250" >> $CONFIG
 }
 
 do_deploy:append() {

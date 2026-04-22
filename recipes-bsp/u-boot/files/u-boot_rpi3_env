@@ -1,0 +1,37 @@
+# generic params
+bootdelay=0
+stderr=serial,lcd
+stdin=serial,usbkbd
+stdout=serial,lcd
+
+# CPU config
+cpu=armv8
+smp=on
+
+# Console config
+baudrate=115200
+sttyconsole=ttyS0
+ttyconsole=tty0
+
+# Kernel/dtb filenames & load addresses
+boot_it=booti ${kernel_addr_r} - ${fdt_addr_r}
+fdt_addr_r=0x01000000
+kernel_addr_r=0x02000000
+
+# NFS/TFTP boot configuraton
+gatewayip=192.168.1.1
+netmask=255.255.255.0
+nfsserverip=192.168.1.100
+nfspath=/srv/nfs/rpi
+
+# bootcmd & bootargs configuration
+preboot=usb start
+bootcmd=run mmcboot
+load_kernel=fatload mmc 0:1 ${kernel_addr_r} kernel8.img
+load_fdt=fatload mmc 0:1 ${fdt_addr_r} bcm2710-rpi-3-b-plus.dtb
+mmcboot=run load_fdt; run load_kernel; run set_bootargs_tty set_bootargs_mmc set_common_args; run boot_it
+nfsboot=run load_fdt; run load_kernel; run set_bootargs_tty set_bootargs_nfs set_common_args; run boot_it
+set_bootargs_tty=setenv bootargs console=${ttyconsole} console=${sttyconsole},${baudrate}
+set_bootargs_nfs=setenv bootargs ${bootargs} root=/dev/nfs rw rootfstype=nfs nfsroot=${nfsserverip}:${nfspath},udp,vers=3 ip=dhcp
+set_bootargs_mmc=setenv bootargs ${bootargs} root=/dev/mmcblk0p2 rw rootfs=ext4
+set_common_args=setenv bootargs ${bootargs} smsc95xx.macaddr=${ethaddr} 'ignore_loglevel dma.dmachans=0x7f35 rootwait 8250.nr_uarts=1 elevator=deadline fsck.repair=yes bcm2708_fb.fbwidth=1920 bcm2708_fb.fbheight=1080 vc_mem.mem_base=0x3ec00000 vc_mem.mem_size=0x40000000 dwc_otg.fiq_enable=0 dwc_otg.fiq_fsm_enable=0 dwc_otg.nak_holdoff=0'

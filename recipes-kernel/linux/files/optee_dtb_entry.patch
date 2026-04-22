@@ -1,0 +1,15 @@
+diff --git a/arch/arm/boot/dts/bcm2710-rpi-3-b-plus.dts b/arch/arm/boot/dts/bcm2710-rpi-3-b-plus.dts
+index 5f248fb01bca..af815ed5ad83 100644
+--- a/arch/arm/boot/dts/bcm2710-rpi-3-b-plus.dts
++++ b/arch/arm/boot/dts/bcm2710-rpi-3-b-plus.dts
+@@ -175,6 +175,10 @@ expgpio: expgpio {
+ 				  "NC";
+ 		status = "okay";
+ 	};
++    optee {
++         compatible = "linaro,optee-tz";
++         method = "smc";
++    };
+ };
+ 
+ &uart0 {

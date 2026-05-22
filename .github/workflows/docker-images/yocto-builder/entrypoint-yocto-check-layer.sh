@@ -20,7 +20,7 @@ TEMP_DIR="$(mktemp -d)"
 cd "$TEMP_DIR"
 
 REPOS=" \
-    git://git.yoctoproject.org/poky.git \
+    https://git.yoctoproject.org/poky.git \
 "
 for repo in $REPOS; do
     log "Cloning $repo on branch $BASE_REF..."

@@ -9,7 +9,7 @@ SRC_URI = " \
 "
 
 SRCREV = "2349daafacfb7a7abe2cfecf30a49ae837bdf2c6"
-PV = "v2025.07.17-2712"
+PV = "2025.07.17-2712"
 
 RDEPENDS:${PN} += " \
     coreutils \
@@ -65,3 +65,5 @@ INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 QAPATHTEST[arch] = ""
 
 COMPATIBLE_MACHINE = "raspberrypi4|raspberrypi4-64|raspberrypi5"
+
+UPSTREAM_CHECK_GITTAGREGEX = "^v(?P<pver>\d{4}\.\d{2}\.\d{2}-\d+)$"

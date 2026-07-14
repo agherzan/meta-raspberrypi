@@ -11,11 +11,14 @@ SRC_URI = " \
 SRCREV = "e25fc5dcb8eb072eafb745cd546c3d9f73d102b5"
 PV = "v2026.05.11-2712"
 
-RDEPENDS:${PN} += " \
+RDEPENDS:${PN}:append = " \
     coreutils \
     python3 \
     python3-pycryptodomex \
     openssl \
+"
+
+RDEPENDS:${PN}:append:class-target = " \
     xxd \
     pciutils \
     util-linux-findmnt \
@@ -65,4 +68,4 @@ INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 # need to disable arch check for it otherwise it cannot packed.
 QAPATHTEST[arch] = ""
 
-COMPATIBLE_MACHINE = "raspberrypi4|raspberrypi4-64|raspberrypi5"
+BBCLASSEXTEND = "native"

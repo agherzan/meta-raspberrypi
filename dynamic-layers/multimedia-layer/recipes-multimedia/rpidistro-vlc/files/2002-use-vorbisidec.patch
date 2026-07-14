@@ -1,4 +1,4 @@
-From d0a7ba506fd302ad195f79f287b5a5a154ac02a3 Mon Sep 17 00:00:00 2001
+From 871e85ccfc16ce9b382df6ba094b88c2c65303b1 Mon Sep 17 00:00:00 2001
 From: Vincent Davis Jr <vince@underview.tech>
 Date: Sun, 4 Dec 2022 16:09:51 -0600
 Subject: [PATCH] tremor provides libvorbisidec, use it instead of libvorbisdec
@@ -16,7 +16,7 @@ Signed-off-by: Tim Orling <TicoTimo@gmail.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/modules/codec/Makefile.am b/modules/codec/Makefile.am
-index 3dadf1119..8b6189e92 100644
+index 3961f5411..8612dc532 100644
 --- a/modules/codec/Makefile.am
 +++ b/modules/codec/Makefile.am
 @@ -324,7 +324,7 @@ codec_LTLIBRARIES += $(LTLIBdaala)
@@ -28,6 +28,3 @@ index 3dadf1119..8b6189e92 100644
  EXTRA_LTLIBRARIES += libtremor_plugin.la
  codec_LTLIBRARIES += $(LTLIBtremor)
  
--- 
-2.38.1
-

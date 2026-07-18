@@ -200,7 +200,7 @@ do_deploy() {
         esac
     fi
 
-    if [ "${ENABLE_UART}"  = "1" ] && [ "${MACHINE}" = "raspberrypi-cm5-io-board" ]; then
+    if [ "${ENABLE_UART}" = "1" ] && [ "${MACHINE}" = "raspberrypi-cm5-io-board" ]; then
         # Enable UART on the 40-pin header of the CM5 IO Board
         echo "dtoverlay=uart0" >>$CONFIG
         echo "dtparam=uart0_console" >>$CONFIG

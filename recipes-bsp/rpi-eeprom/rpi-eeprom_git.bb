@@ -13,11 +13,14 @@ PV = "v2025.03.10-2712"
 
 S = "${WORKDIR}/git"
 
-RDEPENDS:${PN} += " \
+RDEPENDS:${PN}:append = " \
     coreutils \
     python3 \
     python3-pycryptodomex \
     openssl \
+"
+
+RDEPENDS:${PN}:append:class-target = " \
     xxd \
     pciutils \
 "
@@ -66,4 +69,4 @@ INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 # need to disable arch check for it otherwise it cannot packed.
 QAPATHTEST[arch] = ""
 
-COMPATIBLE_MACHINE = "raspberrypi4|raspberrypi4-64|raspberrypi5"
+BBCLASSEXTEND = "native"

@@ -3,14 +3,18 @@ HOMEPAGE = "https://github.com/adafruit/Adafruit_Python_PureIO"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=2a21fcca821a506d4c36f7bbecc0d009"
 
-SRC_URI = "git://github.com/adafruit/Adafruit_Python_PureIO.git;branch=main;protocol=https"
-SRCREV = "383b615ce9ff5bbefdf77652799f380016fda353"
+SRC_URI[sha256sum] = "c4cfbb365731942d1f1092a116f47dfdae0aef18c5b27f1072b5824ad5ea8c7c"
 
-inherit setuptools3
+PYPI_PACKAGE = "Adafruit_PureIO"
 
-DEPENDS += "python3-setuptools-scm-native"
+inherit pypi python_setuptools_build_meta
 
-RDEPENDS:${PN} += " \
+DEPENDS += "\
+    python3-setuptools-scm-native \
+    python3-wheel-native \
+"
+
+RDEPENDS:${PN} += "\
     python3-core \
     python3-ctypes \
     python3-fcntl \

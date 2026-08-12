@@ -7,7 +7,7 @@ SRC_URI[sha256sum] = "c4cfbb365731942d1f1092a116f47dfdae0aef18c5b27f1072b5824ad5
 
 PYPI_PACKAGE = "Adafruit_PureIO"
 
-inherit pypi python_setuptools_build_meta
+inherit pypi python_setuptools_build_meta ptest-python-pytest
 
 DEPENDS += "\
     python3-setuptools-scm-native \
@@ -19,3 +19,9 @@ RDEPENDS:${PN} += "\
     python3-ctypes \
     python3-fcntl \
 "
+
+do_install_ptest:append() {
+    if [ "${ENABLE_I2C}" != "1" ]; then
+        bbwarn "The tests require I2C. Set ENABLE_I2C to \"1\" to enable it."
+    fi
+}

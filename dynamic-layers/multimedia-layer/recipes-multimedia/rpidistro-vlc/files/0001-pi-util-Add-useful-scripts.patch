@@ -1,0 +1,252 @@
+From 3d04b9bc7c777725938b8b3100797bf15b8500f7 Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Mon, 19 Aug 2024 17:42:02 +0100
+Subject: [PATCH 01/41] pi-util: Add useful scripts
+
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ pi-util/conf_native.sh     | 124 +++++++++++++++++++++++++++++++++++++
+ pi-util/genpatch.sh        |  60 ++++++++++++++++++
+ pi-util/rebase_liblinks.py |  37 +++++++++++
+ 3 files changed, 221 insertions(+)
+ create mode 100755 pi-util/conf_native.sh
+ create mode 100755 pi-util/genpatch.sh
+ create mode 100755 pi-util/rebase_liblinks.py
+
+--- /dev/null
++++ b/pi-util/conf_native.sh
+@@ -0,0 +1,124 @@
++set -e
++BASE=`pwd`
++OUT_BASE=$BASE/out
++
++DO_BOOTSTRAP=
++DO_MAKE=
++DO_INSTALL=
++SUDO_INSTALL=
++DO_CONFIGURE=1
++USR_PREFIX=
++
++while [ "$1" != "" ] ; do
++    case $1 in
++        --make)
++            DO_MAKE=1
++            DO_CONFIGURE=
++            ;;
++        --install)
++            DO_INSTALL=1
++            DO_MAKE=1
++            DO_CONFIGURE=
++            ;;
++        --bootstrap)
++            DO_BOOTSTRAP=1
++            ;;
++	--usr)
++	    USR_PREFIX=/usr
++	    SUDO_INSTALL=sudo
++	    ;;
++        *)
++            echo "Usage $0: [--bootstrap] [--make|--install] [--usr]"
++            echo "  bootstrap Clean <build dir> then bootstrap before configure"
++            echo "            Will happen automatically if already clean"
++            echo "  make      Do make after configure"
++            echo "  install   Do make and install after configure"
++	    echo "  usr       Set install dir to /usr"
++	    echo "            Default is <build dir>/install for testing"
++            exit 1
++            ;;
++    esac
++    shift
++done
++
++if [ ! -f $BASE/configure ]; then
++  echo "configure not found - will bootstrap"
++  DO_BOOTSTRAP=1
++fi
++
++CONF_MMAL=--disable-mmal
++
++# uname -m gives kernel type which may not have the same
++# 32/64bitness as userspace :-( getconf shoudl provide the answer
++# but use uname to check we are on the right processor
++MC=`uname -m`
++LB=`getconf LONG_BIT`
++if [ "$MC" == "armv7l" ] || [ "$MC" == "aarch64" ]; then
++  if [ "$LB" == "32" ]; then
++    #  CONF_MMAL=--enable-mmal-avcodec
++    CONF_MMAL=
++    A=arm-linux-gnueabihf
++    ARM=armv7
++  elif [ "$LB" == "64" ]; then
++    A=aarch64-linux-gnu
++    ARM=arm64
++  else
++    echo "Unknown LONG_BIT name: $LB"
++    exit 1
++  fi
++elif [ "$MC" == "x86_64" ]; then
++    A=x86_64-linux-gnu
++    ARM=x86_64
++else
++  echo "Unknown machine name: $MC"
++  exit 1
++fi
++OUT=$OUT_BASE/$ARM-`lsb_release -sc`-rel
++
++if [ $DO_BOOTSTRAP ]; then
++    echo "==== Bootstrapping & cleaning $OUT"
++    rm -rf $OUT
++    ./bootstrap
++fi
++
++if [ ! -f $OUT/Makefile ]; then
++    DO_CONFIGURE=1
++fi
++
++if [ "$USR_PREFIX" == "" ]; then
++    USR_PREFIX=$OUT/install
++fi
++LIB_PREFIX=$USR_PREFIX/lib/$A
++INC_PREFIX=$USR_PREFIX/include/$A
++
++echo "==== Configuring in $OUT"
++mkdir -p $OUT
++# Nothing under here need worry git - including this .gitignore!
++echo "**" > $OUT_BASE/.gitignore
++
++cd $OUT
++if [ $DO_CONFIGURE ]; then
++    $BASE/configure \
++     --build=$A \
++     --prefix=$USR_PREFIX\
++     --libdir=$LIB_PREFIX\
++     --includedir=$INC_PREFIX\
++     --disable-vdpau\
++     --enable-wayland\
++     --enable-gles2\
++     $CONF_MMAL
++    echo "==== Configured in $OUT"
++fi
++
++if [ $DO_MAKE ]; then
++    echo "==== Making $OUT"
++    make -j8
++    echo "==== Made $OUT"
++fi
++
++if [ $DO_INSTALL ]; then
++    echo "==== Installing to $USR_PREFIX"
++    $SUDO_INSTALL make -j8 install
++    echo "==== Installed in $USR_PREFIX"
++fi
++
+--- /dev/null
++++ b/pi-util/genpatch.sh
+@@ -0,0 +1,60 @@
++set -e
++
++NOTAG=
++if [ "$1" == "--notag" ]; then
++  shift
++  NOTAG=1
++fi
++
++if [ "$1" == "" ] || [ "$2" != "" ]; then
++  echo Usage: $0 [--notag] \<patch_tag\>
++  echo e.g.: $0 mmal_4
++  exit 1
++fi
++REF=$1
++
++CONFIG_VERSION=`awk '/AC_INIT/{match($0,/[0-9]+(\.[0-9]+)+/);print substr($0,RSTART,RLENGTH)}' configure.ac`
++if [ "$CONFIG_VERSION" == "" ]; then
++  echo Config version not found
++  exit 1
++fi
++
++# Config substitution here really should have escaped '.'s but it isn't
++# really worth it. There is little chance they will cause false +ves
++BRANCH=$(git branch --show-current)
++BRANCH_VERSION=$(echo $BRANCH | awk "{match(\$0, /test\\/(${CONFIG_VERSION}.+)\\/.+/, a); print a[1];}")
++
++if [ "$BRANCH_VERSION" == "" ]; then
++  echo Branch $BRANCH not expected format \(test/${CONFIG_VERSION}*/*\)
++  exit 1
++fi
++
++VERSION=$BRANCH_VERSION
++echo VERSION=$VERSION
++
++if [ $NOTAG ]; then
++  echo Not tagged
++else
++  # Only continue if we are all comitted
++  git diff --name-status --exit-code
++
++  PATCHTAG=pi/$VERSION/$REF
++  echo Tagging: $PATCHTAG
++
++  git tag $PATCHTAG
++fi
++
++DSTDIR=..
++PATCHNAME=vlc-$VERSION-$REF
++DIFFBASE=$DSTDIR/$PATCHNAME
++ZIPNAME=$PATCHNAME-patch.zip
++
++# We seem to sometimes gain add
++echo Generating patches in: $DSTDIR/$ZIPNAME
++
++REFNAME=refs/tags/$VERSION
++PATCHTMP=/tmp/vlc-patches
++rm -rf $PATCHTMP
++mkdir -p $PATCHTMP
++git format-patch --output-directory $PATCHTMP $REFNAME
++zip -j $DSTDIR/$ZIPNAME $PATCHTMP/*
+--- /dev/null
++++ b/pi-util/rebase_liblinks.py
+@@ -0,0 +1,37 @@
++#!/usr/bin/env python3
++
++import os, sys
++from stat import *
++
++def walktree(top, callback, n, prefix):
++    '''recursively descend the directory tree rooted at top,
++       calling the callback function for each regular file'''
++
++    for f in os.listdir(top):
++        pathname = os.path.join(top, f)
++        mode = os.lstat(pathname).st_mode
++        if S_ISDIR(mode):
++            # It's a directory, recurse into it
++            walktree(pathname, callback, n+1, prefix)
++        elif S_ISLNK(mode):
++            # It's a file, call the callback function
++            callback(pathname, os.readlink(pathname), n, prefix)
++
++def visitfile(file, linkname, n, prefix):
++    if (linkname.startswith(prefix + 'lib/')):
++        newlink = "../" * n + linkname[len(prefix):]
++        print('relinking', file, "->", newlink)
++        os.remove(file)
++        os.symlink(newlink, file)
++
++if __name__ == '__main__':
++    argc = len(sys.argv)
++    if argc == 2:
++        walktree(sys.argv[1], visitfile, 0, "/")
++    elif argc == 3:
++        walktree(sys.argv[1], visitfile, 0, sys.argv[2])
++    else:
++        print("rebase_liblinks.py <local root> [<old sysroot>]")
++
++
++

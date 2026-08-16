@@ -1,54 +1,81 @@
+From 5acc0734add2fc5a40d2af03df81ad46e9492881 Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Tue, 11 Jun 2024 18:09:17 +0100
+Subject: [PATCH 26/41] mmal: Add all the mmal bits
+
+
+
 Upstream-Status: Inappropriate
 
 RPI-Distro repo forks original vlc and applies patches
-to enable raspiberry pi support.
 
---- a/configure.ac
-+++ b/configure.ac
-@@ -3478,6 +3478,9 @@ dnl
- AC_ARG_ENABLE(mmal,
-   AS_HELP_STRING([--enable-mmal],
-     [Multi-Media Abstraction Layer (MMAL) hardware plugin (default enable)]))
-+AC_ARG_ENABLE(mmal_avcodec,
-+  AS_HELP_STRING([--enable-mmal-avcodec],
-+    [Use MMAL enabled avcodec libs (default disable)]))
- if test "${enable_mmal}" != "no"; then
-   VLC_SAVE_FLAGS
-   LDFLAGS="${LDFLAGS} -L/opt/vc/lib -lvchostif"
-@@ -3488,7 +3491,7 @@ if test "${enable_mmal}" != "no"; then
-         VLC_ADD_PLUGIN([mmal])
-         VLC_ADD_LDFLAGS([mmal],[ -L/opt/vc/lib ])
-         VLC_ADD_CFLAGS([mmal],[ -isystem /opt/vc/include -isystem /opt/vc/include/interface/vcos/pthreads -isystem /opt/vc/include/interface/vmcs_host/linux ])
--        VLC_ADD_LIBS([mmal],[ -lbcm_host -lmmal -lmmal_core -lmmal_components -lmmal_util -lvchostif ]) ], [
-+        VLC_ADD_LIBS([mmal],[ -lbcm_host -lmmal -lmmal_core -lmmal_components -lmmal_util -lvchostif -lvchiq_arm -lvcsm ]) ], [
-           AS_IF([test "${enable_mmal}" = "yes"],
-             [ AC_MSG_ERROR([Cannot find bcm library...]) ],
-             [ AC_MSG_WARN([Cannot find bcm library...]) ])
-@@ -3500,6 +3503,7 @@ if test "${enable_mmal}" != "no"; then
-   VLC_RESTORE_FLAGS
- fi
- AM_CONDITIONAL([HAVE_MMAL], [test "${have_mmal}" = "yes"])
-+AM_CONDITIONAL([HAVE_MMAL_AVCODEC], [test "${enable_mmal_avcodec}" = "yes"])
+to enable raspiberry pi support.
+---
+
+ modules/Makefile.am                 |    2 -
+ modules/hw/mmal/Makefile.am         |   51 +-
+ modules/hw/mmal/blend_rgba_neon.S   |  189 ++
+ modules/hw/mmal/blend_rgba_neon.h   |   17 +
+ modules/hw/mmal/blend_test.c        |  180 ++
+ modules/hw/mmal/codec.c             | 2625 +++++++++++++++++++++++----
+ modules/hw/mmal/converter_mmal.c    |  480 +++++
+ modules/hw/mmal/deinterlace.c       | 1055 +++++++----
+ modules/hw/mmal/mmal_avcodec.c      | 2302 +++++++++++++++++++++++
+ modules/hw/mmal/mmal_cma.c          |  672 +++++++
+ modules/hw/mmal/mmal_cma.h          |   43 +
+ modules/hw/mmal/mmal_cma_drmprime.c |  120 ++
+ modules/hw/mmal/mmal_cma_drmprime.h |    9 +
+ modules/hw/mmal/mmal_cma_int.h      |   58 +
+ modules/hw/mmal/mmal_cma_pic.h      |   49 +
+ modules/hw/mmal/mmal_piccpy_neon.S  |   95 +
+ modules/hw/mmal/mmal_picture.c      | 1567 +++++++++++++++-
+ modules/hw/mmal/mmal_picture.h      |  271 ++-
+ modules/hw/mmal/rpi_prof.h          |  110 ++
+ modules/hw/mmal/subpic.c            |  257 +++
+ modules/hw/mmal/subpic.h            |   33 +
+ modules/hw/mmal/transform_ops.h     |   99 +
+ modules/hw/mmal/v7_pmu.S            |  263 +++
+ modules/hw/mmal/v7_pmu.h            |  113 ++
+ modules/hw/mmal/vout.c              | 1998 +++++++++++++-------
+ modules/hw/mmal/xsplitter.c         |  669 +++++++
+ src/misc/fourcc.c                   |   14 +-
+ src/misc/picture.c                  |   24 +-
+ 28 files changed, 11976 insertions(+), 1389 deletions(-)
+ create mode 100644 modules/hw/mmal/blend_rgba_neon.S
+ create mode 100644 modules/hw/mmal/blend_rgba_neon.h
+ create mode 100644 modules/hw/mmal/blend_test.c
+ create mode 100644 modules/hw/mmal/converter_mmal.c
+ create mode 100644 modules/hw/mmal/mmal_avcodec.c
+ create mode 100644 modules/hw/mmal/mmal_cma.c
+ create mode 100644 modules/hw/mmal/mmal_cma.h
+ create mode 100644 modules/hw/mmal/mmal_cma_drmprime.c
+ create mode 100644 modules/hw/mmal/mmal_cma_drmprime.h
+ create mode 100644 modules/hw/mmal/mmal_cma_int.h
+ create mode 100644 modules/hw/mmal/mmal_cma_pic.h
+ create mode 100644 modules/hw/mmal/mmal_piccpy_neon.S
+ create mode 100644 modules/hw/mmal/rpi_prof.h
+ create mode 100644 modules/hw/mmal/subpic.c
+ create mode 100644 modules/hw/mmal/subpic.h
+ create mode 100644 modules/hw/mmal/transform_ops.h
+ create mode 100644 modules/hw/mmal/v7_pmu.S
+ create mode 100644 modules/hw/mmal/v7_pmu.h
+ create mode 100644 modules/hw/mmal/xsplitter.c
+
+--- a/modules/Makefile.am
++++ b/modules/Makefile.am
+@@ -11,9 +11,7 @@ EXTRA_SUBDIRS = \
  
- dnl
- dnl evas plugin
---- a/include/vlc_fourcc.h
-+++ b/include/vlc_fourcc.h
-@@ -365,6 +365,11 @@
+ SUBDIRS = .
+ DIST_SUBDIRS = . $(EXTRA_SUBDIRS)
+-if HAVE_MMAL
+ SUBDIRS += hw/mmal
+-endif
  
- /* Broadcom MMAL opaque buffer type */
- #define VLC_CODEC_MMAL_OPAQUE     VLC_FOURCC('M','M','A','L')
-+#define VLC_CODEC_MMAL_ZC_SAND8   VLC_FOURCC('Z','S','D','8')
-+#define VLC_CODEC_MMAL_ZC_SAND10  VLC_FOURCC('Z','S','D','0')
-+#define VLC_CODEC_MMAL_ZC_SAND30  VLC_FOURCC('Z','S','D','3')
-+#define VLC_CODEC_MMAL_ZC_I420    VLC_FOURCC('Z','4','2','0')
-+#define VLC_CODEC_MMAL_ZC_RGB32   VLC_FOURCC('Z','R','G','B')
+ TESTS =
  
- /* DXVA2 opaque video surface for use with D3D9 */
- #define VLC_CODEC_D3D9_OPAQUE     VLC_FOURCC('D','X','A','9') /* 4:2:0  8 bpc */
 --- a/modules/hw/mmal/Makefile.am
 +++ b/modules/hw/mmal/Makefile.am
-@@ -1,23 +1,57 @@
+@@ -1,23 +1,60 @@
  include $(top_srcdir)/modules/common.am
  mmaldir = $(pluginsdir)/mmal
  
@@ -58,18 +85,22 @@ to enable raspiberry pi support.
 +AM_LDFLAGS += -pthread -rpath '$(mmaldir)' $(LDFLAGS_mmal)
  
 -libmmal_vout_plugin_la_SOURCES = vout.c mmal_picture.c mmal_picture.h
++mmal_LTLIBRARIES =
++
++if HAVE_MMAL
 +libmmal_vout_plugin_la_SOURCES = vout.c mmal_cma.c mmal_picture.c subpic.c\
-+  mmal_cma.h mmal_picture.h subpic.h transform_ops.h\
++  mmal_cma.h mmal_cma_int.h mmal_picture.h subpic.h transform_ops.h\
 +  mmal_piccpy_neon.S
  libmmal_vout_plugin_la_CFLAGS = $(AM_CFLAGS)
 -libmmal_vout_plugin_la_LDFLAGS = $(AM_LDFLAGS) -lm
 +libmmal_vout_plugin_la_LDFLAGS = $(AM_LDFLAGS) -lm -lX11 -lXrandr
  libmmal_vout_plugin_la_LIBADD = $(LIBS_mmal)
- mmal_LTLIBRARIES = libmmal_vout_plugin.la
+-mmal_LTLIBRARIES = libmmal_vout_plugin.la
++mmal_LTLIBRARIES += libmmal_vout_plugin.la
  
 -libmmal_codec_plugin_la_SOURCES = codec.c
 +libmmal_codec_plugin_la_SOURCES = codec.c mmal_cma.c mmal_picture.c subpic.c\
-+  mmal_cma.h mmal_picture.h subpic.h transform_ops.h\
++  mmal_cma.h mmal_cma_int.h mmal_picture.h subpic.h transform_ops.h\
 +  blend_rgba_neon.S mmal_piccpy_neon.S
  libmmal_codec_plugin_la_CFLAGS = $(AM_CFLAGS)
  libmmal_codec_plugin_la_LDFLAGS = $(AM_LDFLAGS)
@@ -78,32 +109,33 @@ to enable raspiberry pi support.
  
 -libmmal_deinterlace_plugin_la_SOURCES = deinterlace.c mmal_picture.c
 +libmmal_deinterlace_plugin_la_SOURCES = deinterlace.c mmal_picture.c mmal_cma.c\
-+  mmal_cma.h mmal_picture.h transform_ops.h\
++  mmal_cma.h mmal_cma_int.h mmal_picture.h transform_ops.h\
 +  mmal_piccpy_neon.S
  libmmal_deinterlace_plugin_la_CFLAGS = $(AM_CFLAGS)
  libmmal_deinterlace_plugin_la_LDFLAGS = $(AM_LDFLAGS)
  libmmal_deinterlace_plugin_la_LIBADD = $(LIBS_mmal)
  mmal_LTLIBRARIES += libmmal_deinterlace_plugin.la
 +
-+libmmal_xsplitter_plugin_la_SOURCES = xsplitter.c mmal_picture.c mmal_cma.c\
-+  mmal_cma.h mmal_picture.h transform_ops.h\
-+  mmal_piccpy_neon.S
-+libmmal_xsplitter_plugin_la_CFLAGS = $(AM_CFLAGS)
-+libmmal_xsplitter_plugin_la_LDFLAGS = $(AM_LDFLAGS)
-+libmmal_xsplitter_plugin_la_LIBADD = $(LIBS_mmal)
-+mmal_LTLIBRARIES += libmmal_xsplitter_plugin.la
-+
 +libmmal_converter_plugin_la_SOURCES = converter_mmal.c mmal_cma.c mmal_picture.c\
-+  mmal_cma.h mmal_picture.h transform_ops.h\
++  mmal_cma.h mmal_cma_int.h mmal_picture.h transform_ops.h\
 +  mmal_piccpy_neon.S
 +libmmal_converter_plugin_la_CFLAGS = $(AM_CFLAGS)
 +libmmal_converter_plugin_la_LDFLAGS = $(AM_LDFLAGS)
 +libmmal_converter_plugin_la_LIBADD = $(LIBS_mmal)
 +mmal_LTLIBRARIES += libmmal_converter_plugin.la
++endif
++
++libmmal_xsplitter_plugin_la_SOURCES = xsplitter.c
++libmmal_xsplitter_plugin_la_CFLAGS = $(AM_CFLAGS)
++libmmal_xsplitter_plugin_la_LDFLAGS = $(AM_LDFLAGS)
++libmmal_xsplitter_plugin_la_LIBADD = $(LIBS_mmal)
++mmal_LTLIBRARIES += libmmal_xsplitter_plugin.la
++
 +
 +if HAVE_MMAL_AVCODEC
-+libmmal_avcodec_plugin_la_SOURCES = mmal_avcodec.c mmal_cma.c mmal_picture.c\
-+  mmal_cma.h mmal_picture.h transform_ops.h\
++libmmal_avcodec_plugin_la_SOURCES = mmal_avcodec.c mmal_cma_drmprime.c mmal_cma.c\
++  mmal_picture.c\
++  mmal_cma.h mmal_cma_int.h mmal_cma_drmprime.h mmal_picture.h transform_ops.h\
 +  mmal_piccpy_neon.S
 +libmmal_avcodec_plugin_la_CFLAGS = $(AM_CFLAGS)
 +libmmal_avcodec_plugin_la_LDFLAGS = $(AM_LDFLAGS)
@@ -111,17 +143,16 @@ to enable raspiberry pi support.
 +mmal_LTLIBRARIES += libmmal_avcodec_plugin.la
 +endif
 +
-+
 --- /dev/null
 +++ b/modules/hw/mmal/blend_rgba_neon.S
-@@ -0,0 +1,197 @@
-+        .syntax unified
-+        .arm
-+//      .thumb
-+        .text
+@@ -0,0 +1,189 @@
++#include "../../arm_neon/asm.S"
 +        .align 16
 +        .arch armv7-a
++        .syntax unified
++#if HAVE_AS_FPU_DIRECTIVE
 +        .fpu neon-vfpv4
++#endif
 +
 +@ blend_rgbx_rgba_neon
 +
@@ -290,11 +321,7 @@ to enable raspiberry pi support.
 +@ r2   plane alpha
 +@ r3   count (pixels)
 +        .align  16
-+        .global blend_rgbx_rgba_neon
-+#ifdef __ELF__
-+        .type   blend_rgbx_rgba_neon, %function
-+#endif
-+blend_rgbx_rgba_neon:
++function blend_rgbx_rgba_neon
 +        blend_main d16, d17, d18, d19, d20, d21, d22, d23
 +
 +
@@ -303,11 +330,7 @@ to enable raspiberry pi support.
 +@ r2   plane alpha
 +@ r3   count (pixels)
 +        .align  16
-+        .global blend_bgrx_rgba_neon
-+#ifdef __ELF__
-+        .type   blend_bgrx_rgba_neon, %function
-+#endif
-+blend_bgrx_rgba_neon:
++function blend_bgrx_rgba_neon
 +        blend_main d18, d17, d16, d19, d20, d21, d22, d23
 +
 +
@@ -517,7 +540,7 @@ to enable raspiberry pi support.
 +
 --- a/modules/hw/mmal/codec.c
 +++ b/modules/hw/mmal/codec.c
-@@ -26,267 +26,443 @@
+@@ -26,267 +26,448 @@
  #include "config.h"
  #endif
  
@@ -525,6 +548,7 @@ to enable raspiberry pi support.
 +
  #include <vlc_common.h>
 -#include <vlc_atomic.h>
++#include <vlc_cpu.h>
  #include <vlc_plugin.h>
  #include <vlc_codec.h>
 +#include <vlc_filter.h>
@@ -583,6 +607,10 @@ to enable raspiberry pi support.
 +#define MMAL_ISP_NAME "mmal-isp"
 +#define MMAL_ISP_TEXT N_("Use mmal isp rather than hvs.")
 +#define MMAL_ISP_LONGTEXT N_("Use mmal isp rather than hvs. This may be faster but has no blend.")
++
++#define MMAL_DECODE_ENABLE_NAME "mmal-decode-enable"
++#define MMAL_DECODE_ENABLE_TEXT N_("Enable mmal decode even if normally disabled")
++#define MMAL_DECODE_ENABLE_LONGTEXT N_("Enable mmal decode even if normally disabled. MMAL decode is normally disabled on Pi4 or later.")
  
 -struct decoder_sys_t {
 -    bool opaque;
@@ -1133,7 +1161,7 @@ to enable raspiberry pi support.
      if (atomic_load(&sys->started)) {
          mmal_format_full_copy(sys->output->format, sys->output_format);
          status = mmal_port_format_commit(sys->output);
-@@ -300,7 +476,9 @@ static int change_output_format(decoder_
+@@ -300,7 +481,9 @@ static int change_output_format(decoder_
      }
  
  port_reset:
@@ -1143,7 +1171,7 @@ to enable raspiberry pi support.
      status = mmal_port_disable(sys->output);
      if (status != MMAL_SUCCESS) {
          msg_Err(dec, "Failed to disable output port (status=%"PRIx32" %s)",
-@@ -310,6 +488,7 @@ port_reset:
+@@ -310,6 +493,7 @@ port_reset:
      }
  
      mmal_format_full_copy(sys->output->format, sys->output_format);
@@ -1151,7 +1179,7 @@ to enable raspiberry pi support.
      status = mmal_port_format_commit(sys->output);
      if (status != MMAL_SUCCESS) {
          msg_Err(dec, "Failed to commit output format (status=%"PRIx32" %s)",
-@@ -318,18 +497,10 @@ port_reset:
+@@ -318,18 +502,10 @@ port_reset:
          goto out;
      }
  
@@ -1172,7 +1200,7 @@ to enable raspiberry pi support.
      if (status != MMAL_SUCCESS) {
          msg_Err(dec, "Failed to enable output port (status=%"PRIx32" %s)",
                  status, mmal_status_to_string(status));
-@@ -338,25 +509,14 @@ port_reset:
+@@ -338,25 +514,14 @@ port_reset:
      }
  
      if (!atomic_load(&sys->started)) {
@@ -1201,7 +1229,7 @@ to enable raspiberry pi support.
      }
  
  apply_fmt:
-@@ -366,8 +526,8 @@ apply_fmt:
+@@ -366,8 +531,8 @@ apply_fmt:
      dec->fmt_out.video.i_y_offset = sys->output->format->es->video.crop.y;
      dec->fmt_out.video.i_visible_width = sys->output->format->es->video.crop.width;
      dec->fmt_out.video.i_visible_height = sys->output->format->es->video.crop.height;
@@ -1212,7 +1240,7 @@ to enable raspiberry pi support.
      dec->fmt_out.video.i_frame_rate = sys->output->format->es->video.frame_rate.num;
      dec->fmt_out.video.i_frame_rate_base = sys->output->format->es->video.frame_rate.den;
  
-@@ -382,12 +542,19 @@ apply_fmt:
+@@ -382,12 +547,19 @@ apply_fmt:
          sys->b_progressive = (interlace_type.eMode == MMAL_InterlaceProgressive);
          sys->b_top_field_first = sys->b_progressive ? true :
              (interlace_type.eMode == MMAL_InterlaceFieldsInterleavedUpperFirst);
@@ -1232,7 +1260,7 @@ to enable raspiberry pi support.
  out:
      mmal_format_free(sys->output_format);
      sys->output_format = NULL;
-@@ -395,144 +562,85 @@ out:
+@@ -395,144 +567,85 @@ out:
      return ret;
  }
  
@@ -1247,7 +1275,7 @@ to enable raspiberry pi support.
      MMAL_STATUS_T status;
 -    unsigned buffer_size = 0;
 -    int ret = 0;
- 
+-
 -    if (!sys->output->is_enabled)
 -        return VLC_EGENERIC;
 -
@@ -1268,7 +1296,7 @@ to enable raspiberry pi support.
 -        ret = -1;
 -        goto err;
 -    }
--
+ 
 -    p_sys = picture->p_sys;
 -    for (int i = 0; i < picture->i_planes; i++)
 -        buffer_size += picture->p[i].i_lines * picture->p[i].i_pitch;
@@ -1326,11 +1354,6 @@ to enable raspiberry pi support.
 +static MMAL_STATUS_T decoder_send_extradata(decoder_t * const dec, decoder_sys_t *const sys)
  {
 -    decoder_sys_t *sys = dec->p_sys;
--
--    unsigned max_buffers_in_transit = 0;
--    int buffers_available = 0;
--    int buffers_to_send = 0;
--    int i;
 +    if (dec->fmt_in.i_codec == VLC_CODEC_H264 &&
 +        dec->fmt_in.i_extra > 0)
 +    {
@@ -1345,6 +1368,11 @@ to enable raspiberry pi support.
 +        buf->data = dec->fmt_in.p_extra;
 +        buf->flags = MMAL_BUFFER_HEADER_FLAG_CONFIG;
  
+-    unsigned max_buffers_in_transit = 0;
+-    int buffers_available = 0;
+-    int buffers_to_send = 0;
+-    int i;
+-
 -    if (sys->output_pool) {
 -        max_buffers_in_transit = __MAX(sys->output_pool->headers_num,
 -                MIN_NUM_BUFFERS_IN_TRANSIT);
@@ -1360,10 +1388,10 @@ to enable raspiberry pi support.
 +        }
      }
 -    buffers_to_send = max_buffers_in_transit - atomic_load(&sys->output_in_transit);
- 
+-
 -    if (buffers_to_send > buffers_available)
 -        buffers_to_send = buffers_available;
--
+ 
 -#ifndef NDEBUG
 -    msg_Dbg(dec, "Send %d buffers to output port (available: %d, "
 -                    "in_transit: %d, buffer_num: %d)",
@@ -1383,6 +1411,10 @@ to enable raspiberry pi support.
 -    MMAL_BUFFER_HEADER_T *buffer;
 -    MMAL_STATUS_T status;
 +    decoder_sys_t *const sys = dec->p_sys;
++
++#if TRACE_ALL
++    msg_Dbg(dec, "%s: <<<", __func__);
++#endif
  
 -    msg_Dbg(dec, "Flushing decoder ports...");
 -    mmal_port_flush(sys->output);
@@ -1391,10 +1423,6 @@ to enable raspiberry pi support.
 -    while (atomic_load(&sys->output_in_transit) ||
 -           atomic_load(&sys->input_in_transit))
 -        vlc_sem_wait(&sys->sem);
-+#if TRACE_ALL
-+    msg_Dbg(dec, "%s: <<<", __func__);
-+#endif
-+
 +    if (!sys->b_flushed) {
 +        mmal_port_disable(sys->input);
 +        mmal_port_disable(sys->output);
@@ -1431,7 +1459,7 @@ to enable raspiberry pi support.
      /*
       * Configure output port if necessary
       */
-@@ -541,18 +649,50 @@ static int decode(decoder_t *dec, block_
+@@ -541,18 +654,50 @@ static int decode(decoder_t *dec, block_
              msg_Err(dec, "Failed to change output port format");
      }
  
@@ -1485,7 +1513,7 @@ to enable raspiberry pi support.
      if (atomic_load(&sys->started))
          fill_output_port(dec);
  
-@@ -563,18 +703,21 @@ static int decode(decoder_t *dec, block_
+@@ -563,18 +708,21 @@ static int decode(decoder_t *dec, block_
      if (block->i_flags & BLOCK_FLAG_CORRUPTED)
          flags |= MMAL_BUFFER_HEADER_FLAG_CORRUPTED;
  
@@ -1512,7 +1540,7 @@ to enable raspiberry pi support.
  
          len = block->i_buffer;
          if (len > buffer->alloc_size)
-@@ -585,94 +728,1808 @@ static int decode(decoder_t *dec, block_
+@@ -585,94 +733,1835 @@ static int decode(decoder_t *dec, block_
          block->i_buffer -= len;
          buffer->length = len;
          if (block->i_buffer == 0) {
@@ -1606,6 +1634,21 @@ to enable raspiberry pi support.
 +    decoder_sys_t *sys;
      MMAL_STATUS_T status;
 +    const MMAL_FOURCC_T in_fcc = vlc_to_mmal_es_fourcc(dec->fmt_in.i_codec);
++    static bool is_kms = false;
++    static bool kms_checked = false;
++
++    if (!kms_checked) {
++        // This is true for Pi3 and earlier
++        // On Pi4 and later it is almost certainly better to be using V4L2
++        is_kms = !rpi_use_qpu_deinterlace();
++        kms_checked = true;
++    }
++    if (is_kms && !var_InheritBool(dec, MMAL_DECODE_ENABLE_NAME)) {
++#if TRACE_ALL
++        msg_Dbg(dec, "%s: <<< Disabled: Is KMS", __func__);
++#endif
++        return VLC_EGENERIC;
++    }
 +
 +#if TRACE_ALL || 1
 +    {
@@ -2009,9 +2052,7 @@ to enable raspiberry pi support.
 -        fmt = mmal_event_format_changed_get(buffer);
 +    filter_t * const p_filter = (filter_t *)port->userdata;
 +    filter_sys_t * const sys = p_filter->p_sys;
- 
--        format = mmal_format_alloc();
--        mmal_format_full_copy(format, fmt->format);
++
 +#if TRACE_ALL
 +    msg_Dbg(p_filter, "<<< %s: cmd=%d, flags=%#x, pic=%p, data=%p, len=%d/%d, pts=%lld/%lld", __func__,
 +            buf->cmd, buf->flags, buf->user_data, buf->data, buf->length, buf->alloc_size,
@@ -2020,8 +2061,8 @@ to enable raspiberry pi support.
 +    if (buf->cmd == 0) {
 +        picture_t * const pic = (picture_t *)buf->user_data;
  
--        if (sys->opaque)
--            format->encoding = MMAL_ENCODING_OPAQUE;
+-        format = mmal_format_alloc();
+-        mmal_format_full_copy(format, fmt->format);
 +        if (pic == NULL) {
 +            msg_Err(p_filter, "%s: Buffer has no attached picture", __func__);
 +        }
@@ -2034,7 +2075,9 @@ to enable raspiberry pi support.
 +        else
 +        {
 +            buf_to_pic_copy_props(pic, buf);
-+
+ 
+-        if (sys->opaque)
+-            format->encoding = MMAL_ENCODING_OPAQUE;
 +            // Set pic data pointers from buf aux info now it has it
 +            if (sys->is_cma) {
 +                if (cma_pic_set_data(pic, sys->output->format, buf) != VLC_SUCCESS)
@@ -2437,8 +2480,14 @@ to enable raspiberry pi support.
 +            goto fail;
 +        }
 +
-+        out_pic->format.i_sar_den = p_filter->fmt_out.video.i_sar_den;
-+        out_pic->format.i_sar_num = p_filter->fmt_out.video.i_sar_num;
++        if (p_filter->fmt_out.video.i_sar_den == 0 || p_filter->fmt_out.video.i_sar_num == 0) {
++            out_pic->format.i_sar_den = 1;
++            out_pic->format.i_sar_num = 1;
++        }
++        else {
++            out_pic->format.i_sar_den = p_filter->fmt_out.video.i_sar_den;
++            out_pic->format.i_sar_num = p_filter->fmt_out.video.i_sar_num;
++        }
 +
 +        if (sys->is_sliced) {
 +            vlc_mutex_lock(&sys->lock);
@@ -2651,8 +2700,10 @@ to enable raspiberry pi support.
 +    p_filter->p_sys = NULL;
 +    free(sys);
 +}
-+
-+
+ 
+-        sys->output_format = format;
+ 
+-        mmal_buffer_header_release(buffer);
 +static inline MMAL_FOURCC_T filter_enc_in(const video_format_t * const fmt)
 +{
 +    if (hw_mmal_chroma_is_mmal(fmt->i_chroma))
@@ -2678,7 +2729,7 @@ to enable raspiberry pi support.
 +    filter_t * const p_filter = (filter_t *)obj;
 +    int ret = VLC_EGENERIC;
 +    filter_sys_t *sys;
-+    MMAL_STATUS_T status;
++    MMAL_STATUS_T status = 0;
 +    MMAL_FOURCC_T enc_out = filter_enc_out(&p_filter->fmt_out.video);
 +    const MMAL_FOURCC_T enc_in = filter_enc_in(&p_filter->fmt_in.video);
 +    bool use_resizer;
@@ -2716,10 +2767,8 @@ to enable raspiberry pi support.
 +        if (use_isp || use_resizer)
 +            return VLC_EGENERIC;
 +    }
- 
--        sys->output_format = format;
- 
--        mmal_buffer_header_release(buffer);
++
++
 +    if (use_resizer) {
 +        // use resizer overrides use_isp
 +        use_isp = false;
@@ -2790,7 +2839,7 @@ to enable raspiberry pi support.
 +        sys->is_sliced = false;  // Copy directly into filter picture
 +        sys->component_name = MMAL_COMPONENT_HVS;
 +        sys->out_port_cb_fn = conv_output_port_cb;
-+    }
+     }
 +    sys->is_cma = is_cma_buf_pic_chroma(p_filter->fmt_out.video.i_chroma);
 +
 +    status = mmal_component_create(sys->component_name, &sys->component);
@@ -2804,7 +2853,7 @@ to enable raspiberry pi support.
 +        msg_Err(p_filter, "Failed to create MMAL component %s (status=%"PRIx32" %s)",
 +                MMAL_COMPONENT_DEFAULT_VIDEO_DECODER, status, mmal_status_to_string(status));
 +        goto fail;
-     }
++    }
 +    sys->output = sys->component->output[0];
 +    sys->input  = sys->component->input[0];
 +
@@ -2977,12 +3026,12 @@ to enable raspiberry pi support.
 +fail0:
 +    picture_Release(in_pic);
 +    return NULL;
-+}
+ }
 +
 +static void to_zc_flush(filter_t * p_filter)
 +{
 +    VLC_UNUSED(p_filter);
- }
++}
 +
 +static void CloseConverterToZc(vlc_object_t * obj)
 +{
@@ -3111,7 +3160,8 @@ to enable raspiberry pi support.
 +    {
 +        // cast away src const so we can ref it
 +        MMAL_BUFFER_HEADER_T *buf = hw_mmal_vzc_buf_from_pic(sys->vzc, (picture_t *)src,
-+                                                             vis_mmal_rect(&dst->format),
++                                                             &p_filter->fmt_in.video,
++                                                             vis_mmal_rect(&p_filter->fmt_out.video),
 +                                                             x_offset, y_offset,
 +                                                             alpha,
 +                                                             dst != sys->last_dst || !hw_mmal_pic_has_sub_bufs(dst));
@@ -3204,39 +3254,39 @@ to enable raspiberry pi support.
 +{
 +    const uint8_t * s_data;
 +    uint8_t * d_data;
-+    int width = src_pic->format.i_visible_width;
-+    int height = src_pic->format.i_visible_height;
++    const video_format_t *const src_fmt = &p_filter->fmt_in.video;  // Format here has different visible params to pic
++    const video_format_t *const dst_fmt = &p_filter->fmt_out.video;
++    int width = src_fmt->i_visible_width;
++    int height = src_fmt->i_visible_height;
 +    blend_neon_fn *const blend_fn = (blend_neon_fn * )p_filter->p_sys;
 +
 +#if TRACE_ALL
-+    msg_Dbg(p_filter, "%s (%d,%d:%d) pic=%p, pts=%lld, force=%d", __func__, x_offset, y_offset, alpha, src_pic, src_pic->date, src_pic->b_force);
++    msg_Dbg(p_filter, "%s (%d,%d:%d) pic=%p (%dx%d/%dx%d), pts=%lld, force=%d, filter in %dx%d/%dx%d", __func__, x_offset, y_offset, alpha,
++            src_pic, src_pic->format.i_width, src_pic->format.i_height, src_pic->format.i_visible_width, src_pic->format.i_visible_height,
++            src_pic->date, src_pic->b_force,
++            src_fmt->i_width, src_fmt->i_height, src_fmt->i_visible_width, src_fmt->i_visible_height);
 +#endif
 +
-+    if (alpha == 0 ||
-+        src_pic->format.i_visible_height == 0 ||
-+        src_pic->format.i_visible_width == 0)
-+    {
++    if (alpha == 0)
 +        return;
-+    }
 +
-+    x_offset += dst_pic->format.i_x_offset;
-+    y_offset += dst_pic->format.i_y_offset;
++    x_offset += dst_fmt->i_x_offset;
++    y_offset += dst_fmt->i_y_offset;
 +
 +    // Deal with R/B overrun
-+    if (x_offset + width >= (int)(dst_pic->format.i_x_offset + dst_pic->format.i_visible_width))
-+        width = dst_pic->format.i_x_offset + dst_pic->format.i_visible_width - x_offset;
-+    if (y_offset + height >= (int)(dst_pic->format.i_y_offset + dst_pic->format.i_visible_height))
-+        height = dst_pic->format.i_y_offset + dst_pic->format.i_visible_height - y_offset;
++    if (x_offset + width >= (int)(dst_fmt->i_x_offset + dst_fmt->i_visible_width))
++        width = dst_fmt->i_x_offset + dst_fmt->i_visible_width - x_offset;
++    if (y_offset + height >= (int)(dst_fmt->i_y_offset + dst_fmt->i_visible_height))
++        height = dst_fmt->i_y_offset + dst_fmt->i_visible_height - y_offset;
 +
-+    if (width <= 0 || height <= 0) {
++    if (width <= 0 || height <= 0)
 +        return;
-+    }
 +
 +    // *** L/U overrun
 +
 +    s_data = src_pic->p[0].p_pixels +
-+        src_pic->p[0].i_pixel_pitch * src_pic->format.i_x_offset +
-+        src_pic->p[0].i_pitch * src_pic->format.i_y_offset;
++        src_pic->p[0].i_pixel_pitch * src_fmt->i_x_offset +
++        src_pic->p[0].i_pitch * src_fmt->i_y_offset;
 +    d_data = dst_pic->p[0].p_pixels +
 +        dst_pic->p[0].i_pixel_pitch * x_offset +
 +        dst_pic->p[0].i_pitch * y_offset;
@@ -3261,6 +3311,10 @@ to enable raspiberry pi support.
 +    MMAL_FOURCC_T mfcc_src = vlc_to_mmal_video_fourcc(&p_filter->fmt_in.video);
 +    MMAL_FOURCC_T mfcc_dst = vlc_to_mmal_video_fourcc(&p_filter->fmt_out.video);
 +    blend_neon_fn * blend_fn = (blend_neon_fn *)0;
++
++    // Obviously can't use this if we have no neon
++    if (!vlc_CPU_ARM_NEON())
++        return VLC_EGENERIC;
 +
 +    // Non-alpha RGB only for dest
 +    if (vfcc_dst != VLC_CODEC_RGB32)
@@ -3322,6 +3376,7 @@ to enable raspiberry pi support.
 +    set_capability("video decoder", 90)
 +    add_shortcut("mmal_decoder")
 +    add_bool(MMAL_OPAQUE_NAME, true, MMAL_OPAQUE_TEXT, MMAL_OPAQUE_LONGTEXT, false)
++    add_bool(MMAL_DECODE_ENABLE_NAME, false, MMAL_DECODE_ENABLE_TEXT, MMAL_DECODE_ENABLE_LONGTEXT, true)
 +    set_callbacks(OpenDecoder, CloseDecoder)
 +
 +    add_submodule()
@@ -3376,7 +3431,7 @@ to enable raspiberry pi support.
 +
 --- /dev/null
 +++ b/modules/hw/mmal/converter_mmal.c
-@@ -0,0 +1,479 @@
+@@ -0,0 +1,480 @@
 +#ifdef HAVE_CONFIG_H
 +# include "config.h"
 +#endif
@@ -3428,7 +3483,7 @@ to enable raspiberry pi support.
 +          return MMAL_FOURCC('Y','V','1','2');
 +       case MMAL_ENCODING_I422:
 +          return MMAL_FOURCC('Y','U','1','6');
-+//       case MMAL_ENCODING_YUVUV128:  // Doesn't actually work yet
++       case MMAL_ENCODING_YUVUV128:  // Doesn't actually work yet
 +       case MMAL_ENCODING_NV12:
 +          return MMAL_FOURCC('N','V','1','2');
 +       case MMAL_ENCODING_NV21:
@@ -3532,7 +3587,7 @@ to enable raspiberry pi support.
 +
 +            for (int i = 0; i < pic->i_planes; ++i)
 +            {
-+                const uint64_t mod = DRM_FORMAT_MOD_BROADCOM_SAND128_COL_HEIGHT(pic->p[i].i_pitch >> 7);
++                const uint64_t mod = DRM_FORMAT_MOD_BROADCOM_SAND128_COL_HEIGHT(pic->p[i].i_pitch);
 +
 +                *a++ = *n++;
 +                *a++ = fd;
@@ -3643,7 +3698,7 @@ to enable raspiberry pi support.
 +    if (tex == NULL)
 +        return VLC_EGENERIC;
 +
-+//    tc->vt->BindTexture(GL_TEXTURE_EXTERNAL_OES, tex->texture);
++    tc->vt->BindTexture(GL_TEXTURE_EXTERNAL_OES, tex->texture);
 +
 +    cma_buf_unref(sys->last_cb);
 +    sys->last_cb = cma_buf_ref(cb);
@@ -3727,12 +3782,13 @@ to enable raspiberry pi support.
 +    {
 +        case VLC_CODEC_MMAL_OPAQUE:
 +        case VLC_CODEC_MMAL_ZC_I420:
-+        case VLC_CODEC_MMAL_ZC_SAND8:
 +        case VLC_CODEC_MMAL_ZC_SAND10:          // ISP only
 +            return VLC_CODEC_MMAL_ZC_I420;
 +        case VLC_CODEC_MMAL_ZC_SAND30:          // HVS only
 +        case VLC_CODEC_MMAL_ZC_RGB32:
 +            return VLC_CODEC_MMAL_ZC_RGB32;     // HVS can't generate YUV of any sort
++        case VLC_CODEC_MMAL_ZC_SAND8:
++            return VLC_CODEC_MMAL_ZC_SAND8;
 +        default:
 +            break;
 +    }
@@ -4640,7 +4696,7 @@ to enable raspiberry pi support.
 +        goto fail;
 +    }
 +
-+    if (rpi_is_model_pi4())
++    if (!rpi_use_qpu_deinterlace())
 +    {
 +        sys->half_rate = true;
 +        sys->use_qpu = false;
@@ -5047,7 +5103,7 @@ to enable raspiberry pi support.
 -}
 --- /dev/null
 +++ b/modules/hw/mmal/mmal_avcodec.c
-@@ -0,0 +1,2175 @@
+@@ -0,0 +1,2302 @@
 +/*****************************************************************************
 + * video.c: video decoder using the libavcodec library
 + *****************************************************************************
@@ -5082,11 +5138,17 @@ to enable raspiberry pi support.
 +#include <vlc_avcodec.h>
 +#include <vlc_cpu.h>
 +#include <vlc_atomic.h>
++
 +#include <assert.h>
++
++#include <unistd.h>
++#include <sys/types.h>
++#include <sys/stat.h>
 +
 +#include <libavcodec/avcodec.h>
 +#include <libavutil/mem.h>
 +#include <libavutil/pixdesc.h>
++#include <libavutil/hwcontext_drm.h>
 +#if (LIBAVUTIL_VERSION_MICRO >= 100 && LIBAVUTIL_VERSION_INT >= AV_VERSION_INT( 55, 16, 101 ) )
 +#include <libavutil/mastering_display_metadata.h>
 +#endif
@@ -5100,7 +5162,10 @@ to enable raspiberry pi support.
 +#include "../../codec/cc.h"
 +#include "../../codec/avcodec/avcommon.h"  // ??? Beware over inclusion
 +#include "mmal_cma.h"
++#include "mmal_cma_drmprime.h"
 +#include "mmal_picture.h"
++
++#include <libdrm/drm_fourcc.h>
 +
 +#define TRACE_ALL 0
 +
@@ -5168,15 +5233,21 @@ to enable raspiberry pi support.
 +    bool pool_alloc_1;
 +    vcsm_init_type_t vcsm_init_type;
 +    int cma_in_flight_max;
++    bool use_drm;
 +    // Debug
 +    decoder_t * p_dec;
 +};
 +
 +
 +static vlc_fourcc_t
-+ZcFindVlcChroma(const int i_ffmpeg_chroma)
++ZcFindVlcChroma(const int i_ffmpeg_chroma, const int i_ffmpeg_sw_chroma)
 +{
-+    switch (i_ffmpeg_chroma)
++    int c = i_ffmpeg_chroma;
++
++    if (c == AV_PIX_FMT_DRM_PRIME)
++        c = i_ffmpeg_sw_chroma;
++
++    switch (c)
 +    {
 +        // This is all we claim to deal with
 +        // In theory RGB should be doable within our current framework
@@ -5198,12 +5269,12 @@ to enable raspiberry pi support.
 +// Pix Fmt conv for MMal
 +// video_fromat from ffmpeg pic_fmt
 +static int
-+ZcGetVlcChroma( video_format_t *fmt, int i_ffmpeg_chroma )
++ZcGetVlcChroma( video_format_t *fmt, int i_ffmpeg_chroma, const int i_ffmpeg_sw_chroma)
 +{
 +    fmt->i_rmask = 0;
 +    fmt->i_gmask = 0;
 +    fmt->i_bmask = 0;
-+    fmt->i_chroma = ZcFindVlcChroma(i_ffmpeg_chroma);
++    fmt->i_chroma = ZcFindVlcChroma(i_ffmpeg_chroma, i_ffmpeg_sw_chroma);
 +
 +    return fmt->i_chroma == 0 ? -1 : 0;
 +}
@@ -5214,9 +5285,16 @@ to enable raspiberry pi support.
 +ZcGetFormat(AVCodecContext *p_context, const enum PixelFormat *pi_fmt)
 +{
 +    enum PixelFormat swfmt = avcodec_default_get_format(p_context, pi_fmt);
++    decoder_t * const p_dec = av_rpi_zc_in_use(p_context) ? NULL : p_context->opaque;
++    const bool use_drm = (p_dec != NULL) && p_dec->p_sys->use_drm;
++
 +    for (size_t i = 0; pi_fmt[i] != AV_PIX_FMT_NONE; i++)
 +    {
-+        if (ZcFindVlcChroma(pi_fmt[i]) != 0)
++        if (use_drm  && pi_fmt[i] == AV_PIX_FMT_DRM_PRIME)
++            return pi_fmt[i];
++
++        if (!use_drm && pi_fmt[i] != AV_PIX_FMT_DRM_PRIME &&
++            ZcFindVlcChroma(pi_fmt[i], p_context->sw_pix_fmt) != 0)
 +            return pi_fmt[i];
 +    }
 +    return swfmt;
@@ -5318,6 +5396,12 @@ to enable raspiberry pi support.
 +static const uint8_t pb_24[] = {2,4,4,4};
 +static const uint8_t pb_4[] = {4,4,4,4};
 +
++static inline int pitch_from_mod(const uint64_t mod)
++{
++    return fourcc_mod_broadcom_mod(mod) != DRM_FORMAT_MOD_BROADCOM_SAND128 ? 0 :
++        fourcc_mod_broadcom_param(mod);
++}
++
 +static int set_pic_from_frame(picture_t * const pic, const AVFrame * const frame)
 +{
 +    const uint8_t * hs = shift_01;
@@ -5352,20 +5436,62 @@ to enable raspiberry pi support.
 +        return VLC_ENOMEM;
 +    }
 +
-+    uint8_t * frame_end = frame->data[0] + cma_buf_size(cb);
-+    for (int i = 0; i != pic->i_planes; ++i) {
++    if (frame->format == AV_PIX_FMT_DRM_PRIME)
++    {
++        const AVDRMFrameDescriptor * const desc = (AVDRMFrameDescriptor*)frame->data[0];
++        const AVDRMLayerDescriptor * layer = desc->layers + 0;
++        const AVDRMPlaneDescriptor * plane = layer->planes + 0;
++        const uint64_t mod = desc->objects[0].format_modifier;
++        const int set_pitch = pitch_from_mod(mod);
++        int nb_plane = 0;
++
++        if (desc->nb_objects != 1)
++            return VLC_EGENERIC;
++
++        for (int i = 0; i != pic->i_planes; ++i)
++        {
++            if (nb_plane >= layer->nb_planes)
++            {
++                ++layer;
++                plane = layer->planes + 0;
++                nb_plane = 0;
++            }
++
++            pic->p[i] = (plane_t){
++                .p_pixels = data + plane->offset,
++                .i_lines = frame->height >> hs[i],
++                .i_pitch = set_pitch != 0 ? set_pitch : plane->pitch,
++                .i_pixel_pitch = pb[i],
++                .i_visible_lines = av_frame_cropped_height(frame) >> hs[i],
++                .i_visible_pitch = av_frame_cropped_width(frame) >> ws[i]
++            };
++
++            ++plane;
++            ++nb_plane;
++        }
++
 +        // Calculate lines from gap between planes
 +        // This will give us an accurate "height" for later use by MMAL
-+        const int lines = ((i + 1 == pic->i_planes ? frame_end : frame->data[i + 1]) -
-+                           frame->data[i]) / frame->linesize[i];
-+        pic->p[i] = (plane_t){
-+            .p_pixels = data + (frame->data[i] - frame->data[0]),
-+            .i_lines = lines,
-+            .i_pitch = frame->linesize[i],
-+            .i_pixel_pitch = pb[i],
-+            .i_visible_lines = av_frame_cropped_height(frame) >> hs[i],
-+            .i_visible_pitch = av_frame_cropped_width(frame) >> ws[i]
-+        };
++        for (int i = 0; i + 1 < pic->i_planes; ++i)
++            pic->p[i].i_lines = (pic->p[i + 1].p_pixels - pic->p[i].p_pixels) / pic->p[i].i_pitch;
++    }
++    else
++    {
++        uint8_t * frame_end = frame->data[0] + cma_buf_size(cb);
++        for (int i = 0; i != pic->i_planes; ++i) {
++            // Calculate lines from gap between planes
++            // This will give us an accurate "height" for later use by MMAL
++            const int lines = ((i + 1 == pic->i_planes ? frame_end : frame->data[i + 1]) -
++                               frame->data[i]) / frame->linesize[i];
++            pic->p[i] = (plane_t){
++                .p_pixels = data + (frame->data[i] - frame->data[0]),
++                .i_lines = lines,
++                .i_pitch = av_rpi_is_sand_frame(frame) ? av_rpi_sand_frame_stride2(frame) : frame->linesize[i],
++                .i_pixel_pitch = pb[i],
++                .i_visible_lines = av_frame_cropped_height(frame) >> hs[i],
++                .i_visible_pitch = av_frame_cropped_width(frame) >> ws[i]
++            };
++        }
 +    }
 +    return 0;
 +}
@@ -5712,7 +5838,7 @@ to enable raspiberry pi support.
 +            p_codec = avcodec_find_decoder(i_codec_id);
 +        else
 +        {
-+            psz_namecodec = rpi_is_model_pi4() ? "hevc" : "hevc_rpi";
++            psz_namecodec = rpi_use_pi3_hevc() ? "hevc_rpi" : "hevc" ;
 +            msg_Info(p_dec, "Looking for HEVC decoder '%s'", psz_namecodec);
 +            p_codec = avcodec_find_decoder_by_name(psz_namecodec);
 +        }
@@ -5753,7 +5879,8 @@ to enable raspiberry pi support.
 +        free(psz_opts);
 +    }
 +
-+    if (av_rpi_zc_init2(ctx, p_dec, zc_alloc_buf, zc_free_pool) != 0)
++    if (!p_dec->p_sys->use_drm &&
++        av_rpi_zc_init2(ctx, p_dec, zc_alloc_buf, zc_free_pool) != 0)
 +    {
 +        msg_Err(p_dec, "Failed to init AV ZC");
 +        return VLC_EGENERIC;
@@ -5834,9 +5961,10 @@ to enable raspiberry pi support.
 +    video_format_Init(fmt, 0);
 +
 +#if 1
-+    VLC_UNUSED(sw_pix_fmt);
-+    if ((fmt->i_chroma = ZcFindVlcChroma(pix_fmt)) == 0)
++    if ((fmt->i_chroma = ZcFindVlcChroma(pix_fmt, sw_pix_fmt)) == 0) {
++        msg_Info(dec, "Find chroma fail");
 +        return -1;
++    }
 +#else
 +    if (pix_fmt == sw_pix_fmt)
 +    {   /* software decoding */
@@ -6133,10 +6261,27 @@ to enable raspiberry pi support.
 + * the ffmpeg codec will be opened, some memory allocated. The vout is not yet
 + * opened (done after the first decoded frame).
 + *****************************************************************************/
++
++static bool has_legacy_rpivid()
++{
++    static int cached_state = 0;
++
++    if (cached_state == 0)
++    {
++        struct stat buf;
++        cached_state = stat("/dev/rpivid-intcmem", &buf) != 0 ? -1 : 1;
++    }
++    return cached_state > 0;
++}
++
++
 +static int MmalAvcodecOpenDecoder( vlc_object_t *obj )
 +{
 +    decoder_t *p_dec = (decoder_t *)obj;
 +    const AVCodec *p_codec;
++    bool use_zc;
++    bool use_drm;
++    AVBufferRef * hw_dev_ctx = NULL;
 +
 +    int extra_buffers = var_InheritInteger(p_dec, MMAL_AVCODEC_BUFFERS);
 +
@@ -6152,8 +6297,10 @@ to enable raspiberry pi support.
 +        return VLC_EGENERIC;
 +    }
 +
-+    const vcsm_init_type_t vcsm_type = cma_vcsm_init();
-+    const int vcsm_size =
++    use_zc = has_legacy_rpivid();
++    use_drm = !use_zc;  // ** At least for the moment
++    const vcsm_init_type_t vcsm_type = use_zc ? cma_vcsm_init() : VCSM_INIT_NONE;
++    const int vcsm_size = vcsm_type == VCSM_INIT_NONE ? 0 :
 +        vcsm_type == VCSM_INIT_LEGACY ? hw_mmal_get_gpu_mem() : 512 << 20;
 +
 +#if 1
@@ -6173,13 +6320,28 @@ to enable raspiberry pi support.
 +    }
 +#endif
 +
-+    if( vcsm_type == VCSM_INIT_NONE )
++    if (vcsm_type == VCSM_INIT_NONE && !use_drm)
 +        return VLC_EGENERIC;
++
++    if (use_drm)
++    {
++        int dev_type = av_hwdevice_find_type_by_name("drm");
++
++        if (dev_type == AV_HWDEVICE_TYPE_NONE ||
++            av_hwdevice_ctx_create(&hw_dev_ctx, dev_type, NULL, NULL, 0))
++        {
++            msg_Warn(p_dec, "Failed to create drm hw device context");
++            use_drm = false;
++        }
++    }
++
++
 +#if 1
-+    if( (p_dec->fmt_in.i_codec != VLC_CODEC_HEVC &&
-+         (vcsm_type == VCSM_INIT_CMA || vcsm_size < (96 << 20))) ||
-+        (p_dec->fmt_in.i_codec == VLC_CODEC_HEVC &&
-+         vcsm_size < (128 << 20)))
++    if (use_zc &&
++        ((p_dec->fmt_in.i_codec != VLC_CODEC_HEVC &&
++          (vcsm_type == VCSM_INIT_CMA || vcsm_size < (96 << 20))) ||
++         (p_dec->fmt_in.i_codec == VLC_CODEC_HEVC &&
++          vcsm_size < (128 << 20))))
 +    {
 +        cma_vcsm_exit(vcsm_type);
 +        return VLC_EGENERIC;
@@ -6189,9 +6351,12 @@ to enable raspiberry pi support.
 +    AVCodecContext *p_context = ZcFfmpeg_AllocContext( p_dec, &p_codec );
 +    if( p_context == NULL )
 +    {
++        av_buffer_unref(&hw_dev_ctx);
 +        cma_vcsm_exit(vcsm_type);
 +        return VLC_EGENERIC;
 +    }
++    p_context->hw_device_ctx = hw_dev_ctx;
++    hw_dev_ctx = NULL;
 +
 +    int i_val;
 +
@@ -6211,6 +6376,7 @@ to enable raspiberry pi support.
 +//    p_sys->p_va = NULL;
 +    p_sys->cma_in_flight_max = extra_buffers;
 +    p_sys->vcsm_init_type = vcsm_type;
++    p_sys->use_drm = use_drm;
 +    vlc_sem_init( &p_sys->sem_mt, 0 );
 +
 +    /* ***** Fill p_context with init values ***** */
@@ -6342,7 +6508,7 @@ to enable raspiberry pi support.
 +    p_sys->b_from_preroll = false;
 +
 +    /* Set output properties */
-+    if( ZcGetVlcChroma( &p_dec->fmt_out.video, p_context->pix_fmt ) != VLC_SUCCESS )
++    if (ZcGetVlcChroma(&p_dec->fmt_out.video, p_context->pix_fmt, p_context->sw_pix_fmt) != VLC_SUCCESS)
 +    {
 +        /* we are doomed. but not really, because most codecs set their pix_fmt later on */
 +//        p_dec->fmt_out.i_codec = VLC_CODEC_I420;
@@ -6360,7 +6526,12 @@ to enable raspiberry pi support.
 +    } else
 +        p_sys->palette_sent = true;
 +
-+    if ((p_sys->cma_pool = cma_buf_pool_new(p_sys->cma_in_flight_max, p_sys->cma_in_flight_max, false, "mmal_avcodec")) == NULL)
++    if (use_drm)
++        p_sys->cma_pool = cma_drmprime_pool_new(p_sys->cma_in_flight_max, p_sys->cma_in_flight_max, false, "drm_avcodec");
++    else if (use_zc)
++        p_sys->cma_pool = cma_buf_pool_new(p_sys->cma_in_flight_max, p_sys->cma_in_flight_max, false, "mmal_avcodec");
++
++    if (p_sys->cma_pool == NULL)
 +    {
 +        msg_Err(p_dec, "CMA pool alloc failure");
 +        goto fail;
@@ -6710,6 +6881,7 @@ to enable raspiberry pi support.
 +    mtime_t current_time;
 +    picture_t *p_pic = NULL;
 +    AVFrame *frame = NULL;
++    cma_buf_t * cb = NULL;
 +
 +    // By default we are OK
 +    *error = false;
@@ -6916,7 +7088,7 @@ to enable raspiberry pi support.
 +
 +        if( !b_need_output_picture ||
 +//            ( !p_sys->p_va && !frame->linesize[0] ) ||
-+           ( !frame->linesize[0] ) ||
++           (frame->format != AV_PIX_FMT_DRM_PRIME && !frame->linesize[0] ) ||
 +           ( p_dec->b_frame_drop_allowed && (frame->flags & AV_FRAME_FLAG_CORRUPT) &&
 +             !p_sys->b_show_corrupted ) )
 +        {
@@ -6956,39 +7128,49 @@ to enable raspiberry pi support.
 +        }
 +
 +#if 1
++        if (lavc_UpdateVideoFormat(p_dec, p_context, p_context->pix_fmt,
++                                   p_context->sw_pix_fmt) != 0)
 +        {
-+            cma_buf_t * const cb = av_rpi_zc_buf_v(frame->buf[0]);
++            msg_Err(p_dec, "Failed to update format");
++            goto fail;
++        }
 +
++        if ((p_pic = decoder_NewPicture(p_dec)) == NULL)
++        {
++            msg_Err(p_dec, "Failed to allocate pic");
++            goto fail;
++        }
++
++        if (p_sys->use_drm)
++        {
++            cb = cma_drmprime_pool_alloc_buf(p_sys->cma_pool, frame);
++            if (cb == NULL)
++            {
++                msg_Err(p_dec, "Failed to alloc CMA buf from DRM_PRIME");
++                goto fail;
++            }
++        }
++        else
++        {
++            cb = cma_buf_ref(av_rpi_zc_buf_v(frame->buf[0]));
 +            if (cb == NULL)
 +            {
 +                msg_Err(p_dec, "Frame has no attached CMA buffer");
 +                goto fail;
 +            }
-+
-+            if (lavc_UpdateVideoFormat(p_dec, p_context, p_context->pix_fmt,
-+                                       p_context->pix_fmt) != 0)
-+            {
-+                msg_Err(p_dec, "Failed to update format");
-+                goto fail;
-+            }
-+
-+            if ((p_pic = decoder_NewPicture(p_dec)) == NULL)
-+            {
-+                msg_Err(p_dec, "Failed to allocate pic");
-+                goto fail;
-+            }
-+
-+            if (cma_buf_pic_attach(cma_buf_ref(cb), p_pic) != 0)
-+            {
-+                cma_buf_unref(cb);  // Undo the in_flight
-+                char dbuf0[5];
-+                msg_Err(p_dec, "Failed to attach bufs to pic: fmt=%s", str_fourcc(dbuf0, p_pic->format.i_chroma));
-+                goto fail;
-+            }
-+
-+            // ****** Set planes etc.
-+            set_pic_from_frame(p_pic, frame);
 +        }
++
++        if (cma_buf_pic_attach(cb, p_pic) != 0)
++        {
++            cma_buf_unref(cb);  // Undo the in_flight
++            char dbuf0[5];
++            msg_Err(p_dec, "Failed to attach bufs to pic: fmt=%s", str_fourcc(dbuf0, p_pic->format.i_chroma));
++            goto fail;
++        }
++        cb = NULL; // Now attached to pic
++
++        // ****** Set planes etc.
++        set_pic_from_frame(p_pic, frame);
 +#else
 +        picture_t *p_pic = frame->opaque;
 +        if( p_pic == NULL )
@@ -7127,7 +7309,8 @@ to enable raspiberry pi support.
 +    if( avcodec_is_open( ctx ) )
 +        avcodec_flush_buffers( ctx );
 +
-+    av_rpi_zc_uninit2(ctx);
++    if (!p_sys->use_drm)
++        av_rpi_zc_uninit2(ctx);
 +
 +    wait_mt( p_sys );
 +
@@ -7225,7 +7408,7 @@ to enable raspiberry pi support.
 +
 --- /dev/null
 +++ b/modules/hw/mmal/mmal_cma.c
-@@ -0,0 +1,668 @@
+@@ -0,0 +1,672 @@
 +#ifdef HAVE_CONFIG_H
 +# include "config.h"
 +#endif
@@ -7242,6 +7425,7 @@ to enable raspiberry pi support.
 +#include <vlc_picture.h>
 +
 +#include "mmal_cma.h"
++#include "mmal_cma_int.h"
 +#include "mmal_picture.h"
 +
 +#include <assert.h>
@@ -7282,6 +7466,7 @@ to enable raspiberry pi support.
 +    void * alloc_v;
 +    cma_pool_alloc_fn * el_alloc_fn;
 +    cma_pool_free_fn * el_free_fn;
++    cma_pool_on_put_fn * on_put_fn;
 +    cma_pool_on_delete_fn * on_delete_fn;
 +
 +    const char * name;
@@ -7289,6 +7474,11 @@ to enable raspiberry pi support.
 +    int seq;
 +#endif
 +};
++
++static void cma_pool_fixed_on_put_null_cb(void * v)
++{
++    VLC_UNUSED(v);
++}
 +
 +static inline unsigned int inc_mod(const unsigned int n, const unsigned int m)
 +{
@@ -7426,6 +7616,8 @@ to enable raspiberry pi support.
 +
 +static void cma_pool_fixed_put(cma_pool_fixed_t * const p, void * v, const size_t el_size, const bool was_in_flight)
 +{
++    p->on_put_fn(v);
++
 +    vlc_mutex_lock(&p->lock);
 +
 +    if (el_size == p->el_size && (p->pool == NULL || p->pool[p->n_out] == NULL))
@@ -7544,12 +7736,12 @@ to enable raspiberry pi support.
 +}
 +
 +// Create a new pool
-+static cma_pool_fixed_t*
++cma_pool_fixed_t*
 +cma_pool_fixed_new(const unsigned int pool_size,
 +                   const int flight_size,
 +                   void * const alloc_v,
 +                   cma_pool_alloc_fn * const alloc_fn, cma_pool_free_fn * const free_fn,
-+                   cma_pool_on_delete_fn * const on_delete_fn,
++                   cma_pool_on_put_fn * const on_put_fn, cma_pool_on_delete_fn * const on_delete_fn,
 +                   const char * const name)
 +{
 +    cma_pool_fixed_t* const p = calloc(1, sizeof(cma_pool_fixed_t));
@@ -7567,6 +7759,7 @@ to enable raspiberry pi support.
 +    p->alloc_v = alloc_v;
 +    p->el_alloc_fn = alloc_fn;
 +    p->el_free_fn = free_fn;
++    p->on_put_fn = on_put_fn;
 +    p->on_delete_fn = on_delete_fn;
 +    p->name = name == NULL ? NULL : strdup(name);
 +#if TRACE_ALL
@@ -7580,31 +7773,7 @@ to enable raspiberry pi support.
 +//
 +// CMA buffer functions - uses cma_pool_fixed for pooling
 +
-+struct cma_buf_pool_s {
-+    cma_pool_fixed_t * pool;
-+    vcsm_init_type_t init_type;
-+
-+    bool all_in_flight;
-+#if TRACE_ALL
-+    size_t alloc_n;
-+    size_t alloc_size;
-+#endif
-+};
-+
-+typedef struct cma_buf_s {
-+    atomic_int ref_count;
-+    cma_buf_pool_t * cbp;
-+    bool in_flight;
-+    size_t size;
-+    unsigned int vcsm_h;   // VCSM handle from initial alloc
-+    unsigned int vc_h;     // VC handle for ZC mmal buffers
-+    unsigned int vc_addr;  // VC addr - unused by us but wanted by FFmpeg
-+    int fd;                // dmabuf handle for GL
-+    void * mmap;           // ARM mapped address
-+    picture_context_t *ctx2;
-+} cma_buf_t;
-+
-+static void cma_pool_delete(cma_buf_t * const cb)
++void cma_pool_delete(cma_buf_t * const cb)
 +{
 +    assert(atomic_load(&cb->ref_count) == 0);
 +#if TRACE_ALL
@@ -7618,7 +7787,7 @@ to enable raspiberry pi support.
 +
 +    if (cb->mmap != MAP_FAILED)
 +    {
-+        if (cb->cbp->init_type == VCSM_INIT_CMA)
++        if (cb->cbp->buf_type != CMA_BUF_TYPE_VCSM)
 +            munmap(cb->mmap, cb->size);
 +        else
 +            vcsm_unlock_hdl(cb->vcsm_h);
@@ -7681,7 +7850,7 @@ to enable raspiberry pi support.
 +        goto fail;
 +    }
 +
-+    if (cbp->init_type == VCSM_INIT_CMA)
++    if (cbp->buf_type == CMA_BUF_TYPE_CMA)
 +    {
 +        if ((cb->fd = vcsm_export_dmabuf(cb->vcsm_h)) == -1)
 +        {
@@ -7721,7 +7890,17 @@ to enable raspiberry pi support.
 +{
 +    cma_buf_pool_t * const cbp = v;
 +
-+    cma_vcsm_exit(cbp->init_type);
++    switch (cbp->buf_type)
++    {
++        case CMA_BUF_TYPE_CMA:
++            cma_vcsm_exit(VCSM_INIT_CMA);
++            break;
++        case CMA_BUF_TYPE_VCSM:
++            cma_vcsm_exit(VCSM_INIT_LEGACY);
++            break;
++        default:
++            break;
++    }
 +    free(cbp);
 +}
 +
@@ -7781,10 +7960,13 @@ to enable raspiberry pi support.
 +    if (cbp == NULL)
 +        return NULL;
 +
-+    cbp->init_type = init_type;
++    cbp->buf_type = (init_type == VCSM_INIT_CMA) ? CMA_BUF_TYPE_CMA : CMA_BUF_TYPE_VCSM;
 +    cbp->all_in_flight = all_in_flight;
 +
-+    if ((cbp->pool = cma_pool_fixed_new(pool_size, flight_size, cbp, cma_pool_alloc_cb, cma_pool_free_cb, cma_buf_pool_on_delete_cb, name)) == NULL)
++    if ((cbp->pool = cma_pool_fixed_new(pool_size, flight_size, cbp,
++                                        cma_pool_alloc_cb, cma_pool_free_cb,
++                                        cma_pool_fixed_on_put_null_cb, cma_buf_pool_on_delete_cb,
++                                        name)) == NULL)
 +        goto fail;
 +    return cbp;
 +
@@ -7815,8 +7997,10 @@ to enable raspiberry pi support.
 +
 +
 +// Return vcsm handle
-+unsigned int cma_buf_vcsm_handle(const cma_buf_t * const cb)
++unsigned int cma_buf_vcsm_handle(cma_buf_t * const cb)
 +{
++    if (cb->vcsm_h == 0 && cb->fd != -1)
++        cb->vcsm_h = vcsm_import_dmabuf(cb->fd, "vlc-drmprime");
 +    return cb->vcsm_h;
 +}
 +
@@ -7834,23 +8018,25 @@ to enable raspiberry pi support.
 +    return VLC_SUCCESS;
 +}
 +
-+unsigned int cma_buf_vc_handle(const cma_buf_t *const cb)
++unsigned int cma_buf_vc_handle(cma_buf_t *const cb)
 +{
++    if (cb->vc_h == 0)
++    {
++        const int vcsm_h = cma_buf_vcsm_handle(cb);
++        if (vcsm_h != 0)
++            cb->vc_h = vcsm_vc_hdl_from_hdl(vcsm_h);
++    }
 +    return cb->vc_h;
 +}
 +
-+int cma_buf_fd(const cma_buf_t *const cb)
++unsigned int cma_buf_vc_addr(cma_buf_t *const cb)
 +{
-+    return cb->fd;
-+}
-+
-+void * cma_buf_addr(const cma_buf_t *const cb)
-+{
-+    return cb->mmap;
-+}
-+
-+unsigned int cma_buf_vc_addr(const cma_buf_t *const cb)
-+{
++    if (cb->vc_addr == 0)
++    {
++        const int vcsm_h = cma_buf_vcsm_handle(cb);
++        if (vcsm_h != 0)
++            cb->vc_addr = vcsm_vc_addr_from_hdl(vcsm_h);
++    }
 +    return cb->vc_addr;
 +}
 +
@@ -7888,6 +8074,7 @@ to enable raspiberry pi support.
 +    if (cb == NULL)
 +        return NULL;
 +
++    cb->type = CMA_BUF_TYPE_CMA;
 +    cb->in_flight = cbp->all_in_flight;
 +    // When 1st allocated or retrieved from the pool the block will have a
 +    // ref count of 0 so ref here
@@ -7896,50 +8083,22 @@ to enable raspiberry pi support.
 +
 --- /dev/null
 +++ b/modules/hw/mmal/mmal_cma.h
-@@ -0,0 +1,71 @@
+@@ -0,0 +1,43 @@
 +#ifndef VLC_MMAL_MMAL_CMA_H_
 +#define VLC_MMAL_MMAL_CMA_H_
 +
-+
-+struct cma_pool_fixed_s;
-+typedef struct cma_pool_fixed_s cma_pool_fixed_t;
-+
-+typedef void * cma_pool_alloc_fn(void * v, size_t size);
-+typedef void cma_pool_free_fn(void * v, void * el, size_t size);
-+typedef void cma_pool_on_delete_fn(void * v);
-+
-+#if 0
-+void cma_pool_fixed_unref(cma_pool_fixed_t * const p);
-+void cma_pool_fixed_ref(cma_pool_fixed_t * const p);
-+void * cma_pool_fixed_get(cma_pool_fixed_t * const p, const size_t req_el_size, const bool in_flight);
-+void cma_pool_fixed_put(cma_pool_fixed_t * const p, void * v, const size_t el_size, const bool was_in_flight);
-+void cma_pool_fixed_inc_in_flight(cma_pool_fixed_t * const p);
-+void cma_pool_fixed_dec_in_flight(cma_pool_fixed_t * const p);
-+void cma_pool_fixed_cancel(cma_pool_fixed_t * const p);
-+void cma_pool_fixed_uncancel(cma_pool_fixed_t * const p);
-+void cma_pool_fixed_kill(cma_pool_fixed_t * const p);
-+int cma_pool_fixed_resize(cma_pool_fixed_t * const p,
-+                          const unsigned int new_pool_size, const int new_flight_size);
-+cma_pool_fixed_t * cma_pool_fixed_new(const unsigned int pool_size,
-+                   const int flight_size,
-+                   void * const alloc_v,
-+                   cma_pool_alloc_fn * const alloc_fn, cma_pool_free_fn * const free_fn,
-+                   cma_pool_on_delete_fn * const on_delete_fn,
-+                   const char * const name);
-+#endif
++#include <vlc_picture.h>
 +
 +struct cma_buf_s;
 +typedef struct cma_buf_s cma_buf_t;
 +
 +void cma_buf_in_flight(cma_buf_t * const cb);
 +void cma_buf_end_flight(cma_buf_t * const cb);
-+unsigned int cma_buf_vcsm_handle(const cma_buf_t * const cb);
++unsigned int cma_buf_vcsm_handle(cma_buf_t * const cb);
 +size_t cma_buf_size(const cma_buf_t * const cb);
 +int cma_buf_add_context2(cma_buf_t *const cb, picture_context_t * const ctx2);
-+unsigned int cma_buf_vc_handle(const cma_buf_t *const cb);
-+int cma_buf_fd(const cma_buf_t *const cb);
-+void * cma_buf_addr(const cma_buf_t *const cb);
-+unsigned int cma_buf_vc_addr(const cma_buf_t *const cb);
++unsigned int cma_buf_vc_handle(cma_buf_t *const cb);
++unsigned int cma_buf_vc_addr(cma_buf_t *const cb);
 +picture_context_t * cma_buf_context2(const cma_buf_t *const cb);
 +
 +void cma_buf_unref(cma_buf_t * const cb);
@@ -7969,75 +8128,265 @@ to enable raspiberry pi support.
 +
 +#endif // VLC_MMAL_MMAL_CMA_H_
 --- /dev/null
-+++ b/modules/hw/mmal/mmal_gl.h
-@@ -0,0 +1,45 @@
-+// Trim this include list!
++++ b/modules/hw/mmal/mmal_cma_drmprime.c
+@@ -0,0 +1,120 @@
++#include <vlc_common.h>
 +
-+#include <libdrm/drm.h>
-+#include <libdrm/drm_mode.h>
-+#include <libdrm/drm_fourcc.h>
-+//#include <xf86drm.h>
-+//#include <xf86drmMode.h>
-+#include <X11/Xlib.h>
-+#include <X11/Xutil.h>
-+#include <X11/Xlib-xcb.h>
-+#include <epoxy/gl.h>
-+#include <epoxy/egl.h>
-+#include <xcb/xcb.h>
-+#include <xcb/dri3.h>
++#include "mmal_cma.h"
++#include "mmal_cma_int.h"
++#include "mmal_cma_drmprime.h"
 +
-+struct mmal_gl_converter_s;
++#include <sys/mman.h>
++#include <libavcodec/avcodec.h>
++#include <libavutil/hwcontext_drm.h>
++#include <interface/vcsm/user-vcsm.h>
++
++#define TRACE_ALL 0
++
++typedef struct cma_drmprime_buf_s
++{
++    cma_buf_t cb;
++    const AVDRMFrameDescriptor *desc;
++    AVBufferRef * avbuf;
++} cma_drmprime_buf_t;
++
++static void drmprime_pool_free_cb(void * v, void * el, size_t size)
++{
++    VLC_UNUSED(v);
++    VLC_UNUSED(size);
++
++    cma_pool_delete(el);
++}
++
++static void * drmprime_pool_alloc_cb(void * v, size_t size)
++{
++    cma_buf_pool_t * const cbp = v;
++
++    cma_drmprime_buf_t * const cdb = malloc(sizeof(cma_drmprime_buf_t));
++    if (cdb == NULL)
++        return NULL;
++
++    *cdb = (cma_drmprime_buf_t){
++        .cb = {
++            .ref_count = ATOMIC_VAR_INIT(0),
++            .cbp = cbp,
++            .in_flight = 0,
++            .size = size,
++            .vcsm_h = 0,
++            .vc_h = 0,
++            .fd = -1,
++            .mmap = MAP_FAILED,
++            .ctx2 = NULL
++        }
++    };
++#if TRACE_ALL
++    cdb->cbp->alloc_size += cdb->size;
++    ++cdb->cbp->alloc_n;
++    fprintf(stderr, "%s[%d:%s]: N=%d, Total=%d\n", __func__, cbp->pool->seq, cbp->pool->name, cbp->alloc_n, cbp->alloc_size);
++#endif
++
++    return cdb;
++}
++
++// Buf being returned to pool
++static void drmprime_buf_pool_on_put_cb(void * v)
++{
++    cma_drmprime_buf_t * const cdb = v;
++    cdb->cb.fd = -1;
++    if (cdb->cb.vcsm_h != 0)
++        vcsm_free(cdb->cb.vcsm_h);
++    cdb->cb.vcsm_h = 0;
++    cdb->cb.vc_h = 0;
++    cdb->cb.vc_addr = 0;
++    av_buffer_unref(&cdb->avbuf);
++    if (cdb->cb.ctx2) {
++        cdb->cb.ctx2->destroy(cdb->cb.ctx2);
++        cdb->cb.ctx2 = NULL;
++    }
++}
++
++// Pool has died - safe now to exit vcsm
++static void drmprime_buf_pool_on_delete_cb(void * v)
++{
++    cma_buf_pool_t * const cbp = v;
++    free(cbp);
++}
++
++cma_buf_pool_t * cma_drmprime_pool_new(const unsigned int pool_size, const unsigned int flight_size, const bool all_in_flight, const char * const name)
++{
++    cma_buf_pool_t * const cbp = calloc(1, sizeof(cma_buf_pool_t));
++    if (cbp == NULL)
++        return NULL;
++
++    cbp->buf_type = CMA_BUF_TYPE_DRMPRIME;
++    cbp->all_in_flight = all_in_flight;
++
++    if ((cbp->pool = cma_pool_fixed_new(pool_size, flight_size, cbp,
++                                        drmprime_pool_alloc_cb, drmprime_pool_free_cb,
++                                        drmprime_buf_pool_on_put_cb, drmprime_buf_pool_on_delete_cb,
++                                        name)) == NULL)
++        goto fail;
++    return cbp;
++
++fail:
++    cma_buf_pool_delete(cbp);
++    return NULL;
++}
++
++cma_buf_t * cma_drmprime_pool_alloc_buf(cma_buf_pool_t * const cbp, struct AVFrame * frame)
++{
++    const AVDRMFrameDescriptor* const desc = (AVDRMFrameDescriptor*)frame->data[0];
++    cma_drmprime_buf_t *const cdb = (cma_drmprime_buf_t *)cma_buf_pool_alloc_buf(cbp, desc->objects[0].size);
++
++    if (cdb == NULL)
++        return NULL;
++
++    cdb->cb.type = CMA_BUF_TYPE_DRMPRIME;
++    cdb->cb.fd = desc->objects[0].fd;
++
++    cdb->desc = desc;
++    cdb->avbuf = av_buffer_ref(frame->buf[0]);
++    return &cdb->cb;
++}
++
++
+--- /dev/null
++++ b/modules/hw/mmal/mmal_cma_drmprime.h
+@@ -0,0 +1,9 @@
++#ifndef VLC_HW_MMAL_MMAL_CMA_DRMPRIME_H_
++#define VLC_HW_MMAL_MMAL_CMA_DRMPRIME_H_
++
++struct AVFrame;
++cma_buf_pool_t * cma_drmprime_pool_new(const unsigned int pool_size, const unsigned int flight_size, const bool all_in_flight, const char * const name);
++cma_buf_t * cma_drmprime_pool_alloc_buf(cma_buf_pool_t * const cbp, struct AVFrame * frame);
++
++#endif // VLC_MMAL_MMAL_CMA_H_
++
+--- /dev/null
++++ b/modules/hw/mmal/mmal_cma_int.h
+@@ -0,0 +1,58 @@
++#ifndef VLC_HW_MMAL_MMAL_CMA_INT_H_
++#define VLC_HW_MMAL_MMAL_CMA_INT_H_
++
++#include <stdatomic.h>
++
++typedef void * cma_pool_alloc_fn(void * usr_v, size_t size);
++typedef void cma_pool_free_fn(void * usr_v, void * buffer_v, size_t size);
++typedef void cma_pool_on_delete_fn(void * usr_v);
++typedef void cma_pool_on_put_fn(void * buffer_v);
++
++// Pool structure
++// Ref count is held by pool owner and pool els that have been got
++// Els in the pool do not count towards its ref count
++struct cma_pool_fixed_s;
++typedef struct cma_pool_fixed_s cma_pool_fixed_t;
++
++cma_pool_fixed_t*
++cma_pool_fixed_new(const unsigned int pool_size,
++                   const int flight_size,
++                   void * const alloc_v,
++                   cma_pool_alloc_fn * const alloc_fn, cma_pool_free_fn * const free_fn,
++                   cma_pool_on_put_fn * const on_put_fn, cma_pool_on_delete_fn * const on_delete_fn,
++                   const char * const name);
++
++typedef enum cma_buf_type_e {
++    CMA_BUF_TYPE_NONE = 0,
++    CMA_BUF_TYPE_CMA,
++    CMA_BUF_TYPE_VCSM,
++    CMA_BUF_TYPE_DRMPRIME,
++} cma_buf_type_t;
++
++struct cma_buf_pool_s {
++    cma_pool_fixed_t * pool;
++    cma_buf_type_t buf_type;
++
++    bool all_in_flight;
++    size_t alloc_n;
++    size_t alloc_size;
++};
 +
 +typedef struct cma_buf_s {
-+    struct mmal_gl_converter_s * sys;
-+
++    atomic_int ref_count;
++    cma_buf_type_t type;
++    struct cma_buf_pool_s * cbp;
++    bool in_flight;
 +    size_t size;
-+    __u32 h_dumb;
-+    int fd;
-+    unsigned int h_vcsm;
-+    void * mapped_addr;
-+    GLuint texture;
++    unsigned int vcsm_h;   // VCSM handle from initial alloc
++    unsigned int vc_h;     // VC handle for ZC mmal buffers
++    unsigned int vc_addr;  // VC addr - unused by us but wanted by FFmpeg
++    int fd;                // dmabuf handle for GL
++    void * mmap;           // ARM mapped address
++    picture_context_t *ctx2;
 +} cma_buf_t;
 +
-+typedef struct cma_pic_sys_s {
-+    cma_buf_t * cmabuf;
-+} cma_pic_sys_t;
++void cma_pool_delete(cma_buf_t * const cb);
 +
-+static inline unsigned int
-+hw_mmal_h_vcsm(const picture_t * const pic)
++#endif
++
+--- /dev/null
++++ b/modules/hw/mmal/mmal_cma_pic.h
+@@ -0,0 +1,49 @@
++#include <vlc_fourcc.h>
++#include <vlc_picture.h>
++#include "mmal_cma_int.h"
++
++static inline int
++cma_buf_fd(const cma_buf_t *const cb)
 +{
-+    const cma_pic_sys_t *const pic_sys = (cma_pic_sys_t *)pic->p_sys;
-+
-+    if (pic->format.i_chroma != VLC_CODEC_MMAL_GL_RGB32 ||
-+        pic_sys == NULL || pic_sys->cmabuf == NULL) {
-+        return 0;
-+    }
-+
-+    return pic_sys->cmabuf->h_vcsm;
++    return cb->fd;
 +}
++
++static inline void *
++cma_buf_addr(const cma_buf_t *const cb)
++{
++    return cb->mmap;
++}
++
++#define CTX_BUFS_MAX 4
++struct MMAL_BUFFER_HEADER_T;
++
++typedef struct pic_ctx_mmal_s {
++    picture_context_t cmn;  // PARENT: Common els at start
++
++    cma_buf_t * cb;
++
++    unsigned int buf_count;
++    struct MMAL_BUFFER_HEADER_T * bufs[CTX_BUFS_MAX];
++
++} pic_ctx_mmal_t;
++
++static inline bool
++is_cma_buf_pic_chroma(const uint32_t chroma)
++{
++    return chroma == VLC_CODEC_MMAL_ZC_RGB32 ||
++        chroma == VLC_CODEC_MMAL_ZC_SAND8 ||
++        chroma == VLC_CODEC_MMAL_ZC_SAND10 ||
++        chroma == VLC_CODEC_MMAL_ZC_SAND30 ||
++        chroma == VLC_CODEC_MMAL_ZC_I420;
++}
++
++// Returns a pointer to the cma_buf attached to the pic
++// Just a pointer - doesn't add a ref
++static inline cma_buf_t *
++cma_buf_pic_get(picture_t * const pic)
++{
++    pic_ctx_mmal_t * const ctx = (pic_ctx_mmal_t *)pic->context;
++    return !is_cma_buf_pic_chroma(pic->format.i_chroma) || ctx  == NULL ? 0 : ctx->cb;
++}
++
 +
 --- /dev/null
 +++ b/modules/hw/mmal/mmal_piccpy_neon.S
-@@ -0,0 +1,105 @@
-+// Copy pix
-+
-+        .syntax unified
-+        .arm
-+//      .thumb
-+        .text
+@@ -0,0 +1,95 @@
++#include "../../arm_neon/asm.S"
 +        .align 16
 +        .arch armv7-a
++        .syntax unified
++#if HAVE_AS_FPU_DIRECTIVE
 +        .fpu neon-vfpv4
-+
-+
-+.macro  function name
-+        .global  \name
-+#ifdef __ELF__
-+        .type    \name, %function
 +#endif
-+\name:
-+.endm
 +
++// Copy pix
 +
 +.macro  piccpy_to_8, bit_depth
 +        subs     r2, #128
@@ -8126,7 +8475,7 @@ to enable raspiberry pi support.
 +
 --- a/modules/hw/mmal/mmal_picture.c
 +++ b/modules/hw/mmal/mmal_picture.c
-@@ -21,25 +21,1542 @@
+@@ -21,25 +21,1574 @@
   * Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
   *****************************************************************************/
  
@@ -8412,7 +8761,8 @@ to enable raspiberry pi support.
 +{
 +    mmal_buffer_header_reset(buf);
 +    buf->user_data = NULL;
-+
+ 
+-int mmal_picture_lock(picture_t *picture)
 +    if (mmal_port_send_buffer(ppr->port, buf) == MMAL_SUCCESS)
 +        return true;
 +    mmal_buffer_header_release(buf);
@@ -8550,9 +8900,16 @@ to enable raspiberry pi support.
 +// is still valid on failure
 +picture_context_t *
 +hw_mmal_gen_context(MMAL_BUFFER_HEADER_T * buf, hw_mmal_port_pool_ref_t * const ppr)
-+{
+ {
+-    picture_sys_t *pic_sys = picture->p_sys;
+-    MMAL_BUFFER_HEADER_T *buffer = pic_sys->buffer;
 +    pic_ctx_mmal_t * const ctx = calloc(1, sizeof(pic_ctx_mmal_t));
-+
+ 
+-    int offset = 0;
+-    picture->p[0].p_pixels = buffer->data;
+-    for (int i = 1; i < picture->i_planes; i++) {
+-        offset = offset + picture->p[i - 1].i_pitch * picture->p[i - 1].i_lines;
+-        picture->p[i].p_pixels = (ptrdiff_t)buffer->data + offset;
 +    if (ctx == NULL)
 +        return NULL;
 +
@@ -8561,8 +8918,9 @@ to enable raspiberry pi support.
 +        hw_mmal_port_pool_ref_acquire(ppr);
 +        mmal_buffer_header_pre_release_cb_set(buf, buf_pre_release_cb, ppr);
 +        buf->user_data = NULL;
-+    }
-+
+     }
+ 
+-    pic_sys->displayed = false;
 +    ctx->cmn.copy = hw_mmal_pic_ctx_copy;
 +    ctx->cmn.destroy = hw_mmal_pic_ctx_destroy;
 +
@@ -8577,7 +8935,7 @@ to enable raspiberry pi support.
 +typedef void piccpy_fn(void * dest, const void * src, size_t n);
 +
 +extern piccpy_fn mmal_piccpy_10_to_8_neon;
-+
+ 
 +static void piccpy_10_to_8_c(void * dest, const void * src, size_t n)
 +{
 +    uint8_t * d = dest;
@@ -8727,8 +9085,8 @@ to enable raspiberry pi support.
 +    buf->length     = buf->alloc_size;
 +    // Ensure cb remains valid for the duration of this buffer
 +    mmal_buffer_header_pre_release_cb_set(buf, rep_buf_free_cb, cma_buf_ref(cb));
-+    return VLC_SUCCESS;
-+}
+     return VLC_SUCCESS;
+ }
 +
 +MMAL_BUFFER_HEADER_T * hw_mmal_pic_buf_copied(const picture_t *const pic,
 +                                              MMAL_POOL_T * const rep_pool,
@@ -9248,6 +9606,7 @@ to enable raspiberry pi support.
 +
 +MMAL_BUFFER_HEADER_T * hw_mmal_vzc_buf_from_pic(vzc_pool_ctl_t * const pc,
 +                                                picture_t * const pic,
++                                                const video_format_t * src_fmt,
 +                                                const MMAL_RECT_T dst_pic_rect,
 +                                                const int x_offset, const int y_offset,
 +                                                const unsigned int alpha,
@@ -9294,8 +9653,7 @@ to enable raspiberry pi support.
 +            ent = ent_list_extract_pic_ent(&pc->ents_cur, pic);
 +
 +//        printf("ent_found: %p\n", ent);
- 
--int mmal_picture_lock(picture_t *picture)
++
 +        if (ent == NULL)
 +        {
 +            // Need a new ent
@@ -9345,10 +9703,10 @@ to enable raspiberry pi support.
 +//        printf("+++ bpp:%d, vis:%dx%d wxh:%dx%d, d:%dx%d\n", bpp, fmt->i_visible_width, fmt->i_visible_height, fmt->i_width, fmt->i_height, dst_stride, dst_lines);
 +
 +        sb->dreg.src_rect = (MMAL_RECT_T){
-+            .x      = (fmt->i_x_offset - xl),
-+            .y      = 0,
-+            .width  = fmt->i_visible_width,
-+            .height = fmt->i_visible_height
++            .x      = (fmt->i_x_offset - xl) + src_fmt->i_x_offset,
++            .y      = src_fmt->i_y_offset,
++            .width  = src_fmt->i_visible_width,
++            .height = src_fmt->i_visible_height
 +        };
 +
 +        sb->pic_rect = dst_pic_rect;
@@ -9356,8 +9714,8 @@ to enable raspiberry pi support.
 +        sb->orig_dest_rect = (MMAL_RECT_T){
 +            .x      = x_offset,
 +            .y      = y_offset,
-+            .width  = fmt->i_visible_width,
-+            .height = fmt->i_visible_height
++            .width  = src_fmt->i_visible_width,
++            .height = src_fmt->i_visible_height
 +        };
 +
 +        if (needs_copy)
@@ -9496,9 +9854,7 @@ to enable raspiberry pi support.
 +int cma_pic_set_data(picture_t * const pic,
 +                            const MMAL_ES_FORMAT_T * const mm_esfmt,
 +                            const MMAL_BUFFER_HEADER_T * const buf)
- {
--    picture_sys_t *pic_sys = picture->p_sys;
--    MMAL_BUFFER_HEADER_T *buffer = pic_sys->buffer;
++{
 +    const MMAL_VIDEO_FORMAT_T * const mm_fmt = &mm_esfmt->es->video;
 +    const MMAL_BUFFER_HEADER_VIDEO_SPECIFIC_T *const buf_vid = (buf == NULL) ? NULL : &buf->type->video;
 +    cma_buf_t *const cb = cma_buf_pic_get(pic);
@@ -9526,12 +9882,7 @@ to enable raspiberry pi support.
 +        case MMAL_ENCODING_RGB16:
 +            pb = 2;
 +            break;
- 
--    int offset = 0;
--    picture->p[0].p_pixels = buffer->data;
--    for (int i = 1; i < picture->i_planes; i++) {
--        offset = offset + picture->p[i - 1].i_pitch * picture->p[i - 1].i_lines;
--        picture->p[i].p_pixels = (ptrdiff_t)buffer->data + offset;
++
 +        case MMAL_ENCODING_I420:
 +            ws = shift_01;
 +            hs = shift_01;
@@ -9546,15 +9897,14 @@ to enable raspiberry pi support.
 +        default:
 +//            msg_Err(p_filter, "%s: Unexpected format", __func__);
 +            return VLC_EGENERIC;
-     }
- 
--    pic_sys->displayed = false;
++    }
++
 +    // Fix up SAR if unset
 +    if (pic->format.i_sar_den == 0 || pic->format.i_sar_num == 0) {
 +        pic->format.i_sar_den = mm_fmt->par.den;
 +        pic->format.i_sar_num = mm_fmt->par.num;
 +    }
- 
++
 +    pic->i_planes = planes;
 +    unsigned int offset = 0;
 +    for (unsigned int i = 0; i != planes; ++i) {
@@ -9568,8 +9918,8 @@ to enable raspiberry pi support.
 +        };
 +        offset += pic->p[i].i_pitch * pic->p[i].i_lines;
 +    }
-     return VLC_SUCCESS;
- }
++    return VLC_SUCCESS;
++}
 +
 +int cma_buf_pic_attach(cma_buf_t * const cb, picture_t * const pic)
 +{
@@ -9594,20 +9944,50 @@ to enable raspiberry pi support.
 +    return VLC_SUCCESS;
 +}
 +
-+cma_buf_t * cma_buf_pic_get(picture_t * const pic)
-+{
-+    pic_ctx_mmal_t * const ctx = (pic_ctx_mmal_t *)pic->context;
-+    return !is_cma_buf_pic_chroma(pic->format.i_chroma) || ctx  == NULL ? 0 : ctx->cb;
-+}
-+
 +
 +//----------------------------------------------------------------------------
 +
 +/* Returns the type of the Pi being used
 +*/
-+bool rpi_is_model_pi4(void) {
++bool rpi_is_model_pi4(void)
++{
 +    return bcm_host_is_model_pi4();
 +}
++
++// Board types that support PI3 hybrid HEVC accel
++bool rpi_use_pi3_hevc(void)
++{
++    const int t = bcm_host_get_model_type();
++    return
++        t == BCM_HOST_BOARD_TYPE_PI3MODELB ||
++        t == BCM_HOST_BOARD_TYPE_CM3 ||
++        t == BCM_HOST_BOARD_TYPE_PI3MODELBPLUS ||
++        t == BCM_HOST_BOARD_TYPE_PI3MODELBPLUS ||
++        t == BCM_HOST_BOARD_TYPE_PI3MODELAPLUS ||
++        t == BCM_HOST_BOARD_TYPE_CM3PLUS;
++}
++
++// Board types that support qpu adv deinterlace
++bool rpi_use_qpu_deinterlace(void)
++{
++    const int t = bcm_host_get_model_type();
++    return
++        t == BCM_HOST_BOARD_TYPE_MODELA ||
++        t == BCM_HOST_BOARD_TYPE_MODELB ||
++        t == BCM_HOST_BOARD_TYPE_MODELAPLUS ||
++        t == BCM_HOST_BOARD_TYPE_MODELBPLUS ||
++        t == BCM_HOST_BOARD_TYPE_PI2MODELB ||
++        t == BCM_HOST_BOARD_TYPE_CM ||
++        t == BCM_HOST_BOARD_TYPE_CM2 ||
++        t == BCM_HOST_BOARD_TYPE_PI3MODELB ||
++        t == BCM_HOST_BOARD_TYPE_PI0 ||
++        t == BCM_HOST_BOARD_TYPE_CM3 ||
++        t == BCM_HOST_BOARD_TYPE_PI0W ||
++        t == BCM_HOST_BOARD_TYPE_PI3MODELBPLUS ||
++        t == BCM_HOST_BOARD_TYPE_PI3MODELAPLUS ||
++        t == BCM_HOST_BOARD_TYPE_CM3PLUS;
++}
++
 +
 +// Preferred mode - none->cma on Pi4 otherwise legacy
 +static volatile vcsm_init_type_t last_vcsm_type = VCSM_INIT_NONE;
@@ -9624,7 +10004,8 @@ to enable raspiberry pi support.
 +    vcsm_init_type_t try_type = last_vcsm_type;
 +
 +    if (try_type == VCSM_INIT_NONE) {
-+        if (bcm_host_is_fkms_active())
++        if (bcm_host_is_fkms_active() ||
++            bcm_host_is_kms_active())
 +            try_type = VCSM_INIT_CMA;
 +        else
 +            try_type = VCSM_INIT_LEGACY;
@@ -9680,7 +10061,7 @@ to enable raspiberry pi support.
 +
 --- a/modules/hw/mmal/mmal_picture.h
 +++ b/modules/hw/mmal/mmal_picture.h
-@@ -24,19 +24,298 @@
+@@ -24,19 +24,278 @@
  #ifndef VLC_MMAL_MMAL_PICTURE_H_
  #define VLC_MMAL_MMAL_PICTURE_H_
  
@@ -9689,6 +10070,7 @@ to enable raspiberry pi support.
  #include <vlc_common.h>
  #include <interface/mmal/mmal.h>
  
++#include "mmal_cma_pic.h"
 +#include "mmal_cma.h"
 +
  /* Think twice before changing this. Incorrect values cause havoc. */
@@ -9716,17 +10098,6 @@ to enable raspiberry pi support.
 +    int alpha;
 +} pic_ctx_subpic_t;
 +
-+
-+#define CTX_BUFS_MAX 4
-+typedef struct pic_ctx_mmal_s {
-+    picture_context_t cmn;  // PARENT: Common els at start
-+
-+    cma_buf_t * cb;
-+
-+    unsigned int buf_count;
-+    MMAL_BUFFER_HEADER_T * bufs[CTX_BUFS_MAX];
-+
-+} pic_ctx_mmal_t;
 +
 +const char * str_fourcc(char * const buf, const unsigned int fcc);
 +
@@ -9914,6 +10285,7 @@ to enable raspiberry pi support.
 +void hw_mmal_vzc_buf_get_wh(MMAL_BUFFER_HEADER_T * const buf, int * const pW, int * const pH);
 +unsigned int hw_mmal_vzc_buf_seq(MMAL_BUFFER_HEADER_T * const buf);
 +MMAL_BUFFER_HEADER_T * hw_mmal_vzc_buf_from_pic(vzc_pool_ctl_t * const pc, picture_t * const pic,
++                                                const video_format_t * src_fmt,
 +                                                const MMAL_RECT_T dst_pic_rect,
 +                                                const int x_offset, const int y_offset,
 +                                                const unsigned int alpha, const bool is_first);
@@ -9943,22 +10315,11 @@ to enable raspiberry pi support.
 +// Attaches cma buf to pic
 +// Marks in_flight if not all_in_flight anyway
 +int cma_buf_pic_attach(cma_buf_t * const cb, picture_t * const pic);
-+// Returns a pointer to the cma_buf attached to the pic
-+// Just a pointer - doesn't add a ref
-+cma_buf_t * cma_buf_pic_get(picture_t * const pic);
-+
-+static inline bool is_cma_buf_pic_chroma(const uint32_t chroma)
-+{
-+    return chroma == VLC_CODEC_MMAL_ZC_RGB32 ||
-+        chroma == VLC_CODEC_MMAL_ZC_SAND8 ||
-+        chroma == VLC_CODEC_MMAL_ZC_SAND10 ||
-+        chroma == VLC_CODEC_MMAL_ZC_SAND30 ||
-+        chroma == VLC_CODEC_MMAL_ZC_I420;
-+}
-+
 +
 +int rpi_get_model_type(void);
 +bool rpi_is_model_pi4(void);
++bool rpi_use_pi3_hevc(void);
++bool rpi_use_qpu_deinterlace(void);
 +bool rpi_is_fkms_active(void);
 +
 +typedef enum vcsm_init_type_e {
@@ -11559,10 +11920,10 @@ to enable raspiberry pi support.
 +
 +    if ((err = isp_prepare(vd, isp)) != MMAL_SUCCESS)
 +        goto fail;
-+
-+    return MMAL_SUCCESS;
  
 -    bcm_host_deinit();
++    return MMAL_SUCCESS;
++
 +fail:
 +    isp_close(vd, vd_sys);
 +    return err;
@@ -11851,7 +12212,7 @@ to enable raspiberry pi support.
      sys->adjust_refresh_rate = var_InheritBool(vd, MMAL_ADJUST_REFRESHRATE_NAME);
      sys->native_interlaced = var_InheritBool(vd, MMAL_NATIVE_INTERLACED);
      if (sys->adjust_refresh_rate) {
-@@ -446,204 +751,217 @@ static int configure_display(vout_displa
+@@ -446,205 +751,218 @@ static int configure_display(vout_displa
      return 0;
  }
  
@@ -12199,8 +12560,8 @@ to enable raspiberry pi support.
 +            vd->fmt = vd->source; // Take (nearly) whatever source wants to give us
 +            vd->fmt.i_chroma = req_chroma(vd);  // Adjust chroma to something we can actaully deal with
 +            ret = VLC_SUCCESS;
-+            break;
-+
+             break;
+ 
 +        case VOUT_DISPLAY_CHANGE_MMAL_HIDE:
 +        {
 +            MMAL_STATUS_T err;
@@ -12219,12 +12580,13 @@ to enable raspiberry pi support.
 +            }
 +            sys->force_config = true;
 +            ret = VLC_SUCCESS;
-             break;
++            break;
 +        }
- 
++
          default:
              msg_Warn(vd, "Unknown control query %d", query);
-@@ -653,79 +971,207 @@ static int vd_control(vout_display_t *vd
+             break;
+@@ -653,79 +971,208 @@ static int vd_control(vout_display_t *vd
      return ret;
  }
  
@@ -12318,6 +12680,7 @@ to enable raspiberry pi support.
 +            // coord space of the placed rectangle in the cfg display space
 +            if ((sys->subpic_bufs[n] = hw_mmal_vzc_buf_from_pic(sys->vzc,
 +                src,
++                &sreg->fmt,
 +                (MMAL_RECT_T){.width = sys->spu_rect.width, .height=sys->spu_rect.height},
 +                sreg->i_x, sreg->i_y,
 +                sreg->i_alpha,
@@ -12477,8 +12840,12 @@ to enable raspiberry pi support.
  }
  
  static void tvservice_cb(void *callback_data, uint32_t reason, uint32_t param1, uint32_t param2)
-@@ -780,9 +1226,9 @@ static void adjust_refresh_rate(vout_dis
-     double best_score, score;
+@@ -777,12 +1224,12 @@ static void adjust_refresh_rate(vout_dis
+     int num_modes;
+     double frame_rate = (double)fmt->i_frame_rate / fmt->i_frame_rate_base;
+     int best_id = -1;
+-    double best_score, score;
++    double best_score = 0.0, score;
      int i;
  
 -    vc_tv_get_display_state(&display_state);
@@ -12489,7 +12856,7 @@ to enable raspiberry pi support.
                          supported_modes, VC_TV_MAX_MODE_IDS, NULL, NULL);
  
          for (i = 0; i < num_modes; ++i) {
-@@ -810,7 +1256,7 @@ static void adjust_refresh_rate(vout_dis
+@@ -810,7 +1257,7 @@ static void adjust_refresh_rate(vout_dis
          if((best_id >= 0) && (display_state.display.hdmi.mode != supported_modes[best_id].code)) {
              msg_Info(vd, "Setting HDMI refresh rate to %"PRIu32,
                              supported_modes[best_id].frame_rate);
@@ -12498,7 +12865,7 @@ to enable raspiberry pi support.
                              supported_modes[best_id].group,
                              supported_modes[best_id].code);
          }
-@@ -828,148 +1274,12 @@ static void adjust_refresh_rate(vout_dis
+@@ -828,148 +1275,12 @@ static void adjust_refresh_rate(vout_dis
      }
  }
  
@@ -12648,7 +13015,7 @@ to enable raspiberry pi support.
          ((double)vd->sys->i_frame_rate /
          vd->sys->i_frame_rate_base);
      vout_display_sys_t *sys = vd->sys;
-@@ -1012,32 +1322,436 @@ static void maintain_phase_sync(vout_dis
+@@ -1012,32 +1323,441 @@ static void maintain_phase_sync(vout_dis
      }
  }
  
@@ -12708,7 +13075,7 @@ to enable raspiberry pi support.
 +            mmal_component_release(sub->component);
 +            sub->component = NULL;
 +        }
-     }
++    }
 +
 +    if (sys->input && sys->input->is_enabled)
 +        mmal_port_disable(sys->input);
@@ -12838,7 +13205,7 @@ to enable raspiberry pi support.
 +            msg_Info(vd, "Unexpected X rotation value: %#x", cur_rot);
 +            trans = MMAL_DISPLAY_ROT0;
 +            break;
-+    }
+     }
 +
 +    return trans;
 +}
@@ -12875,7 +13242,7 @@ to enable raspiberry pi support.
 +
 +fail:
 +    return (MMAL_RECT_T){0,0,0,0};
-+}
+ }
 +
 +static int OpenMmalVout(vlc_object_t *object)
 +{
@@ -12891,6 +13258,11 @@ to enable raspiberry pi support.
 +#if TRACE_ALL
 +    msg_Dbg(vd, "<<< %s: o:%d", __func__, (int)vd->fmt.orientation);
 +#endif
++
++    if (bcm_host_is_kms_active()) {
++        msg_Dbg(vd, "KMS active - mmal vout disabled");
++        return VLC_EGENERIC;
++    }
 +
 +    get_xrandr_rotation(vd);
 +
@@ -13080,7 +13452,7 @@ to enable raspiberry pi support.
 +    msg_Dbg(vd, ">>> %s: rv=%d", __func__, ret);
 +
 +    return ret == VLC_SUCCESS ? VLC_EGENERIC : ret;
- }
++}
 +
 +vlc_module_begin()
 +
@@ -13113,7 +13485,7 @@ to enable raspiberry pi support.
 +
 --- /dev/null
 +++ b/modules/hw/mmal/xsplitter.c
-@@ -0,0 +1,584 @@
+@@ -0,0 +1,669 @@
 +#ifdef HAVE_CONFIG_H
 +#include "config.h"
 +#endif
@@ -13126,33 +13498,56 @@ to enable raspiberry pi support.
 +#include <vlc_vout_display.h>
 +#include <vlc_modules.h>
 +
-+#include <bcm_host.h>
-+#include <interface/mmal/mmal.h>
-+#include <interface/mmal/util/mmal_util.h>
-+#include <interface/mmal/util/mmal_default_components.h>
-+
-+#include "mmal_picture.h"
-+
 +#define TRACE_ALL 0
++
++// If set will reduce requested size on X
++// A good idea if we have h/w scaler before X
++// as it limits the work needed by GL but a disaster if we don't
++#define LIMIT_X_PELS 0
++
++#define VOUT_DISPLAY_CHANGE_MMAL_BASE 1024
++#define VOUT_DISPLAY_CHANGE_MMAL_HIDE (VOUT_DISPLAY_CHANGE_MMAL_BASE + 0)
++
++struct mmal_x11_sys_s;
 +
 +typedef struct display_desc_s
 +{
 +    vout_display_t * vout;
 +    unsigned int max_pels;
++    void (* on_swap_away)(vout_display_t *const vd, struct mmal_x11_sys_s *const sys, struct display_desc_s * const x_desc);
 +} display_desc_t;
 +
 +typedef struct mmal_x11_sys_s
 +{
-+    bool use_mmal;
++    bool drm_fail;  // We tried DRM but it didn't work
 +    display_desc_t * cur_desc;
 +    display_desc_t mmal_desc;
 +    display_desc_t x_desc;
++    display_desc_t drm_desc;
 +    uint32_t changed;
 +    vlc_fourcc_t subpicture_chromas[16];
 +} mmal_x11_sys_t;
 +
 +#define MAX_GL_PELS (1920*1080)
 +#define MAX_MMAL_PELS (4096*4096)  // Should never be hit
++#define MAX_DRM_PELS (4096*4096)  // Should never be hit
++
++static inline char drmu_log_safechar(int c)
++{
++    return (c < ' ' || c >=0x7f) ? '?' : c;
++}
++
++static inline const char * str_fourcc(char buf[5], uint32_t fcc)
++{
++    if (fcc == 0)
++        return "----";
++    buf[0] = drmu_log_safechar((fcc >> 0) & 0xff);
++    buf[1] = drmu_log_safechar((fcc >> 8) & 0xff);
++    buf[2] = drmu_log_safechar((fcc >> 16) & 0xff);
++    buf[3] = drmu_log_safechar((fcc >> 24) & 0xff);
++    buf[4] = 0;
++    return buf;
++}
 +
 +#if 0
 +// Gen prog for the following table
@@ -13172,6 +13567,7 @@ to enable raspiberry pi support.
 +}
 +#endif
 +
++#if LIMIT_X_PELS
 +static const uint16_t sqrt_tab[64] = {
 +    [ 0]=58617, [ 1]=53510, [ 2]=49541, [ 3]=46341,
 +    [ 4]=43691, [ 5]=41449, [ 6]=39520, [ 7]=37837,
@@ -13191,11 +13587,17 @@ to enable raspiberry pi support.
 +    [60]=16257, [61]=16134, [62]=16013, [63]=15895
 +};
 +#define SQRT_MAX (sizeof(sqrt_tab)/sizeof(sqrt_tab[0]) - 1)
++#endif
 +
 +static bool cpy_fmt_limit_size(const display_desc_t * const dd,
 +                           video_format_t * const dst,
 +                           const video_format_t * const src)
 +{
++#if !LIMIT_X_PELS
++    VLC_UNUSED(dd);
++    *dst = *src;
++    return false;
++#else
 +    const unsigned int src_pel = src->i_visible_width * src->i_visible_height;
 +
 +    *dst = *src;
@@ -13224,6 +13626,7 @@ to enable raspiberry pi support.
 +    dst->i_height         = height;
 +    dst->i_visible_height = height;
 +    return true;
++#endif
 +}
 +
 +static void unload_display_module(vout_display_t * const x_vout)
@@ -13234,6 +13637,14 @@ to enable raspiberry pi support.
 +        }
 +        vlc_object_release(x_vout);
 +    }
++}
++
++static void stop_drm(vout_display_t *const vd, mmal_x11_sys_t *const sys)
++{
++    VLC_UNUSED(vd);
++
++    unload_display_module(sys->drm_desc.vout);
++    sys->drm_desc.vout = NULL;
 +}
 +
 +static void CloseMmalX11(vlc_object_t *object)
@@ -13249,6 +13660,8 @@ to enable raspiberry pi support.
 +    unload_display_module(sys->x_desc.vout);
 +
 +    unload_display_module(sys->mmal_desc.vout);
++
++    stop_drm(vd, sys);
 +
 +    free(sys);
 +
@@ -13312,7 +13725,7 @@ to enable raspiberry pi support.
 +
 +    if ((x_vout->module = module_need(x_vout, cap, module_name, true)) == NULL)
 +    {
-+        msg_Err(vd, "Failed to open Xsplitter:%s module", module_name);
++        msg_Dbg(vd, "Failed to open Xsplitter:%s module", module_name);
 +        goto fail;
 +    }
 +
@@ -13326,6 +13739,14 @@ to enable raspiberry pi support.
 +    return -1;
 +}
 +
++static int start_drm(vout_display_t *const vd, mmal_x11_sys_t *const sys)
++{
++    if (sys->drm_desc.vout != NULL)
++        return 0;
++    msg_Info(vd, "Try drm");
++    return load_display_module(vd, &sys->drm_desc, "vout display", "drm_vout");
++}
++
 +
 +/* Return a pointer over the current picture_pool_t* (mandatory).
 + *
@@ -13335,17 +13756,22 @@ to enable raspiberry pi support.
 + * pictures.
 + * The vout display module keeps the ownership of the pool and can
 + * destroy it only when closing or on invalid pictures control.
++ *
++ * If the X pool doesn't have pictures invalid then it isn't safe
++ * to swap pools so always use that one (MMAL & DRM can cope with
++ * most stuff)
 + */
 +static picture_pool_t * mmal_x11_pool(vout_display_t * vd, unsigned count)
 +{
 +    mmal_x11_sys_t * const sys = (mmal_x11_sys_t *)vd->sys;
-+    vout_display_t * const x_vd = sys->cur_desc->vout;
++    vout_display_t * const x_vd = vd->info.has_pictures_invalid ? sys->cur_desc->vout : sys->x_desc.vout;
 +#if TRACE_ALL
 +    char buf0[5];
++    char buf1[5];
 +    msg_Dbg(vd, "<<< %s (count=%d) %s:%dx%d->%s:%dx%d", __func__, count,
 +            str_fourcc(buf0, vd->fmt.i_chroma),
 +            vd->fmt.i_width, vd->fmt.i_height,
-+            str_fourcc(buf0, x_vd->fmt.i_chroma),
++            str_fourcc(buf1, x_vd->fmt.i_chroma),
 +            x_vd->fmt.i_width, x_vd->fmt.i_height);
 +#endif
 +    picture_pool_t * pool = x_vd->pool(x_vd, count);
@@ -13370,7 +13796,8 @@ to enable raspiberry pi support.
 +    mmal_x11_sys_t * const sys = (mmal_x11_sys_t *)vd->sys;
 +    vout_display_t * const x_vd = sys->cur_desc->vout;
 +#if TRACE_ALL
-+    msg_Dbg(vd, "<<< %s", __func__);
++    char buf0[5];
++    msg_Dbg(vd, "<<< %s: fmt=%s, %dx%d", __func__, str_fourcc(buf0, pic->format.i_chroma), pic->format.i_width, pic->format.i_height);
 +#endif
 +    if (x_vd->prepare)
 +        x_vd->prepare(x_vd, pic, sub);
@@ -13392,9 +13819,7 @@ to enable raspiberry pi support.
 +    vout_display_t * const x_vd = sys->cur_desc->vout;
 +
 +#if TRACE_ALL
-+    const bool is_mmal_pic = hw_mmal_pic_is_mmal(pic);
-+    msg_Dbg(vd, "<<< %s: fmt: %dx%d/%dx%d, pic:%dx%d, pts=%lld, mmal=%d/%d", __func__, vd->fmt.i_width, vd->fmt.i_height, x_vd->fmt.i_width, x_vd->fmt.i_height, pic->format.i_width, pic->format.i_height, (long long)pic->date,
-+            is_mmal_pic, sys->use_mmal);
++    msg_Dbg(vd, "<<< %s: fmt: %dx%d/%dx%d, pic:%dx%d, pts=%lld", __func__, vd->fmt.i_width, vd->fmt.i_height, x_vd->fmt.i_width, x_vd->fmt.i_height, pic->format.i_width, pic->format.i_height, (long long)pic->date);
 +#endif
 +
 +    if (x_vd->fmt.i_chroma != pic->format.i_chroma ||
@@ -13424,10 +13849,24 @@ to enable raspiberry pi support.
 +    return result;
 +}
 +
-+static bool want_mmal_vout(vout_display_t * const vd, const mmal_x11_sys_t * const sys)
++static display_desc_t* wanted_display(vout_display_t *const vd, mmal_x11_sys_t *const sys)
 +{
-+    return sys->mmal_desc.vout != NULL &&
-+        (sys->x_desc.vout == NULL || var_InheritBool(vd, "fullscreen"));
++    if (sys->x_desc.vout != NULL && !var_InheritBool(vd, "fullscreen"))
++        return &sys->x_desc;
++
++    // Full screen or no X
++
++    if (sys->mmal_desc.vout != NULL)
++        return &sys->mmal_desc;
++
++    if (!sys->drm_fail) {
++        if (start_drm(vd, sys) == 0)
++            return &sys->drm_desc;
++        msg_Info(vd, "Drm no go");
++        sys->drm_fail = true;  // Never try again
++    }
++
++    return sys->x_desc.vout != NULL ? &sys->x_desc : NULL;
 +}
 +
 +static inline int
@@ -13470,6 +13909,27 @@ to enable raspiberry pi support.
 +    return 0;
 +}
 +
++static void swap_away_null(vout_display_t *const vd, mmal_x11_sys_t *const sys, display_desc_t * const x_desc)
++{
++    VLC_UNUSED(vd);
++    VLC_UNUSED(sys);
++    VLC_UNUSED(x_desc);
++}
++
++static void swap_away_mmal(vout_display_t *const vd, mmal_x11_sys_t *const sys, display_desc_t * const x_desc)
++{
++    VLC_UNUSED(vd);
++    VLC_UNUSED(sys);
++    vout_display_Control(x_desc, VOUT_DISPLAY_CHANGE_MMAL_HIDE);
++}
++
++static void swap_away_drm(vout_display_t *const vd, mmal_x11_sys_t *const sys, display_desc_t * const x_desc)
++{
++    VLC_UNUSED(x_desc);
++    stop_drm(vd, sys);
++}
++
++
 +/* Control on the module (mandatory) */
 +static int mmal_x11_control(vout_display_t * vd, int ctl, va_list va)
 +{
@@ -13477,7 +13937,7 @@ to enable raspiberry pi support.
 +    display_desc_t *x_desc = sys->cur_desc;
 +    int rv;
 +#if TRACE_ALL
-+    msg_Dbg(vd, "<<< %s[%d] (ctl=%d)", __func__, sys->use_mmal, ctl);
++    msg_Dbg(vd, "<<< %s[%s] (ctl=%d)", __func__, x_desc->vout->obj.object_type, ctl);
 +#endif
 +    // Remember what we've told this vd - unwanted ctls ignored on replay
 +    if (ctl >= 0 && ctl <= 31)
@@ -13487,13 +13947,11 @@ to enable raspiberry pi support.
 +        case VOUT_DISPLAY_CHANGE_DISPLAY_SIZE:
 +        {
 +            const vout_display_cfg_t * const cfg = va_arg(va, const vout_display_cfg_t *);
-+            const bool want_mmal = want_mmal_vout(vd, sys);
-+            const bool swap_vout = (sys->use_mmal != want_mmal);
-+            display_desc_t * const new_desc = want_mmal ? &sys->mmal_desc : &sys->x_desc;
++            display_desc_t * const new_desc = wanted_display(vd, sys);
++            const bool swap_vout = (new_desc != sys->cur_desc);
 +
-+            msg_Dbg(vd, "Change size: %d, %d: mmal_vout=%p, want_mmal=%d, fs=%d",
-+                    cfg->display.width, cfg->display.height, sys->mmal_desc.vout, want_mmal,
-+                    var_InheritBool(vd, "fullscreen"));
++            msg_Dbg(vd, "Change size: %d, %d: fs=%d",
++                    cfg->display.width, cfg->display.height, var_InheritBool(vd, "fullscreen"));
 +
 +            // Repeat any control calls that we sent to the previous vd
 +            if (swap_vout && sys->changed != 0) {
@@ -13503,19 +13961,18 @@ to enable raspiberry pi support.
 +            }
 +
 +            if (swap_vout) {
-+                if (sys->use_mmal) {
-+                    vout_display_Control(x_desc, VOUT_DISPLAY_CHANGE_MMAL_HIDE);
-+                }
 +                vout_display_SendEventPicturesInvalid(vd);
++                x_desc->on_swap_away(vd, sys, x_desc);
 +            }
 +
 +            rv = vout_display_Control(new_desc, ctl, cfg);
 +            if (rv == VLC_SUCCESS) {
 +                vd->fmt       = new_desc->vout->fmt;
 +                sys->cur_desc = new_desc;
-+                sys->use_mmal = want_mmal;
++                // Strictly this is illegal but subpic chromas are consulted
++                // on every render so it is in fact safe.
++                vd->info.subpicture_chromas = sys->cur_desc->vout->info.subpicture_chromas;
 +            }
-+
 +
 +            break;
 +        }
@@ -13531,6 +13988,7 @@ to enable raspiberry pi support.
 +            }
 +            rv = reset_pictures(vd, &sys->x_desc);
 +            rv = up_rv(rv, reset_pictures(vd, &sys->mmal_desc));
++            rv = up_rv(rv, reset_pictures(vd, &sys->drm_desc));
 +
 +            vd->fmt = x_desc->vout->fmt;
 +            break;
@@ -13581,7 +14039,7 @@ to enable raspiberry pi support.
 +        .is_slow = false,
 +        .has_double_click = false,
 +        .needs_hide_mouse = false,
-+        .has_pictures_invalid = true,
++        .has_pictures_invalid = false,
 +        .subpicture_chromas = NULL
 +    };
 +
@@ -13596,27 +14054,29 @@ to enable raspiberry pi support.
 +    }
 +
 +    sys->x_desc.max_pels = MAX_GL_PELS;
++    sys->x_desc.on_swap_away = swap_away_null;
 +    sys->mmal_desc.max_pels = MAX_MMAL_PELS;
++    sys->mmal_desc.on_swap_away = swap_away_mmal;
++    sys->drm_desc.max_pels = MAX_DRM_PELS;
++    sys->drm_desc.on_swap_away = swap_away_drm;
 +
 +    if (load_display_module(vd, &sys->x_desc, "vout display", "opengles2") == 0)
 +    {
 +        msg_Dbg(vd, "Opengles2 output found");
 +    }
-+    else
++    else if (load_display_module(vd, &sys->x_desc, "vout display", "xcb_x11") == 0)
 +    {
 +        sys->x_desc.max_pels = MAX_MMAL_PELS;
-+        if (load_display_module(vd, &sys->x_desc, "vout display", "xcb_x11") == 0)
-+            msg_Dbg(vd, "X11 XCB output found");
++        msg_Dbg(vd, "X11 XCB output found");
++    }
++    else
++    {
++        msg_Dbg(vd, "No X output found");
++        goto fail;
 +    }
 +
 +    if ((load_display_module(vd, &sys->mmal_desc, "vout display", "mmal_vout")) == 0)
 +        msg_Dbg(vd, "MMAL output found");
-+
-+    if (sys->mmal_desc.vout == NULL && sys->x_desc.vout == NULL) {
-+        char dbuf0[5], dbuf1[5];
-+        msg_Info(vd, "No valid output found for vout (%s/%s)", str_fourcc(dbuf0, vd->fmt.i_chroma), str_fourcc(dbuf1, vd->source.i_chroma));
-+        goto fail;
-+    }
 +
 +    vd->pool = mmal_x11_pool;
 +    vd->prepare = mmal_x11_prepare;
@@ -13626,18 +14086,15 @@ to enable raspiberry pi support.
 +    vd->manage = mmal_x11_manage;
 +#endif
 +
-+    if (want_mmal_vout(vd, sys)) {
-+        sys->cur_desc = &sys->mmal_desc;
-+        sys->use_mmal = true;
-+    }
-+    else {
-+        sys->cur_desc = &sys->x_desc;
-+        sys->use_mmal = false;
++    sys->cur_desc = wanted_display(vd, sys);
++    if (sys->cur_desc == NULL) {
++        char dbuf0[5], dbuf1[5];
++        msg_Warn(vd, "No valid output found for vout (%s/%s)", str_fourcc(dbuf0, vd->fmt.i_chroma), str_fourcc(dbuf1, vd->source.i_chroma));
++        goto fail;
 +    }
 +
-+    if (sys->mmal_desc.vout == NULL || sys->x_desc.vout == NULL) {
++    if (sys->mmal_desc.vout == NULL) {
 +        vd->info = sys->cur_desc->vout->info;
-+        vd->info.has_pictures_invalid = true;  // Should make this unwanted
 +    }
 +    else {
 +        // We have both - construct a combination
@@ -13698,53 +14155,21 @@ to enable raspiberry pi support.
 +    set_callbacks(OpenMmalX11, CloseMmalX11)
 +vlc_module_end()
 +
---- a/modules/video_output/opengl/egl.c
-+++ b/modules/video_output/opengl/egl.c
-@@ -43,6 +43,8 @@
- # include "../android/utils.h"
- #endif
- 
-+#define REQUIRE_DMA_BUF_IMPORT 1
-+
- typedef struct vlc_gl_sys_t
- {
-     EGLDisplay display;
-@@ -355,6 +357,14 @@ static int Open (vlc_object_t *obj, cons
-         goto error;
-     }
- 
-+#if REQUIRE_DMA_BUF_IMPORT
-+    if (!CheckToken(ext, "EGL_EXT_image_dma_buf_import"))
-+    {
-+        msg_Dbg(obj, "No dma_buf_import - fall back to X");
-+        goto error;
-+    }
-+#endif
-+
-     const EGLint conf_attr[] = {
-         EGL_RED_SIZE, 5,
-         EGL_GREEN_SIZE, 5,
---- a/src/input/decoder.c
-+++ b/src/input/decoder.c
-@@ -1995,6 +1995,7 @@ void input_DecoderDelete( decoder_t *p_d
-     vlc_mutex_lock( &p_owner->lock );
-     p_owner->b_waiting = false;
-     vlc_cond_signal( &p_owner->wait_request );
-+    vlc_mutex_unlock( &p_owner->lock );
- 
-     /* If the video output is paused or slow, or if the picture pool size was
-      * under-estimated (e.g. greedy video filter, buggy decoder...), the
-@@ -2005,7 +2006,6 @@ void input_DecoderDelete( decoder_t *p_d
-      * worker threads (if any) and the decoder thread to terminate. */
-     if( p_owner->p_vout != NULL )
-         vout_Cancel( p_owner->p_vout, true );
--    vlc_mutex_unlock( &p_owner->lock );
- 
-     vlc_join( p_owner->thread, NULL );
- 
 --- a/src/misc/fourcc.c
 +++ b/src/misc/fourcc.c
-@@ -755,8 +755,13 @@ static const struct
+@@ -537,6 +537,11 @@ static const vlc_fourcc_t p_list_YUV[] =
+     VLC_CODEC_D3D9_OPAQUE_10B,
+     VLC_CODEC_D3D11_OPAQUE,
+     VLC_CODEC_D3D11_OPAQUE_10B,
++    VLC_CODEC_MMAL_OPAQUE,
++    VLC_CODEC_MMAL_ZC_SAND8,
++    VLC_CODEC_MMAL_ZC_SAND10,
++    VLC_CODEC_MMAL_ZC_SAND30,
++    VLC_CODEC_MMAL_ZC_I420,
+     0,
+ };
+ 
+@@ -764,8 +769,13 @@ static const struct
      { { VLC_CODEC_VDPAU_VIDEO_420, VLC_CODEC_VDPAU_VIDEO_422,
          VLC_CODEC_VDPAU_VIDEO_444, VLC_CODEC_VDPAU_OUTPUT },
                                                 FAKE_FMT() },
@@ -13795,32 +14220,3 @@ to enable raspiberry pi support.
  
      assert( p_dst->context == NULL );
  
---- a/src/video_output/video_output.c
-+++ b/src/video_output/video_output.c
-@@ -964,6 +964,17 @@ static picture_t *ConvertRGB32AndBlend(v
-     return NULL;
- }
- 
-+
-+static inline bool is_zc_chroma(const vlc_fourcc_t i_chroma)
-+{
-+    return i_chroma == VLC_CODEC_MMAL_OPAQUE ||
-+        i_chroma == VLC_CODEC_MMAL_ZC_I420 ||
-+        i_chroma == VLC_CODEC_MMAL_ZC_RGB32 ||
-+        i_chroma == VLC_CODEC_MMAL_ZC_SAND10 ||
-+        i_chroma == VLC_CODEC_MMAL_ZC_SAND30 ||
-+        i_chroma == VLC_CODEC_MMAL_ZC_SAND8;
-+}
-+
- static int ThreadDisplayRenderPicture(vout_thread_t *vout, bool is_forced)
- {
-     vout_thread_sys_t *sys = vout->p;
-@@ -1098,7 +1109,7 @@ static int ThreadDisplayRenderPicture(vo
-     }
- 
-     assert(vout_IsDisplayFiltered(vd) == !sys->display.use_dr);
--    if (sys->display.use_dr && !is_direct) {
-+    if (sys->display.use_dr && !is_direct && !is_zc_chroma(todisplay->format.i_chroma)) {
-         picture_t *direct = NULL;
-         if (likely(vout->p->display_pool != NULL))
-             direct = picture_pool_Get(vout->p->display_pool);

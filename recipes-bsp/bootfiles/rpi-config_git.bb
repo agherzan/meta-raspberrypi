@@ -37,6 +37,8 @@ WM8960 = "${@bb.utils.contains("MACHINE_FEATURES", "wm8960", "1", "0", d)}"
 
 GPIO_SHUTDOWN_PIN ??= ""
 
+RPI_CONFIG_STRIP ??= "0"
+
 inherit deploy nopackages
 
 do_deploy() {
@@ -344,10 +346,25 @@ do_deploy:append:raspberrypi3-64() {
 }
 
 do_deploy:append() {
+    # Clean comments, empty lines and leading spaces
+    if [ "${RPI_CONFIG_STRIP}" = "1" ]; then
+        sed -i '/^#/d' $CONFIG
+        sed -i '/^$/d' $CONFIG
+        sed -i 's/^\s*//g' $CONFIG
+    fi
+
+    # Warn about too long lines!
     if grep -q -E '^.{80}.$' ${DEPLOYDIR}/${BOOTFILES_DIR_NAME}/config.txt; then
         bbwarn "config.txt contains lines longer than 80 characters, this is not supported"
     fi
+
+    # Warn about too big file!
+    size=$(stat -c '%s' $CONFIG)
+    if [ "$size" -gt 16384 ]; then
+        bbfatal "config.txt larger than 16k is not necessarily supported"
+    fi
 }
+do_deploy[vardeps] += "${RPI_CONFIG_STRIP}"
 
 addtask deploy before do_build after do_install
 do_deploy[dirs] += "${DEPLOYDIR}/${BOOTFILES_DIR_NAME}"

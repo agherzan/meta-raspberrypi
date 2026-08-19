@@ -247,22 +247,16 @@ do_deploy() {
         echo "hdmi_drive=1" >> $CONFIG
     fi
 
-    # DWC2 USB peripheral support
-    if ([ "${ENABLE_DWC2_PERIPHERAL}" = "1" ] && [ "${ENABLE_DWC2_OTG}" != "1" ]); then
+    # DWC2 USB controller mode (mutually exclusive)
+    if [ "${ENABLE_DWC2_PERIPHERAL}" = "1" ]; then
         echo "# Enable USB peripheral mode" >> $CONFIG
         echo "dtoverlay=dwc2,dr_mode=peripheral" >> $CONFIG
-    fi
-
-    # DWC2 USB host mode support
-    if [ "${ENABLE_DWC2_HOST}" = "1" ]; then
-        echo "# Enable USB host mode" >> $CONFIG
-        echo "dtoverlay=dwc2,dr_mode=host" >> $CONFIG
-    fi
-    
-    # DWC2 USB OTG support
-    if ([ "${ENABLE_DWC2_OTG}" = "1" ] && [ "${ENABLE_DWC2_PERIPHERAL}" != "1" ]); then
+    elif [ "${ENABLE_DWC2_OTG}" = "1" ]; then
         echo "# Enable USB OTG mode" >> $CONFIG
         echo "dtoverlay=dwc2,dr_mode=otg" >> $CONFIG
+    elif [ "${ENABLE_DWC2_HOST}" = "1" ]; then
+        echo "# Enable USB host mode" >> $CONFIG
+        echo "dtoverlay=dwc2,dr_mode=host" >> $CONFIG
     fi
 
     # AT86RF23X support

@@ -9,6 +9,9 @@ PREFERRED_PROVIDER_virtual/mesa ?= "${@bb.utils.contains("MACHINE_FEATURES", "vc
 PREFERRED_PROVIDER_virtual/libgbm ?= "${@bb.utils.contains("MACHINE_FEATURES", "vc4graphics", "mesa", "mesa-gl", d)}"
 PREFERRED_PROVIDER_jpeg ?= "jpeg"
 
+PACKAGE_EXCLUDE:append = " libcamera"
+PREFERRED_PROVIDER_libcamera ?= "rpi-libcamera"
+
 PREFERRED_PROVIDER_virtual/libomxil ?= "userland"
 VIRTUAL-RUNTIME_libomxil = "userland"
 

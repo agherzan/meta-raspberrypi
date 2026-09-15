@@ -97,6 +97,25 @@ And the same for the `distro`.
 
 For further information, you can read more at <https://kas.readthedocs.io/en/latest/index.html>
 
+## Quick Start with bitbake-setup
+1. Initialize the setup,
+```
+bitbake/bin/bitbake-setup init meta-raspberrypi/configurations/poky-rpi-master.conf.json
+
+or
+
+bitbake/bin/bitbake-setup init https://raw.githubusercontent.com/agherzan/meta-raspberrypi/bitbake-setup/configurations/poky-rpi-master.conf.json
+```
+2. Select the required configurations.
+3. Source init-build-env from `bitbake-builds/oe-nodistro-rpi-master/build`.
+4. bitbake core-image-base
+5. Use bmaptool to copy the generated wic image to SD card
+6. Boot your RPI
+
+Currently following 2 configs are available,
+1. poky-rpi-master.conf.json
+2. oe-nodistro-rpi-master.conf.json
+
 ## Contributing
 
 You can send patches using the GitHub pull request process or/and through the

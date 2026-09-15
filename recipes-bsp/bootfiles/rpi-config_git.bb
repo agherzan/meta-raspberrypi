@@ -74,6 +74,9 @@ do_deploy() {
     if [ -n "${OVER_VOLTAGE}" ]; then
         sed -i '/#over_voltage=/ c\over_voltage=${OVER_VOLTAGE}' $CONFIG
     fi
+    if [ -n "${OVER_VOLTAGE_DELTA}" ]; then
+        sed -i '/#nover_voltage_delta=/ c\nover_voltage_delta=${OVER_VOLTAGE_DELTA}' $CONFIG
+    fi
 
     # GPU memory
     if [ -n "${GPU_MEM}" ]; then
@@ -258,7 +261,7 @@ do_deploy() {
         echo "# Enable USB host mode" >> $CONFIG
         echo "dtoverlay=dwc2,dr_mode=host" >> $CONFIG
     fi
-    
+
     # DWC2 USB OTG support
     if ([ "${ENABLE_DWC2_OTG}" = "1" ] && [ "${ENABLE_DWC2_PERIPHERAL}" != "1" ]); then
         echo "# Enable USB OTG mode" >> $CONFIG

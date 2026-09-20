@@ -1,0 +1,24 @@
+From 2e9bc1093331979e12e697db8778bb8f806dcb6c Mon Sep 17 00:00:00 2001
+From: Gijs Peskens <gijs.peskens@munisense.com>
+Date: Tue, 27 Jan 2026 13:42:34 +0100
+Subject: [PATCH] Override VLC_VER_3 macro, it get's set to the wrong value
+
+Upstream-Status: Inappropriate
+---
+ modules/hw/mmal/vout.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/modules/hw/mmal/vout.c b/modules/hw/mmal/vout.c
+index b9fef71e3..2c9079e9f 100644
+--- a/modules/hw/mmal/vout.c
++++ b/modules/hw/mmal/vout.c
+@@ -1061,6 +1061,9 @@ static int attach_subpics(vout_display_t * const vd, vout_display_sys_t * const
+ }
+ 
+ 
++#undef VLC_VER_3
++#define VLC_VER_3 1
++
+ static void vd_prepare(vout_display_t *vd, picture_t *p_pic,
+ #if VLC_VER_3
+                        subpicture_t *subpicture

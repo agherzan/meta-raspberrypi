@@ -1,0 +1,38 @@
+From 0c70f6bf0c8bce8b2d6fa4821b24b74c0110af7e Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Tue, 11 Jun 2024 18:49:22 +0100
+Subject: [PATCH 29/41] decoder: Add a vout_flush to decoder shutdown
+
+Our ffmpeg H265 decode can block waiting for buffers to be returned.
+Trying to shut it down in that state without returning some buffers
+causes deadlock. Probably the ffmpeg code needs a rewrite to use hwframe
+allocation which might get round this.
+
+This fixes the reliable lockup of playing a H265 stream, pausing it and
+attempting to move on to the next stream.
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ src/input/decoder.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/src/input/decoder.c
++++ b/src/input/decoder.c
+@@ -2001,6 +2001,11 @@ void input_DecoderDelete( decoder_t *p_d
+     p_owner->b_waiting = false;
+     vlc_cond_signal( &p_owner->wait_request );
+ 
++    /* RPI: V4L2 stateful (H265) can deadlock on buffer starvation if output
++     * buffers not returned */
++    if( p_owner->p_vout != NULL )
++        vout_Flush(p_owner->p_vout, 0);
++
+     /* If the video output is paused or slow, or if the picture pool size was
+      * under-estimated (e.g. greedy video filter, buggy decoder...), the
+      * the picture pool may be empty, and the decoder thread or any decoder

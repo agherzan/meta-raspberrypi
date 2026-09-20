@@ -1,0 +1,62 @@
+From 1a7ddf03dfc183147a115a47095aa67192700fc0 Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Thu, 8 Aug 2024 18:42:59 +0100
+Subject: [PATCH 37/41] xdg-shell: Rename old xdg-shall include files
+
+Rename the xdg-shell header files to xdg-shell-unstable-v5 to match
+the name of the XML file they are derived from. This frees up xdg-shell
+for use with the stable version.
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ modules/video_output/Makefile.am         | 11 +++++------
+ modules/video_output/wayland/xdg-shell.c |  2 +-
+ 2 files changed, 6 insertions(+), 7 deletions(-)
+
+--- a/modules/video_output/Makefile.am
++++ b/modules/video_output/Makefile.am
+@@ -315,8 +315,8 @@ libwl_shell_plugin_la_LIBADD = $(WAYLAND
+ 
+ libxdg_shell_plugin_la_SOURCES = video_output/wayland/xdg-shell.c
+ nodist_libxdg_shell_plugin_la_SOURCES = \
+-	video_output/wayland/xdg-shell-client-protocol.h \
+-	video_output/wayland/xdg-shell-protocol.c \
++	video_output/wayland/xdg-shell-unstable-v5-client-protocol.h \
++	video_output/wayland/xdg-shell-unstable-v5-protocol.c \
+ 	video_output/wayland/server-decoration-client-protocol.h \
+ 	video_output/wayland/server-decoration-protocol.c
+ libxdg_shell_plugin_la_CPPFLAGS = $(AM_CPPFLAGS) \
+@@ -324,13 +324,12 @@ libxdg_shell_plugin_la_CPPFLAGS = $(AM_C
+ libxdg_shell_plugin_la_CFLAGS = $(WAYLAND_CLIENT_CFLAGS)
+ libxdg_shell_plugin_la_LIBADD = $(WAYLAND_CLIENT_LIBS) $(LIBPTHREAD)
+ 
+-video_output/wayland/xdg-shell-client-protocol.h: \
++video_output/wayland/xdg-shell-unstable-v5-client-protocol.h: \
+ 		$(WAYLAND_PROTOCOLS)/unstable/xdg-shell/xdg-shell-unstable-v5.xml
+ 	$(AM_V_GEN)$(WAYLAND_SCANNER) client-header $< $@
+-
+-video_output/wayland/xdg-shell-protocol.c: \
++video_output/wayland/xdg-shell-unstable-v5-protocol.c: \
+ 		$(WAYLAND_PROTOCOLS)/unstable/xdg-shell/xdg-shell-unstable-v5.xml
+-	$(AM_V_GEN)$(WAYLAND_SCANNER) code $< $@
++	$(AM_V_GEN)$(WAYLAND_SCANNER) private-code $< $@
+ 
+ video_output/wayland/server-decoration-client-protocol.h: \
+ 		video_output/wayland/server-decoration.xml
+--- a/modules/video_output/wayland/xdg-shell.c
++++ b/modules/video_output/wayland/xdg-shell.c
+@@ -31,7 +31,7 @@
+ #include <poll.h>
+ 
+ #include <wayland-client.h>
+-#include "xdg-shell-client-protocol.h"
++#include "xdg-shell-unstable-v5-client-protocol.h"
+ #include "server-decoration-client-protocol.h"
+ 
+ #include <vlc_common.h>

@@ -1,0 +1,80 @@
+From: Sebastian Ramacher <sramacher@debian.org>
+Date: Tue, 7 Jul 2020 00:18:39 +0200
+Subject: Do not generate cache during build
+
+The generated cache is not used in the package. It causes spurious build
+failures on the arm64 and ppc64el builds, that are not reproducible
+elsewhere.
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ Makefile.am     | 16 ----------------
+ bin/Makefile.am | 18 ------------------
+ 2 files changed, 34 deletions(-)
+
+diff --git a/Makefile.am b/Makefile.am
+index ba1d4fc..9d00f51 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -162,22 +162,6 @@ endif
+ TESTS = test/run_vlc.sh
+ dist_noinst_SCRIPTS += test/run_vlc.sh
+ 
+-if BUILD_VLC
+-###############################################################################
+-# Installing plugins cache
+-###############################################################################
+-install-exec-hook:
+-	if test "$(build)" = "$(host)"; then \
+-		PATH="$(DESTDIR)$(bindir):$$PATH" \
+-		LD_LIBRARY_PATH="$(DESTDIR)$(libdir):$$LD_LIBRARY_PATH" \
+-		DYLD_LIBRARY_PATH="$(DESTDIR)$(libdir):$$DYLD_LIBRARY_PATH" \
+-		"$(DESTDIR)$(vlclibdir)/vlc-cache-gen$(EXEEXT)" \
+-			 "$(DESTDIR)$(vlclibdir)/plugins" ; \
+-	else \
+-		echo "Cross-compilation: cache generation skipped!" ; \
+-	fi
+-endif
+-
+ uninstall-hook:
+ 	rm -f -- "$(DESTDIR)$(vlclibdir)/plugins/plugins.dat"
+ 
+diff --git a/bin/Makefile.am b/bin/Makefile.am
+index 4de299d..a2acc3c 100644
+--- a/bin/Makefile.am
++++ b/bin/Makefile.am
+@@ -124,14 +124,6 @@ vlc_cache_gen_LDFLAGS = -Wc,-static
+ vlc_cache_gen_DEPENDENCIES = vlc_win32_rc.$(OBJEXT)
+ endif
+ 
+-#
+-# Plug-ins cache
+-#
+-if HAVE_DYNAMIC_PLUGINS
+-noinst_DATA = ../modules/plugins.dat
+-endif
+-MOSTLYCLEANFILES = $(noinst_DATA)
+-
+ if HAVE_OSX
+ if BUILD_VLC
+ install-data-local:
+@@ -139,13 +131,3 @@ install-data-local:
+ 
+ endif
+ endif
+-
+-.PHONY: ../modules/plugins.dat
+-
+-../modules/plugins.dat: vlc-cache-gen$(EXEEXT)
+-	$(AM_V_at)rm -f ../modules/plugins.dat
+-	$(AM_V_GEN)if test "$(build)" = "$(host)"; then \
+-		./vlc-cache-gen$(EXEEXT) `realpath ../modules` ; \
+-	else \
+-		echo "Cross-compilation: cache generation skipped!" ; \
+-	fi

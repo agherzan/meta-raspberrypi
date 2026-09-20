@@ -1,0 +1,40 @@
+From 4b518647d092a985e8e70ea9388d0a8dbe25d43d Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Wed, 12 Jun 2024 10:16:27 +0100
+Subject: [PATCH 31/41] video_output: Prioritise GLES over GL
+
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ modules/video_output/opengl/display.c | 2 +-
+ modules/video_output/opengl/egl.c     | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+--- a/modules/video_output/opengl/display.c
++++ b/modules/video_output/opengl/display.c
+@@ -48,7 +48,7 @@ vlc_module_begin ()
+ # define MODULE_VARNAME "gles2"
+     set_shortname (N_("OpenGL ES2"))
+     set_description (N_("OpenGL for Embedded Systems 2 video output"))
+-    set_capability ("vout display", 265)
++    set_capability ("vout display", 271)
+     set_callbacks (Open, Close)
+     add_shortcut ("opengles2", "gles2")
+     add_module ("gles2", "opengl es2", NULL,
+--- a/modules/video_output/opengl/egl.c
++++ b/modules/video_output/opengl/egl.c
+@@ -476,7 +476,7 @@ vlc_module_begin ()
+     add_shortcut ("egl")
+ 
+     add_submodule ()
+-    set_capability ("opengl es2", 50)
++    set_capability ("opengl es2", 51)
+     set_callbacks (OpenGLES2, Close)
+     add_shortcut ("egl")
+ 

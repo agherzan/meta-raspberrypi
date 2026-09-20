@@ -1,7 +1,19 @@
+From 36d2e0e34910758daab5d2ffa9a1b179973443ba Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Tue, 11 Jun 2024 16:01:01 +0100
+Subject: [PATCH 02/41] vlc: Upgrade exit timeout to exit() rather than signal
+
+
+
 Upstream-Status: Inappropriate
 
 RPI-Distro repo forks original vlc and applies patches
+
 to enable raspiberry pi support.
+---
+
+ bin/vlc.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
 --- a/bin/vlc.c
 +++ b/bin/vlc.c

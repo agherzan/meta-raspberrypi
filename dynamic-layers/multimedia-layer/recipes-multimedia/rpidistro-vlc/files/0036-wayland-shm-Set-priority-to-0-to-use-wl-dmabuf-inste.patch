@@ -1,0 +1,28 @@
+From 08d0b7ce351a6027fafaac6bba0d33637c23a9af Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Wed, 12 Jun 2024 11:03:52 +0100
+Subject: [PATCH 36/41] wayland/shm: Set priority to 0 to use wl-dmabuf instead
+
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ modules/video_output/wayland/shm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/modules/video_output/wayland/shm.c
++++ b/modules/video_output/wayland/shm.c
+@@ -509,7 +509,7 @@ vlc_module_begin()
+     set_description(N_("Wayland shared memory video output"))
+     set_category(CAT_VIDEO)
+     set_subcategory(SUBCAT_VIDEO_VOUT)
+-    set_capability("vout display", 170)
++    set_capability("vout display", 0)
+     set_callbacks(Open, Close)
+     add_shortcut("wl")
+ vlc_module_end()

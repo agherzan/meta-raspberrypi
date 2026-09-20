@@ -1,0 +1,27 @@
+From e03913fe13f8c9a2ed1c27f18d86836b08f67ef5 Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Tue, 11 Jun 2024 16:13:54 +0100
+Subject: [PATCH 05/41] tospdif: Fix DTS rate calculation when we have 8*192000
+
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ modules/audio_filter/converter/tospdif.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/modules/audio_filter/converter/tospdif.c
++++ b/modules/audio_filter/converter/tospdif.c
+@@ -484,6 +484,7 @@ static int write_buffer_dtshd( filter_t
+                               p_in_buf->i_buffer ) != VLC_SUCCESS )
+         return SPDIF_ERROR;
+     unsigned i_period = p_filter->fmt_out.audio.i_rate
++                      * (p_filter->fmt_out.audio.i_bytes_per_frame / p_filter->fmt_out.audio.i_frame_length) / 4
+                       * core.i_frame_length / core.i_rate;
+ 
+     int i_subtype = dtshd_get_subtype( i_period );

@@ -398,6 +398,13 @@ discovered via all 1-Wire busses check the interface with this command
 
 `ls /sys/bus/w1/devices/`
 
+## Enable audio BCM2835 sound support
+
+Audio driver for BCM2835 depends on the 'snd_bcm2835' module.
+To enable the audio support explicitly set it in `local.conf`
+
+    ENABLE_AUDIO_BCM2835 = "1"
+
 ## Manual additions to config.txt
 
 The `RPI_EXTRA_CONFIG` variable can be used to manually add additional lines to

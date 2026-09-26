@@ -200,7 +200,7 @@ do_deploy() {
         esac
     fi
 
-    if [ "${ENABLE_UART}"  = "1" ] && [ "${MACHINE}" = "raspberrypi-cm5-io-board" ]; then
+    if [ "${ENABLE_UART}" = "1" ] && [ "${MACHINE}" = "raspberrypi-cm5-io-board" ]; then
         # Enable UART on the 40-pin header of the CM5 IO Board
         echo "dtoverlay=uart0" >>$CONFIG
         echo "dtparam=uart0_console" >>$CONFIG
@@ -339,8 +339,11 @@ do_deploy:append:raspberrypi3-64() {
     echo "# have a properly sized image" >> $CONFIG
     echo "disable_overscan=1" >> $CONFIG
 
-    echo "# Enable audio (loads snd_bcm2835)" >> $CONFIG
-    echo "dtparam=audio=on" >> $CONFIG
+    # Audio support
+    if [ "${ENABLE_AUDIO_BCM2835}" = "1" ]; then
+        echo "# Enable audio (loads snd_bcm2835)" >> $CONFIG
+        echo "dtparam=audio=on" >> $CONFIG
+    fi
 }
 
 do_deploy:append() {

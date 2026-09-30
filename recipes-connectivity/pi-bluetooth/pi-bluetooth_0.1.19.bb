@@ -9,6 +9,7 @@ LIC_FILES_CHKSUM = "\
 SRC_URI = "\
     git://github.com/RPi-Distro/pi-bluetooth;branch=master;protocol=https \
     file://0001-bthelper-correct-path-for-hciconfig-under-Yocto.patch \
+    file://0002-bthelper-let-bluetoothd-power-the-adapter-on.patch \
 "
 SRCREV = "87248a382d1a81b80a62730975135d87fffd7ef1"
 

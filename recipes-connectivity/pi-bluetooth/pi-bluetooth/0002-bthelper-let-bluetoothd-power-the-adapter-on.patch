@@ -1,0 +1,60 @@
+From db88d44e2db361c766d1a44f03f34a48c157d793 Mon Sep 17 00:00:00 2001
+From: devgianlu <altomanigianluca@gmail.com>
+Date: Wed, 30 Sep 2026 15:16:32 +0200
+Subject: [PATCH] bthelper: let bluetoothd power the adapter on
+
+bthelper brings the interface up with hciconfig to read the address and
+send its vendor commands. That powers the adapter without the kernel's
+power-on initialisation, which runs only when the adapter is powered
+through the management interface. Without it Secure Simple Pairing
+stays off and the kernel never registers its SMP channels, so the
+adapter silently ignores LE pairing requests, and bluetoothd, finding
+the adapter already powered, logs "Failed to set privacy: Rejected
+(0x0b)" and never powers it on itself.
+
+The delayed "bluetoothctl power off; power on" recovers from this only
+if bluetoothd is running five seconds later. When bthelper runs from
+udev before bluetoothd starts, as without systemd, it does not, and the
+adapter stays in this state until the Bluetooth stack is restarted.
+
+Take the interface down again once the helper is done, so bluetoothd
+powers it on through the management interface when it starts
+(AutoEnable, the default since BlueZ 5.65). If bluetoothd is already
+running, power the adapter on through it right away; otherwise still
+ask it once it runs, for versions without AutoEnable.
+
+Upstream-Status: Pending
+Signed-off-by: devgianlu <altomanigianluca@gmail.com>
+---
+ usr/bin/bthelper | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
+
+diff --git a/usr/bin/bthelper b/usr/bin/bthelper
+index 30b8e1c..d21347b 100755
+--- a/usr/bin/bthelper
++++ b/usr/bin/bthelper
+@@ -34,8 +34,16 @@ fi
+ # Route SCO packets to the HCI interface (enables HFP/HSP)
+ /usr/bin/hcitool -i $dev cmd 0x3f 0x1c 0x01 0x02 0x00 0x01 0x01 > /dev/null
+ 
+-# Force reinitialisation to allow extra features such as Secure Simple Pairing
+-# to be enabled, for currently unknown reasons. This requires bluetoothd to be
+-# running, which it isn't yet. Use this kludge of forking off another shell
+-# with a delay, pending a complete understanding of the issues.
+-(sleep 5; /usr/bin/bluetoothctl power off; /usr/bin/bluetoothctl power on) &
++# Bringing the interface up with hciconfig skips the kernel's power-on
++# initialisation, which runs only when the adapter is powered through the
++# management interface: without it Secure Simple Pairing stays off and the
++# SMP channels, which LE pairing needs, are never registered. Leave the
++# adapter down, so that bluetoothd powers it on itself.
++/usr/bin/hciconfig $dev down
++if pidof bluetoothd > /dev/null; then
++    /usr/bin/bluetoothctl power on > /dev/null
++else
++    # bluetoothd powers the adapter on when it starts (AutoEnable, the
++    # default since BlueZ 5.65). Older versions need asking once it runs.
++    (sleep 5; /usr/bin/bluetoothctl power on > /dev/null) &
++fi
+-- 
+2.55.0
+

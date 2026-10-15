@@ -1,0 +1,1393 @@
+From bf644e9724a01eaf946a851411b6cef74f428ae0 Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Wed, 12 Jun 2024 10:48:19 +0100
+Subject: [PATCH 32/41] egl: Add avcodec DRM_PRIME decode path
+
+Also includes drm_prime based deinterlace and sand30 conversion
+functions.
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ modules/Makefile.am                 |   1 +
+ modules/codec/avcodec/video.c       | 136 ++++++++-
+ modules/hw/drm/Makefile.am          |  26 ++
+ modules/hw/drm/conv_sand30.c        | 212 ++++++++++++++
+ modules/hw/drm/drm_av_deinterlace.c | 273 ++++++++++++++++++
+ modules/hw/drm/drm_avcodec.c        |  80 ++++++
+ modules/hw/drm/drm_gl_conv.c        | 425 ++++++++++++++++++++++++++++
+ src/misc/fourcc.c                   |  13 +
+ 8 files changed, 1154 insertions(+), 12 deletions(-)
+ create mode 100644 modules/hw/drm/Makefile.am
+ create mode 100644 modules/hw/drm/conv_sand30.c
+ create mode 100644 modules/hw/drm/drm_av_deinterlace.c
+ create mode 100644 modules/hw/drm/drm_avcodec.c
+ create mode 100644 modules/hw/drm/drm_gl_conv.c
+
+--- a/modules/Makefile.am
++++ b/modules/Makefile.am
+@@ -33,6 +33,7 @@ include demux/Makefile.am
+ include gui/Makefile.am
+ include hw/d3d9/Makefile.am
+ include hw/d3d11/Makefile.am
++include hw/drm/Makefile.am
+ include hw/vaapi/Makefile.am
+ include hw/vdpau/Makefile.am
+ include keystore/Makefile.am
+--- a/modules/codec/avcodec/video.c
++++ b/modules/codec/avcodec/video.c
+@@ -29,6 +29,8 @@
+ # include "config.h"
+ #endif
+ 
++#define OPT_RPI 1
++
+ #include <vlc_common.h>
+ #include <vlc_codec.h>
+ #include <vlc_avcodec.h>
+@@ -47,6 +49,8 @@
+ #include "avcodec.h"
+ #include "va.h"
+ 
++#include "drm_pic.h"
++
+ #include "../../packetizer/av1_obu.h"
+ #include "../../packetizer/av1.h"
+ #include "../codec/cc.h"
+@@ -54,6 +58,13 @@
+ /*****************************************************************************
+  * decoder_sys_t : decoder descriptor
+  *****************************************************************************/
++
++struct hw_setup_params_s {
++    uint32_t i_codec;
++    unsigned int width;
++    unsigned int height;
++};
++
+ struct decoder_sys_t
+ {
+     AVCodecContext *p_context;
+@@ -95,6 +106,7 @@ struct decoder_sys_t
+     /* VA API */
+     vlc_va_t *p_va;
+     enum PixelFormat pix_fmt;
++    enum PixelFormat sw_pix_fmt;
+     int profile;
+     int level;
+ 
+@@ -360,6 +372,13 @@ static int lavc_CopyPicture(decoder_t *d
+ {
+     decoder_sys_t *sys = dec->p_sys;
+ 
++    // DRM prime frames are alloced by the decoder
++    // To copy out just attach the buf to the pic
++    if (frame->format == AV_PIX_FMT_DRM_PRIME)
++    {
++        return drm_prime_attach_buf_to_pic(pic, frame);
++    }
++
+     vlc_fourcc_t fourcc = FindVlcChroma(frame->format);
+     if (!fourcc)
+     {
+@@ -424,6 +443,9 @@ static int OpenVideoCodec( decoder_t *p_
+ 
+     ctx->bits_per_coded_sample = p_dec->fmt_in.video.i_bits_per_pixel;
+     p_sys->pix_fmt = AV_PIX_FMT_NONE;
++    p_sys->sw_pix_fmt = AV_PIX_FMT_NONE;
++    p_sys->profile = -1;
++    p_sys->level = -1;
+     cc_Init( &p_sys->cc );
+ 
+     set_video_color_settings( &p_dec->fmt_in.video, ctx );
+@@ -463,6 +485,32 @@ static int OpenVideoCodec( decoder_t *p_
+     return 0;
+ }
+ 
++static es_format_t hw_fail;
++
++static bool
++hw_check_bad(const es_format_t * const fmt)
++{
++    if (hw_fail.i_codec == fmt->i_codec &&
++        hw_fail.video.i_width  == fmt->video.i_width &&
++        hw_fail.video.i_height == fmt->video.i_height)
++        return true;
++
++    return false;
++}
++
++static void
++hw_set_bad(const es_format_t * const fmt)
++{
++    if (fmt->video.i_width != 0 && fmt->video.i_height != 0)
++        hw_fail = *fmt;
++}
++
++/*****************************************************************************
++ * InitVideo: initialize the video decoder
++ *****************************************************************************
++ * the ffmpeg codec will be opened, some memory allocated. The vout is not yet
++ * opened (done after the first decoded frame).
++ *****************************************************************************/
+ static int InitVideoDecCommon( decoder_t *p_dec )
+ {
+     decoder_sys_t *p_sys = p_dec->p_sys;
+@@ -613,17 +661,31 @@ static int InitVideoDecCommon( decoder_t
+     } else
+         p_sys->palette_sent = true;
+ 
++    // If we want DRM_PRIME then we need to create the context before Open
++    // * This probably applies to anything that wants device_ctx init
++    {
++        const AVCodecHWConfig * hw_config;
++        for (int i = 0; (hw_config = avcodec_get_hw_config(p_codec, i)) != NULL; ++i)
++        {
++            if ((hw_config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX) != 0 &&
++                hw_config->device_type == AV_HWDEVICE_TYPE_DRM)
++            {
++                int err;
++                if ((err = av_hwdevice_ctx_create(&p_context->hw_device_ctx, hw_config->device_type, NULL, NULL, 0)) < 0) {
++                    msg_Dbg(p_dec, "Failed to create specified HW device: %s", av_err2str(err));
++                    goto error;
++                }
++                break;
++            }
++        }
++    }
++
+     /* ***** init this codec with special data ***** */
+     ffmpeg_InitCodec( p_dec );
+ 
+     /* ***** Open the codec ***** */
+     if( OpenVideoCodec( p_dec ) < 0 )
+-    {
+-        vlc_sem_destroy( &p_sys->sem_mt );
+-        free( p_sys );
+-        avcodec_free_context( &p_context );
+-        return VLC_EGENERIC;
+-    }
++        goto error;
+ 
+     p_dec->pf_decode = DecodeVideo;
+     p_dec->pf_flush  = Flush;
+@@ -634,6 +696,12 @@ static int InitVideoDecCommon( decoder_t
+     if( p_context->level != FF_LEVEL_UNKNOWN )
+         p_dec->fmt_in.i_level = p_context->level;
+     return VLC_SUCCESS;
++
++error:
++    vlc_sem_destroy( &p_sys->sem_mt );
++    free( p_sys );
++    avcodec_free_context( &p_context );
++    return VLC_EGENERIC;
+ }
+ 
+ static int ffmpeg_OpenVa(decoder_t *p_dec, AVCodecContext *p_context,
+@@ -655,7 +723,8 @@ static int ffmpeg_OpenVa(decoder_t *p_de
+         return VLC_EGENERIC;
+     }
+     const AVPixFmtDescriptor *dsc = av_pix_fmt_desc_get(hwfmt);
+-    msg_Dbg(p_dec, "trying format %s", dsc ? dsc->name : "unknown");
++    const AVPixFmtDescriptor *dsc_sw = av_pix_fmt_desc_get(swfmt);
++    msg_Dbg(p_dec, "trying format %s:%s", dsc ? dsc->name : "unknown", dsc_sw ? dsc_sw->name : "unknown");
+     if (lavc_UpdateVideoFormat(p_dec, p_context, hwfmt, swfmt))
+         return VLC_EGENERIC; /* Unsupported brand of hardware acceleration */
+ 
+@@ -689,6 +758,10 @@ static int ffmpeg_OpenVa(decoder_t *p_de
+ 
+ static const enum PixelFormat hwfmts[] =
+ {
++#if OPT_RPI
++    // If Pi then do not bother with stuff we know will fail
++    AV_PIX_FMT_DRM_PRIME,
++#else
+ #ifdef _WIN32
+ #if LIBAV_UTIL_VERSION_CHECK(54, 13, 1, 24, 100)
+     AV_PIX_FMT_D3D11VA_VLD,
+@@ -699,6 +772,7 @@ static const enum PixelFormat hwfmts[] =
+ #if (LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(52, 4, 0))
+     AV_PIX_FMT_VDPAU,
+ #endif
++#endif
+     AV_PIX_FMT_NONE,
+ };
+ 
+@@ -818,11 +892,11 @@ failed:
+  * the ffmpeg codec will be opened, some memory allocated. The vout is not yet
+  * opened (done after the first decoded frame).
+  *****************************************************************************/
+-int InitVideoDec( vlc_object_t *obj )
++static int InitVideoDec2( vlc_object_t *obj, const int hw )
+ {
+     decoder_t *p_dec = (decoder_t *)obj;
+     const AVCodec *p_codec;
+-    AVCodecContext *p_context = ffmpeg_AllocContext( p_dec, &p_codec );
++    AVCodecContext *p_context = ffmpeg_AllocContextHw( p_dec, &p_codec, hw );
+     if( p_context == NULL )
+         return VLC_EGENERIC;
+ 
+@@ -844,6 +918,27 @@ int InitVideoDec( vlc_object_t *obj )
+     return InitVideoDecCommon( p_dec );
+ }
+ 
++int InitVideoDec( vlc_object_t *obj )
++{
++    decoder_t * const p_dec = (decoder_t *)obj;
++
++    // Don't retry something we know failed
++    if (!hw_check_bad(&p_dec->fmt_in))
++    {
++        if (InitVideoDec2(obj, 1) == 0)
++            return 0;
++
++        hw_set_bad(&p_dec->fmt_in);
++        msg_Dbg(p_dec, "Set hw fail for %4.4s %dx%d", (char *)&p_dec->fmt_in.i_codec, p_dec->fmt_in.video.i_width, p_dec->fmt_in.video.i_height);
++    }
++    else
++    {
++        msg_Dbg(p_dec, "Avoid trying hw decoder for %4.4s %dx%d", (char *)&p_dec->fmt_in.i_codec, p_dec->fmt_in.video.i_width, p_dec->fmt_in.video.i_height);
++    }
++
++    return InitVideoDec2(obj, 0);
++}
++
+ /*****************************************************************************
+  * Flush:
+  *****************************************************************************/
+@@ -1402,9 +1497,10 @@ static picture_t *DecodeBlock( decoder_t
+         {   /* When direct rendering is not used, get_format() and get_buffer()
+              * might not be called. The output video format must be set here
+              * then picture buffer can be allocated. */
+-            if (p_sys->p_va == NULL
++            if ((frame->format == AV_PIX_FMT_DRM_PRIME ||
++                 p_sys->p_va == NULL)
+              && lavc_UpdateVideoFormat(p_dec, p_context, p_context->pix_fmt,
+-                                       p_context->pix_fmt) == 0)
++                                       p_context->sw_pix_fmt) == 0)
+                 p_pic = decoder_NewPicture(p_dec);
+ 
+             if( !p_pic )
+@@ -1797,6 +1893,7 @@ static enum PixelFormat ffmpeg_GetFormat
+         }
+         swfmt = defaultfmt;
+     }
++    p_sys->sw_pix_fmt = swfmt;
+ 
+     if (p_sys->pix_fmt == AV_PIX_FMT_NONE)
+         goto no_reuse;
+@@ -1850,7 +1947,10 @@ no_reuse:
+     p_sys->level = p_context->level;
+ 
+     if (!can_hwaccel)
++    {
++        msg_Dbg(p_dec, "No hwaccel - using %s", av_get_pix_fmt_name(swfmt));
+         return swfmt;
++    }
+ 
+ #if (LIBAVCODEC_VERSION_MICRO >= 100) && !(LIBAVCODEC_VERSION_CHECK(57, 83, 101))
+     if (p_context->active_thread_type)
+@@ -1868,11 +1968,23 @@ no_reuse:
+     for( size_t i = 0; hwfmts[i] != AV_PIX_FMT_NONE; i++ )
+     {
+         enum PixelFormat hwfmt = AV_PIX_FMT_NONE;
++        enum PixelFormat defsw = swfmt;
++
+         for( size_t j = 0; hwfmt == AV_PIX_FMT_NONE && pi_fmt[j] != AV_PIX_FMT_NONE; j++ )
+             if( hwfmts[i] == pi_fmt[j] )
+                 hwfmt = hwfmts[i];
+ 
+-        if (ffmpeg_OpenVa(p_dec, p_context, hwfmt, swfmt, src_desc, &p_sys->sem_mt) != VLC_SUCCESS)
++#if OPT_RPI
++        if (hwfmt == AV_PIX_FMT_DRM_PRIME && p_context->codec_id == AV_CODEC_ID_HEVC)
++        {
++            if (swfmt == AV_PIX_FMT_P010)
++                defsw = AV_PIX_FMT_RPI4_10;
++            if (swfmt == AV_PIX_FMT_YUV420P)
++                defsw = AV_PIX_FMT_RPI4_8;
++        }
++#endif
++
++        if (ffmpeg_OpenVa(p_dec, p_context, hwfmt, defsw, src_desc, &p_sys->sem_mt) != VLC_SUCCESS)
+             continue;
+ 
+         post_mt(p_sys);
+--- /dev/null
++++ b/modules/hw/drm/Makefile.am
+@@ -0,0 +1,26 @@
++drmdir = $(pluginsdir)/drm
++
++libdrm_avcodec_plugin_la_SOURCES = hw/drm/drm_avcodec.c
++libdrm_avcodec_plugin_la_CFLAGS = $(AM_CFLAGS) $(AVCODEC_CFLAGS)
++libdrm_avcodec_plugin_la_LIBADD = $(AVCODEC_LIBS)
++
++libdrm_gl_conv_plugin_la_SOURCES = hw/drm/drm_gl_conv.c
++libdrm_gl_conv_plugin_la_CFLAGS = $(AM_CFLAGS) $(AVCODEC_CFLAGS)
++
++libdrm_conv_sand30_plugin_la_SOURCES = hw/drm/conv_sand30.c
++libdrm_conv_sand30_plugin_la_CFLAGS = $(AM_CFLAGS) $(AVCODEC_CFLAGS)
++libdrm_conv_sand30_plugin_la_LIBADD = $(AVCODEC_LIBS)
++
++libdrm_av_deinterlace_plugin_la_SOURCES = hw/drm/drm_av_deinterlace.c \
++	codec/avcodec/drm_pic.c codec/avcodec/drm_pic.h
++libdrm_av_deinterlace_plugin_la_CFLAGS = $(AM_CFLAGS) $(AVCODEC_CFLAGS)
++libdrm_av_deinterlace_plugin_la_LDFLAGS = $(AM_LDFLAGS) $(AVCODEC_LDFLAGS) -lavfilter
++libdrm_av_deinterlace_plugin_la_LIBADD = $(AVCODEC_LIBS)
++
++if HAVE_DRM
++drm_LTLIBRARIES = \
++ libdrm_av_deinterlace_plugin.la \
++ libdrm_avcodec_plugin.la \
++ libdrm_conv_sand30_plugin.la \
++ libdrm_gl_conv_plugin.la
++endif
+--- /dev/null
++++ b/modules/hw/drm/conv_sand30.c
+@@ -0,0 +1,212 @@
++#ifdef HAVE_CONFIG_H
++# include "config.h"
++#endif
++
++#include <vlc_common.h>
++#include <vlc_filter.h>
++#include <vlc_picture.h>
++#include <vlc_plugin.h>
++
++#include <libavutil/buffer.h>
++#include <libavutil/frame.h>
++#include <libavutil/hwcontext.h>
++
++#include "../../codec/avcodec/drm_pic.h"
++
++#include <assert.h>
++
++#define TRACE_ALL 0
++
++//----------------------------------------------------------------------------
++//
++// Simple copy in to ZC
++
++typedef struct to_nv12_sys_s {
++    int dummy;
++} to_nv12_sys_t;
++
++static vlc_fourcc_t
++dst_fourcc_vlc_to_av(const vlc_fourcc_t av)
++{
++    switch (av) {
++    case VLC_CODEC_I420:
++        return AV_PIX_FMT_YUV420P;
++    case VLC_CODEC_NV12:
++        return AV_PIX_FMT_NV12;
++    case VLC_CODEC_I420_10L:
++        return AV_PIX_FMT_YUV420P10LE;
++    }
++    return 0;
++}
++
++static void
++pic_buf_free(void *opaque, uint8_t *data)
++{
++    VLC_UNUSED(data);
++    picture_Release(opaque);
++}
++
++static AVBufferRef *
++mk_buf_from_pic(picture_t * const pic, uint8_t * const data, const size_t size)
++{
++    return av_buffer_create(data, size, pic_buf_free, picture_Hold(pic), 0);
++}
++
++static picture_t *
++to_nv12_filter(filter_t *p_filter, picture_t *in_pic)
++{
++    to_nv12_sys_t * const sys = (to_nv12_sys_t *)p_filter->p_sys;
++#if TRACE_ALL
++    msg_Dbg(p_filter, "<<< %s", __func__);
++#endif
++    AVFrame * frame_in = av_frame_alloc();
++    AVFrame * frame_out = av_frame_alloc();
++    drm_prime_video_sys_t * const pctx = (drm_prime_video_sys_t *)in_pic->context;
++    int rv;
++
++    VLC_UNUSED(sys);
++
++    if (!frame_in || !frame_out || !pctx)
++        goto fail0;
++
++    picture_t * const out_pic = filter_NewPicture(p_filter);
++    if (out_pic == NULL)
++        goto fail0;
++
++    frame_in->format      = AV_PIX_FMT_DRM_PRIME;
++    frame_in->buf[0]      = av_buffer_ref(pctx->buf);
++    frame_in->data[0]     = (uint8_t *)pctx->desc;
++    frame_in->hw_frames_ctx = av_buffer_ref(pctx->hw_frames_ctx);
++    frame_in->width       = in_pic->format.i_width;
++    frame_in->height      = in_pic->format.i_height;
++    frame_in->crop_left   = in_pic->format.i_x_offset;
++    frame_in->crop_top    = in_pic->format.i_y_offset;
++    frame_in->crop_right  = frame_in->width - in_pic->format.i_visible_width - frame_in->crop_left;
++    frame_in->crop_bottom = frame_in->height - in_pic->format.i_visible_height - frame_in->crop_top;
++
++    frame_out->format     = dst_fourcc_vlc_to_av(p_filter->fmt_out.video.i_chroma);
++    frame_out->width      = out_pic->format.i_width;
++    frame_out->height     = out_pic->format.i_height;
++    for (int i = 0; i != out_pic->i_planes; ++i) {
++        frame_out->buf[i] = mk_buf_from_pic(out_pic, out_pic->p[i].p_pixels, out_pic->p[i].i_lines * out_pic->p[i].i_pitch);
++        if (!frame_out->buf[i]) {
++            msg_Err(p_filter, "Failed to make buf from pic");
++            goto fail1;
++        }
++        frame_out->data[i] = out_pic->p[i].p_pixels;
++        frame_out->linesize[i] = out_pic->p[i].i_pitch;
++    }
++
++    if ((rv = av_hwframe_transfer_data(frame_out, frame_in, 0)) != 0) {
++        msg_Err(p_filter, "Failed to transfer data: %s", av_err2str(rv));
++        goto fail1;
++    }
++
++    av_frame_free(&frame_in);
++    av_frame_free(&frame_out);
++    picture_Release(in_pic);
++    return out_pic;
++
++fail1:
++    picture_Release(out_pic);
++fail0:
++    av_frame_free(&frame_in);
++    av_frame_free(&frame_out);
++    picture_Release(in_pic);
++    return NULL;
++}
++
++static void to_nv12_flush(filter_t * p_filter)
++{
++    VLC_UNUSED(p_filter);
++}
++
++static void CloseConverterToNv12(vlc_object_t * obj)
++{
++    filter_t * const p_filter = (filter_t *)obj;
++    to_nv12_sys_t * const sys = (to_nv12_sys_t *)p_filter->p_sys;
++
++    if (sys == NULL)
++        return;
++
++    p_filter->p_sys = NULL;
++
++    free(sys);
++}
++
++static bool to_nv12_validate_fmt(const video_format_t * const f_in, const video_format_t * const f_out)
++{
++    if (f_in->i_height != f_out->i_height ||
++        f_in->i_width  != f_out->i_width)
++    {
++        return false;
++    }
++
++    if (f_in->i_chroma == VLC_CODEC_DRM_PRIME_SAND8 &&
++        (f_out->i_chroma == VLC_CODEC_I420 || f_out->i_chroma == VLC_CODEC_NV12))
++        return true;
++
++    if (f_in->i_chroma == VLC_CODEC_DRM_PRIME_I420 &&
++        f_out->i_chroma == VLC_CODEC_I420)
++        return true;
++
++    if (f_in->i_chroma == VLC_CODEC_DRM_PRIME_NV12 &&
++        f_out->i_chroma == VLC_CODEC_NV12)
++        return true;
++
++    if (f_in->i_chroma == VLC_CODEC_DRM_PRIME_SAND30 &&
++        (f_out->i_chroma == VLC_CODEC_I420_10L || f_out->i_chroma == VLC_CODEC_NV12))
++        return true;
++
++    return false;
++}
++
++static int OpenConverterToNv12(vlc_object_t * obj)
++{
++    int ret = VLC_EGENERIC;
++    filter_t * const p_filter = (filter_t *)obj;
++
++    if (!to_nv12_validate_fmt(&p_filter->fmt_in.video, &p_filter->fmt_out.video))
++        goto fail;
++
++    {
++        msg_Dbg(p_filter, "%s: %s,%dx%d [(%d,%d) %d/%d] sar:%d/%d->%s,%dx%d [(%d,%d) %dx%d] rgb:%#x:%#x:%#x sar:%d/%d", __func__,
++                fourcc2str(p_filter->fmt_in.video.i_chroma),
++                p_filter->fmt_in.video.i_width, p_filter->fmt_in.video.i_height,
++                p_filter->fmt_in.video.i_x_offset, p_filter->fmt_in.video.i_y_offset,
++                p_filter->fmt_in.video.i_visible_width, p_filter->fmt_in.video.i_visible_height,
++                p_filter->fmt_in.video.i_sar_num, p_filter->fmt_in.video.i_sar_den,
++                fourcc2str(p_filter->fmt_out.video.i_chroma),
++                p_filter->fmt_out.video.i_width, p_filter->fmt_out.video.i_height,
++                p_filter->fmt_out.video.i_x_offset, p_filter->fmt_out.video.i_y_offset,
++                p_filter->fmt_out.video.i_visible_width, p_filter->fmt_out.video.i_visible_height,
++                p_filter->fmt_out.video.i_rmask, p_filter->fmt_out.video.i_gmask, p_filter->fmt_out.video.i_bmask,
++                p_filter->fmt_out.video.i_sar_num, p_filter->fmt_out.video.i_sar_den);
++    }
++
++    to_nv12_sys_t * const sys = calloc(1, sizeof(*sys));
++    if (!sys) {
++        ret = VLC_ENOMEM;
++        goto fail;
++    }
++    p_filter->p_sys = (filter_sys_t *)sys;
++
++    p_filter->pf_video_filter = to_nv12_filter;
++    p_filter->pf_flush = to_nv12_flush;
++    return VLC_SUCCESS;
++
++fail:
++    CloseConverterToNv12(obj);
++    return ret;
++}
++
++vlc_module_begin()
++    set_category( CAT_VIDEO )
++    set_subcategory( SUBCAT_VIDEO_VFILTER )
++    set_shortname(N_("DRMPRIME to s/w"))
++    set_description(N_("DRMPRIME-to software picture filter"))
++    add_shortcut("drmprime_to_sw")
++    set_capability( "video converter", 50 )
++    set_callbacks(OpenConverterToNv12, CloseConverterToNv12)
++vlc_module_end()
++
+--- /dev/null
++++ b/modules/hw/drm/drm_av_deinterlace.c
+@@ -0,0 +1,273 @@
++#ifdef HAVE_CONFIG_H
++# include "config.h"
++#endif
++
++#include <vlc_common.h>
++#include <vlc_filter.h>
++#include <vlc_picture.h>
++#include <vlc_plugin.h>
++
++#include "../../codec/avcodec/drm_pic.h"
++
++#include <libavcodec/avcodec.h>
++#include <libavfilter/buffersink.h>
++#include <libavfilter/buffersrc.h>
++#include <libavformat/avformat.h>
++#include <libavutil/opt.h>
++#include <libavutil/pixdesc.h>
++#include <libavutil/hwcontext.h>
++
++#define TRACE_ALL 1
++
++typedef struct filter_sys_t {
++    AVFilterGraph *filter_graph;
++    AVFilterContext *buffersink_ctx;  // Allocated within graph - no explicit free
++    AVFilterContext *buffersrc_ctx;   // Allocated within graph - no explicit free
++    bool has_out;
++    AVFrame *out_frame;
++} filter_sys_t;
++
++static void drmp_av_flush(filter_t * filter)
++{
++    // Nothing to do
++    VLC_UNUSED(filter);
++
++#if TRACE_ALL
++    msg_Dbg(filter, "<<< %s", __func__);
++#endif
++}
++
++static picture_t * drmp_av_deinterlace(filter_t * filter, picture_t * in_pic)
++{
++    filter_sys_t *const sys = filter->p_sys;
++    AVFrame * frame = av_frame_alloc();
++    drm_prime_video_sys_t * const pctx = (drm_prime_video_sys_t *)in_pic->context;
++    picture_t * out_pic = NULL;
++    picture_t ** pp_pic = &out_pic;
++    int ret;
++
++#if TRACE_ALL
++    msg_Dbg(filter, "<<< %s", __func__);
++#endif
++
++    if (!frame) {
++        msg_Err(filter, "Frame alloc failure");
++        goto fail;
++    }
++
++    frame->format      = AV_PIX_FMT_DRM_PRIME;
++    frame->buf[0]      = av_buffer_ref(pctx->buf);
++    frame->data[0]     = (uint8_t *)pctx->desc;
++    frame->hw_frames_ctx = av_buffer_ref(pctx->hw_frames_ctx);
++    frame->width       = in_pic->format.i_width;
++    frame->height      = in_pic->format.i_height;
++    frame->crop_left   = in_pic->format.i_x_offset;
++    frame->crop_top    = in_pic->format.i_y_offset;
++    frame->crop_right  = frame->width -  in_pic->format.i_visible_width -  frame->crop_left;
++    frame->crop_bottom = frame->height - in_pic->format.i_visible_height - frame->crop_top;
++    frame->interlaced_frame = !in_pic->b_progressive;
++    frame->top_field_first  = in_pic->b_top_field_first;
++    frame->pts         = (in_pic->date == VLC_TS_INVALID) ? AV_NOPTS_VALUE : in_pic->date;
++
++    picture_Release(in_pic);
++    in_pic = NULL;
++
++    if ((ret = av_buffersrc_add_frame_flags(sys->buffersrc_ctx, frame, AV_BUFFERSRC_FLAG_KEEP_REF)) < 0) {
++        msg_Err(filter, "Failed to feed filtergraph: %s", av_err2str(ret));
++        goto fail;
++    }
++    av_frame_unref(frame);
++
++    while (sys->has_out || (ret = av_buffersink_get_frame(sys->buffersink_ctx, sys->out_frame)) == 0) {
++        picture_t *const pic = filter_NewPicture(filter);
++        sys->has_out = true;
++        // Failure to get an output pic happens quite often, just keep the
++        // frame for next time
++        if (!pic)
++            break;
++
++        if (drm_prime_attach_buf_to_pic(pic, sys->out_frame) != VLC_SUCCESS) {
++            msg_Err(filter, "Failed to attach frame to out pic");
++            picture_Release(pic);
++            goto fail;
++        }
++        pic->date =  sys->out_frame->pts == AV_NOPTS_VALUE ? VLC_TS_INVALID : sys->out_frame->pts;
++        av_frame_unref(sys->out_frame);
++        sys->has_out = false;
++
++        *pp_pic = pic;
++        pp_pic = &pic->p_next;
++    }
++
++    if (ret < 0 && ret != AVERROR_EOF && ret != AVERROR(EAGAIN)) {
++        msg_Err(filter, "Failed to get frame: %s", av_err2str(ret));
++        goto fail;
++    }
++
++    // Even if we get an error we may have processed some pics and we need to return them
++fail:
++    if (in_pic)
++        picture_Release(in_pic);
++    av_frame_free(&frame);
++
++#if TRACE_ALL
++    msg_Dbg(filter, ">>> %s: %p", __func__, out_pic);
++#endif
++
++    return out_pic;
++}
++
++static void CloseDrmpAvDeinterlace(filter_t *filter)
++{
++    filter_sys_t * const sys = filter->p_sys;
++
++#if TRACE_ALL
++    msg_Dbg(filter, "<<< %s", __func__);
++#endif
++
++    if (sys == NULL)
++        return;
++
++    av_frame_free(&sys->out_frame);
++    avfilter_graph_free(&sys->filter_graph);
++    free(sys);
++}
++
++
++// Copied almost directly from ffmpeg filtering_video.c example
++static int init_filters(filter_t * const filter,
++                        const char * const filters_descr)
++{
++    filter_sys_t *const sys = filter->p_sys;
++    const video_format_t * const fmt = &filter->fmt_in.video;
++    char args[512];
++    int ret = 0;
++    const AVFilter *buffersrc  = avfilter_get_by_name("buffer");
++    const AVFilter *buffersink = avfilter_get_by_name("buffersink");
++    AVFilterInOut *outputs = avfilter_inout_alloc();
++    AVFilterInOut *inputs  = avfilter_inout_alloc();
++    enum AVPixelFormat pix_fmts[] = { AV_PIX_FMT_DRM_PRIME, AV_PIX_FMT_NONE };
++
++    sys->out_frame = av_frame_alloc();
++    sys->filter_graph = avfilter_graph_alloc();
++    if (!outputs || !inputs || !sys->filter_graph || !sys->out_frame) {
++        ret = AVERROR(ENOMEM);
++        goto end;
++    }
++
++    /* buffer video source: the decoded frames from the decoder will be inserted here. */
++    snprintf(args, sizeof(args),
++            "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d",
++             fmt->i_visible_width, fmt->i_visible_height, AV_PIX_FMT_DRM_PRIME,
++             1, (int)CLOCK_FREQ,
++             fmt->i_sar_num, fmt->i_sar_den);
++
++    ret = avfilter_graph_create_filter(&sys->buffersrc_ctx, buffersrc, "in",
++                                       args, NULL, sys->filter_graph);
++    if (ret < 0) {
++        msg_Err(filter, "Cannot create buffer source");
++        goto end;
++    }
++
++    /* buffer video sink: to terminate the filter chain. */
++    ret = avfilter_graph_create_filter(&sys->buffersink_ctx, buffersink, "out",
++                                       NULL, NULL, sys->filter_graph);
++    if (ret < 0) {
++        msg_Err(filter, "Cannot create buffer sink");
++        goto end;
++    }
++
++    ret = av_opt_set_int_list(sys->buffersink_ctx, "pix_fmts", pix_fmts,
++                              AV_PIX_FMT_NONE, AV_OPT_SEARCH_CHILDREN);
++    if (ret < 0) {
++        msg_Err(filter, "Cannot set output pixel format");
++        goto end;
++    }
++
++    /*
++     * Set the endpoints for the filter graph. The filter_graph will
++     * be linked to the graph described by filters_descr.
++     */
++
++    /*
++     * The buffer source output must be connected to the input pad of
++     * the first filter described by filters_descr; since the first
++     * filter input label is not specified, it is set to "in" by
++     * default.
++     */
++    outputs->name       = av_strdup("in");
++    outputs->filter_ctx = sys->buffersrc_ctx;
++    outputs->pad_idx    = 0;
++    outputs->next       = NULL;
++
++    /*
++     * The buffer sink input must be connected to the output pad of
++     * the last filter described by filters_descr; since the last
++     * filter output label is not specified, it is set to "out" by
++     * default.
++     */
++    inputs->name       = av_strdup("out");
++    inputs->filter_ctx = sys->buffersink_ctx;
++    inputs->pad_idx    = 0;
++    inputs->next       = NULL;
++
++    if ((ret = avfilter_graph_parse_ptr(sys->filter_graph, filters_descr,
++                                    &inputs, &outputs, NULL)) < 0)
++        goto end;
++
++    if ((ret = avfilter_graph_config(sys->filter_graph, NULL)) < 0)
++        goto end;
++
++end:
++    avfilter_inout_free(&inputs);
++    avfilter_inout_free(&outputs);
++
++    return ret == 0 ? VLC_SUCCESS : ret == AVERROR(ENOMEM) ? VLC_ENOMEM : VLC_EGENERIC;
++}
++
++static bool is_fmt_valid_in(const vlc_fourcc_t fmt)
++{
++    return fmt == VLC_CODEC_DRM_PRIME_I420 ||
++            fmt == VLC_CODEC_DRM_PRIME_NV12 ||
++            fmt == VLC_CODEC_DRM_PRIME_SAND8;
++}
++
++static int OpenDrmpAvDeinterlace(filter_t *filter)
++{
++    filter_sys_t *sys;
++    int ret;
++
++    msg_Dbg(filter, "<<< %s", __func__);
++
++    if (!is_fmt_valid_in(filter->fmt_in.video.i_chroma) ||
++        filter->fmt_out.video.i_chroma != filter->fmt_in.video.i_chroma)
++        return VLC_EGENERIC;
++
++    sys = calloc(1, sizeof(filter_sys_t));
++    if (!sys)
++        return VLC_ENOMEM;
++    filter->p_sys = sys;
++
++    if ((ret = init_filters(filter, "deinterlace_v4l2m2m")) != 0)
++        goto fail;
++
++    filter->pf_video_filter = drmp_av_deinterlace;
++    filter->pf_flush = drmp_av_flush;
++
++    return VLC_SUCCESS;
++
++fail:
++    CloseDrmpAvDeinterlace(filter);
++    return VLC_EGENERIC;
++}
++
++vlc_module_begin()
++    set_shortname(N_("DRM PRIME deinterlace"))
++    set_description(N_("libav-based DRM_PRIME deinterlace filter plugin"))
++    set_capability("video filter", 902)
++    set_category(CAT_VIDEO)
++    set_subcategory(SUBCAT_VIDEO_VFILTER)
++    set_callbacks(OpenDrmpAvDeinterlace, CloseDrmpAvDeinterlace)
++    add_shortcut("deinterlace")
++vlc_module_end()
++
+--- /dev/null
++++ b/modules/hw/drm/drm_avcodec.c
+@@ -0,0 +1,80 @@
++/*****************************************************************************
++ * avcodec.c: VDPAU decoder for libav
++ *****************************************************************************
++ * Copyright (C) 2012-2013 Rémi Denis-Courmont
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU Lesser General Public License as published by
++ * the Free Software Foundation; either version 2.1 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public License
++ * along with this program; if not, write to the Free Software Foundation,
++ * Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
++ *****************************************************************************/
++
++#ifdef HAVE_CONFIG_H
++# include "config.h"
++#endif
++
++#include <string.h>
++#include <stdlib.h>
++
++#include <vlc_common.h>
++#include <vlc_plugin.h>
++#include <vlc_fourcc.h>
++#include <vlc_picture.h>
++#include "../../codec/avcodec/va.h"
++
++// Dummy - not expected to be called
++static int drm_va_get(vlc_va_t *va, picture_t *pic, uint8_t **data)
++{
++    VLC_UNUSED(va);
++    VLC_UNUSED(pic);
++    VLC_UNUSED(data);
++
++    return VLC_SUCCESS;
++}
++
++static int Open(vlc_va_t *va, AVCodecContext *avctx, const AVPixFmtDescriptor *desc,
++                enum PixelFormat pix_fmt,
++                const es_format_t *fmt, picture_sys_t *p_sys)
++{
++    VLC_UNUSED(fmt);
++    VLC_UNUSED(p_sys);
++    VLC_UNUSED(desc);
++
++    msg_Dbg(va, "%s: pix_fmt=%d", __func__, pix_fmt);
++
++    if (pix_fmt != AV_PIX_FMT_DRM_PRIME)
++        return VLC_EGENERIC;
++
++    // This gives us whatever the decode requires + 6 frames that will be
++    // alloced by ffmpeg before it blocks (at least for Pi HEVC)
++    avctx->extra_hw_frames = 6;
++
++    va->description = "DRM Video Accel";
++    va->get = drm_va_get;
++    return VLC_SUCCESS;
++}
++
++static void Close(vlc_va_t *va, void **hwctx)
++{
++    VLC_UNUSED(hwctx);
++
++    msg_Dbg(va, "%s", __func__);
++}
++
++vlc_module_begin()
++    set_description(N_("DRM video decoder"))
++    set_capability("hw decoder", 100)
++    set_category(CAT_INPUT)
++    set_subcategory(SUBCAT_INPUT_VCODEC)
++    set_callbacks(Open, Close)
++    add_shortcut("drm_prime")
++vlc_module_end()
+--- /dev/null
++++ b/modules/hw/drm/drm_gl_conv.c
+@@ -0,0 +1,425 @@
++#ifdef HAVE_CONFIG_H
++# include "config.h"
++#endif
++
++#include <vlc_common.h>
++#include <vlc_picture.h>
++
++#include <libavutil/hwcontext_drm.h>
++#include <libdrm/drm_fourcc.h>
++#include <EGL/egl.h>
++#include <EGL/eglext.h>
++#include <GLES2/gl2.h>
++#include <GLES2/gl2ext.h>
++
++#include "../../video_output/opengl/converter.h"
++#include "../../codec/avcodec/drm_pic.h"
++
++#include <assert.h>
++
++#define TRACE_ALL 0
++
++#define ICACHE_SIZE 2
++
++typedef struct drm_gl_converter_s
++{
++    EGLint drm_fourcc;
++
++    unsigned int icache_n;
++    struct icache_s {
++        EGLImageKHR last_image;
++        picture_context_t * last_ctx;
++    } icache[ICACHE_SIZE];
++
++    PFNGLEGLIMAGETARGETTEXTURE2DOESPROC glEGLImageTargetTexture2DOES;
++} drm_gl_converter_t;
++
++
++static void
++unset_icache_ent(const opengl_tex_converter_t * const tc, struct icache_s * const s)
++{
++    if (s->last_image)
++    {
++        tc->gl->egl.destroyImageKHR(tc->gl, s->last_image);
++        s->last_image = NULL;
++    }
++
++    if (s->last_ctx)
++    {
++        s->last_ctx->destroy(s->last_ctx);
++        s->last_ctx = NULL;
++    }
++}
++
++static void
++update_icache(const opengl_tex_converter_t * const tc, EGLImageKHR image, picture_t * pic)
++{
++    drm_gl_converter_t * const sys = tc->priv;
++    struct icache_s * const s = sys->icache + sys->icache_n;
++
++    s->last_image = image;
++    // DRM buffer is held by the context, pictures can be in surprisingly
++    // small pools for filters so let go of the pic and keep a ref on the
++    // context
++    unset_icache_ent(tc, s);
++    s->last_ctx = pic->context->copy(pic->context);
++    sys->icache_n = sys->icache_n + 1 >= ICACHE_SIZE ? 0 : sys->icache_n + 1;
++}
++
++static int
++tc_drm_update(const opengl_tex_converter_t *tc, GLuint *textures,
++                const GLsizei *tex_width, const GLsizei *tex_height,
++                picture_t *pic, const size_t *plane_offset)
++{
++    drm_gl_converter_t * const sys = tc->priv;
++#if TRACE_ALL
++    {
++        char cbuf[5];
++        msg_Dbg(tc, "%s: %s %d*%dx%d : %d*%dx%d", __func__,
++                str_fourcc(cbuf, pic->format.i_chroma),
++                tc->tex_count, tex_width[0], tex_height[0], pic->i_planes, pic->p[0].i_pitch, pic->p[0].i_lines);
++    }
++#endif
++    VLC_UNUSED(tex_width);
++    VLC_UNUSED(tex_height);
++    VLC_UNUSED(plane_offset);
++
++    {
++        const AVDRMFrameDescriptor * const desc = drm_prime_get_desc(pic);
++        EGLint attribs[64] = {0};
++
++        static const EGLint plane_exts[] = {
++            EGL_DMA_BUF_PLANE0_FD_EXT,
++            EGL_DMA_BUF_PLANE0_OFFSET_EXT,
++            EGL_DMA_BUF_PLANE0_PITCH_EXT,
++            EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT,
++            EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT,
++            EGL_DMA_BUF_PLANE1_FD_EXT,
++            EGL_DMA_BUF_PLANE1_OFFSET_EXT,
++            EGL_DMA_BUF_PLANE1_PITCH_EXT,
++            EGL_DMA_BUF_PLANE1_MODIFIER_LO_EXT,
++            EGL_DMA_BUF_PLANE1_MODIFIER_HI_EXT,
++            EGL_DMA_BUF_PLANE2_FD_EXT,
++            EGL_DMA_BUF_PLANE2_OFFSET_EXT,
++            EGL_DMA_BUF_PLANE2_PITCH_EXT,
++            EGL_DMA_BUF_PLANE2_MODIFIER_LO_EXT,
++            EGL_DMA_BUF_PLANE2_MODIFIER_HI_EXT,
++        };
++
++    //    msg_Info(o, "<<< %s", __func__);
++
++        if (!desc)
++        {
++            msg_Err(tc, "%s: No DRM Frame desriptor found", __func__);
++            return VLC_EGENERIC;
++        }
++
++        EGLint *a = attribs;
++        *a++ = EGL_WIDTH;
++        *a++ = tex_width[0];
++        *a++ = EGL_HEIGHT;
++        *a++ = tex_height[0];
++        *a++ = EGL_LINUX_DRM_FOURCC_EXT;
++        *a++ = desc->layers[0].format;
++
++        if (vlc_fourcc_IsYUV(pic->format.i_chroma))
++        {
++            *a++ = EGL_SAMPLE_RANGE_HINT_EXT;
++            *a++ = pic->format.b_color_range_full ? EGL_YUV_FULL_RANGE_EXT : EGL_YUV_NARROW_RANGE_EXT;
++
++            switch (pic->format.chroma_location)
++            {
++                case CHROMA_LOCATION_LEFT:
++                    *a++ = EGL_YUV_CHROMA_HORIZONTAL_SITING_HINT_EXT;
++                    *a++ = EGL_YUV_CHROMA_SITING_0_EXT;
++                    *a++ = EGL_YUV_CHROMA_VERTICAL_SITING_HINT_EXT;
++                    *a++ = EGL_YUV_CHROMA_SITING_0_5_EXT;
++                    break;
++                case CHROMA_LOCATION_CENTER:
++                    *a++ = EGL_YUV_CHROMA_HORIZONTAL_SITING_HINT_EXT;
++                    *a++ = EGL_YUV_CHROMA_SITING_0_5_EXT;
++                    *a++ = EGL_YUV_CHROMA_VERTICAL_SITING_HINT_EXT;
++                    *a++ = EGL_YUV_CHROMA_SITING_0_5_EXT;
++                    break;
++                case CHROMA_LOCATION_TOP_LEFT:
++                    *a++ = EGL_YUV_CHROMA_HORIZONTAL_SITING_HINT_EXT;
++                    *a++ = EGL_YUV_CHROMA_SITING_0_EXT;
++                    *a++ = EGL_YUV_CHROMA_VERTICAL_SITING_HINT_EXT;
++                    *a++ = EGL_YUV_CHROMA_SITING_0_EXT;
++                    break;
++                case CHROMA_LOCATION_TOP_CENTER:
++                    *a++ = EGL_YUV_CHROMA_HORIZONTAL_SITING_HINT_EXT;
++                    *a++ = EGL_YUV_CHROMA_SITING_0_5_EXT;
++                    *a++ = EGL_YUV_CHROMA_VERTICAL_SITING_HINT_EXT;
++                    *a++ = EGL_YUV_CHROMA_SITING_0_EXT;
++                    break;
++                case CHROMA_LOCATION_BOTTOM_LEFT:
++                case CHROMA_LOCATION_BOTTOM_CENTER:
++                case CHROMA_LOCATION_UNDEF:
++                default:
++                    break;
++            }
++
++            switch (pic->format.space)
++            {
++                case COLOR_SPACE_BT2020:
++                    *a++ = EGL_YUV_COLOR_SPACE_HINT_EXT;
++                    *a++ = EGL_ITU_REC2020_EXT;
++                    break;
++                case COLOR_SPACE_BT601:
++                    *a++ = EGL_YUV_COLOR_SPACE_HINT_EXT;
++                    *a++ = EGL_ITU_REC601_EXT;
++                    break;
++                case COLOR_SPACE_BT709:
++                    *a++ = EGL_YUV_COLOR_SPACE_HINT_EXT;
++                    *a++ = EGL_ITU_REC709_EXT;
++                    break;
++                case COLOR_SPACE_UNDEF:
++                default:
++                    break;
++            }
++        }
++
++        const EGLint * ext = plane_exts;
++
++        for (int i = 0; i < desc->nb_layers; ++i)
++        {
++            const AVDRMLayerDescriptor * const layer = desc->layers + i;
++            for (int j = 0; j != layer->nb_planes; ++j)
++            {
++                const AVDRMPlaneDescriptor * const plane = layer->planes + j;
++                const AVDRMObjectDescriptor * const obj = desc->objects + plane->object_index;
++
++                *a++ = *ext++; // FD
++                *a++ = obj->fd;
++                *a++ = *ext++; // OFFSET
++                *a++ = plane->offset;
++                *a++ = *ext++; // PITCH
++                *a++ = plane->pitch;
++                if (obj->format_modifier == DRM_FORMAT_MOD_INVALID)
++                {
++                    ext += 2;
++                }
++                else
++                {
++                    *a++ = *ext++; // MODIFIER_LO
++                    *a++ = (EGLint)(obj->format_modifier & 0xffffffff);
++                    *a++ = *ext++; // MODIFIER_HI
++                    *a++ = (EGLint)(obj->format_modifier >> 32);
++                }
++            }
++        }
++        *a++ = EGL_NONE;
++        *a++ = 0;
++
++        const EGLImageKHR image = tc->gl->egl.createImageKHR(tc->gl, EGL_LINUX_DMA_BUF_EXT, NULL, attribs);
++        if (!image) {
++           msg_Err(tc, "Failed to createImageKHR: Err=%#x", tc->vt->GetError());
++           return VLC_EGENERIC;
++        }
++
++        // *** MMAL ZC does this a little differently
++        // tc->tex_target == OES???
++
++        tc->vt->BindTexture(GL_TEXTURE_EXTERNAL_OES, textures[0]);
++        tc->vt->TexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
++        tc->vt->TexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
++        sys->glEGLImageTargetTexture2DOES(GL_TEXTURE_EXTERNAL_OES, image);
++
++        update_icache(tc, image, pic);
++    }
++
++    return VLC_SUCCESS;
++}
++
++static int
++tc_drm_fetch_locations(opengl_tex_converter_t *tc, GLuint program)
++{
++    tc->uloc.Texture[0] = tc->vt->GetUniformLocation(program, "Texture0");
++    return tc->uloc.Texture[0] != -1 ? VLC_SUCCESS : VLC_EGENERIC;
++}
++
++static void
++tc_drm_prepare_shader(const opengl_tex_converter_t *tc,
++                        const GLsizei *tex_width, const GLsizei *tex_height,
++                        float alpha)
++{
++    (void) tex_width; (void) tex_height; (void) alpha;
++    VLC_UNUSED(tc);
++//    tc->vt->Uniform1i(tc->uloc.Texture[0], 0);
++}
++
++static GLuint
++tc_fragment_shader_init(opengl_tex_converter_t * const tc, const GLenum tex_target,
++                        const vlc_fourcc_t chroma, const video_color_space_t yuv_space)
++{
++    VLC_UNUSED(yuv_space);
++
++    tc->tex_count = 1;
++    tc->tex_target = tex_target;
++    tc->texs[0] = (struct opengl_tex_cfg) {
++        { 1, 1 }, { 1, 1 }, GL_RGB, chroma, GL_UNSIGNED_SHORT  //** ??
++    };
++
++    tc->pf_fetch_locations = tc_drm_fetch_locations;
++    tc->pf_prepare_shader = tc_drm_prepare_shader;
++
++
++    const char fs[] =
++       "#extension GL_OES_EGL_image_external : enable\n"
++       "precision mediump float;\n"
++       "uniform samplerExternalOES Texture0;\n"
++       "varying vec2 TexCoord0;\n"
++       "void main() {\n"
++       "  gl_FragColor = texture2D(Texture0, TexCoord0);\n"
++       "}\n";
++
++
++    const char *code = fs;
++
++    GLuint fragment_shader = tc->vt->CreateShader(GL_FRAGMENT_SHADER);
++    tc->vt->ShaderSource(fragment_shader, 1, &code, NULL);
++    tc->vt->CompileShader(fragment_shader);
++    return fragment_shader;
++}
++
++
++static void
++CloseGLConverter(vlc_object_t *obj)
++{
++    opengl_tex_converter_t * const tc = (opengl_tex_converter_t *)obj;
++    drm_gl_converter_t * const sys = tc->priv;
++    unsigned int i;
++
++    if (sys == NULL)
++        return;
++
++    for (i = 0; i != ICACHE_SIZE; ++i)
++        unset_icache_ent(tc, sys->icache + i);
++    free(sys);
++}
++
++#ifndef DRM_FORMAT_P030
++#define DRM_FORMAT_P030 fourcc_code('P', '0', '3', '0')
++#endif
++
++static struct vlc_to_drm_mod_s {
++    vlc_fourcc_t chroma;
++    uint32_t drm_fmt;
++    uint64_t drm_mod;
++} vlc_to_drm_mods[] = {
++    {VLC_CODEC_DRM_PRIME_I420,   DRM_FORMAT_YUV420, DRM_FORMAT_MOD_LINEAR},
++    {VLC_CODEC_DRM_PRIME_NV12,   DRM_FORMAT_NV12,   DRM_FORMAT_MOD_LINEAR},
++    {VLC_CODEC_DRM_PRIME_SAND8,  DRM_FORMAT_NV12,   DRM_FORMAT_MOD_BROADCOM_SAND128},
++    {VLC_CODEC_DRM_PRIME_SAND30, DRM_FORMAT_P030,   DRM_FORMAT_MOD_BROADCOM_SAND128},
++};
++
++static bool check_chroma(opengl_tex_converter_t * const tc)
++{
++    char fcc[5] = {0};
++    vlc_fourcc_to_char(tc->fmt.i_chroma, fcc);
++    uint32_t fmt = 0;
++    uint64_t mod = DRM_FORMAT_MOD_INVALID;
++    uint64_t mods[16];
++    int32_t mod_count = 0;
++
++    for (unsigned int i = 0; i != ARRAY_SIZE(vlc_to_drm_mods); ++i)
++    {
++        if (tc->fmt.i_chroma == vlc_to_drm_mods[i].chroma)
++        {
++            fmt = vlc_to_drm_mods[i].drm_fmt;
++            mod = vlc_to_drm_mods[i].drm_mod;
++            break;
++        }
++    }
++    if (!fmt)
++        return false;
++
++    if (!tc->gl->egl.queryDmaBufModifiersEXT)
++    {
++        msg_Dbg(tc, "No queryDmaBufModifiersEXT");
++        return false;
++    }
++
++    if (!tc->gl->egl.queryDmaBufModifiersEXT(tc->gl, fmt, 16, mods, NULL, &mod_count))
++    {
++        msg_Dbg(tc, "queryDmaBufModifiersEXT Failed for %s", fcc);
++        return false;
++    }
++
++    for (int32_t i = 0; i < mod_count; ++i)
++    {
++        if (mods[i] == mod)
++            return true;
++    }
++    msg_Dbg(tc, "Mod %" PRIx64 " not found for %s/%.4s in %d mods", mod, fcc, (char*)&fmt, mod_count);
++    return false;
++}
++
++static int
++OpenGLConverter(vlc_object_t *obj)
++{
++    opengl_tex_converter_t * const tc = (opengl_tex_converter_t *)obj;
++    int rv = VLC_EGENERIC;
++
++    // Do we know what to do with this?
++    if (!check_chroma(tc))
++        return VLC_EGENERIC;
++
++    {
++        msg_Dbg(tc, "<<< %s: %.4s %dx%d [(%d,%d) %d/%d] sar:%d/%d", __func__,
++                (char *)&tc->fmt.i_chroma,
++                tc->fmt.i_width, tc->fmt.i_height,
++                tc->fmt.i_x_offset, tc->fmt.i_y_offset,
++                tc->fmt.i_visible_width, tc->fmt.i_visible_height,
++                tc->fmt.i_sar_num, tc->fmt.i_sar_den);
++    }
++
++    if (tc->gl->ext != VLC_GL_EXT_EGL ||
++        !tc->gl->egl.createImageKHR || !tc->gl->egl.destroyImageKHR)
++    {
++        // Missing an important callback
++        msg_Dbg(tc, "Missing EGL xxxImageKHR calls");
++        return rv;
++    }
++
++    if ((tc->priv = calloc(1, sizeof(drm_gl_converter_t))) == NULL)
++    {
++        msg_Err(tc, "priv alloc failure");
++        rv = VLC_ENOMEM;
++        goto fail;
++    }
++    drm_gl_converter_t * const sys = tc->priv;
++
++    if ((sys->glEGLImageTargetTexture2DOES = vlc_gl_GetProcAddress(tc->gl, "glEGLImageTargetTexture2DOES")) == NULL)
++    {
++        msg_Err(tc, "Failed to bind GL fns");
++        goto fail;
++    }
++
++    if ((tc->fshader = tc_fragment_shader_init(tc, GL_TEXTURE_EXTERNAL_OES, tc->fmt.i_chroma, tc->fmt.space)) == 0)
++    {
++        msg_Err(tc, "Failed to make shader");
++        goto fail;
++    }
++
++    tc->handle_texs_gen = true;  // We manage the texs
++    tc->pf_update  = tc_drm_update;
++
++    return VLC_SUCCESS;
++
++fail:
++    CloseGLConverter(obj);
++    return rv;
++}
++
++vlc_module_begin ()
++    set_description("DRM OpenGL surface converter")
++    set_shortname (N_("DRMGLConverter"))
++    set_capability("glconv", 900)
++    set_callbacks(OpenGLConverter, CloseGLConverter)
++    set_category(CAT_VIDEO)
++    set_subcategory(SUBCAT_VIDEO_VOUT)
++    add_shortcut("drm_gl_converter")
++vlc_module_end ()
++
+--- a/src/misc/fourcc.c
++++ b/src/misc/fourcc.c
+@@ -416,6 +416,10 @@ static const vlc_fourcc_t p_D3D11_OPAQUE
+     VLC_CODEC_D3D11_OPAQUE_10B, VLC_CODEC_P010, VLC_CODEC_I420_10L, 0,
+ };
+ 
++static const vlc_fourcc_t p_DRM_PRIME_SAND30_fallback[] = {
++    VLC_CODEC_DRM_PRIME_SAND30, VLC_CODEC_I420_10L, VLC_CODEC_NV12, 0,
++};
++
+ static const vlc_fourcc_t p_I440_fallback[] = {
+     VLC_CODEC_I440,
+     VLC_CODEC_YUV_PLANAR_420,
+@@ -506,6 +510,7 @@ static const vlc_fourcc_t *pp_YUV_fallba
+     p_D3D9_OPAQUE_10B_fallback,
+     p_D3D11_OPAQUE_fallback,
+     p_D3D11_OPAQUE_10B_fallback,
++    p_DRM_PRIME_SAND30_fallback,
+     NULL,
+ };
+ 
+@@ -542,6 +547,10 @@ static const vlc_fourcc_t p_list_YUV[] =
+     VLC_CODEC_MMAL_ZC_SAND10,
+     VLC_CODEC_MMAL_ZC_SAND30,
+     VLC_CODEC_MMAL_ZC_I420,
++    VLC_CODEC_DRM_PRIME_I420,
++    VLC_CODEC_DRM_PRIME_NV12,
++    VLC_CODEC_DRM_PRIME_SAND8,
++    VLC_CODEC_DRM_PRIME_SAND30,
+     0,
+ };
+ 
+@@ -779,6 +788,10 @@ static const struct
+                                                FAKE_FMT() },
+     { { VLC_CODEC_D3D11_OPAQUE_10B, VLC_CODEC_D3D9_OPAQUE_10B },
+                                                FAKE_FMT() },
++    { { VLC_CODEC_DRM_PRIME_I420,  VLC_CODEC_DRM_PRIME_NV12,
++        VLC_CODEC_DRM_PRIME_SAND8, VLC_CODEC_DRM_PRIME_SAND30 },
++                                               FAKE_FMT() },
++    { { VLC_CODEC_DRM_PRIME_RGB32, 0 },        FAKE_FMT() },
+ 
+     { { VLC_CODEC_CVPX_NV12, VLC_CODEC_CVPX_UYVY,
+         VLC_CODEC_CVPX_I420, VLC_CODEC_CVPX_BGRA },

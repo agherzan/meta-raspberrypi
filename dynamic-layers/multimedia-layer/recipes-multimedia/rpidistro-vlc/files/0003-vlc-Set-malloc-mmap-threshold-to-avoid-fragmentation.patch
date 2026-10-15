@@ -1,0 +1,56 @@
+From 0ca0a4175566e5f50c1b9e6bf29f382ce90bd530 Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Mon, 30 Sep 2024 17:30:09 +0100
+Subject: [PATCH 03/41] vlc: Set malloc mmap threshold to avoid fragmentation
+
+We can end up with unfortunate memory fragmentation that ends up using
+a lot more memory than required when buffer allocations get partially
+used up. Put anything that looks like a video buffer directly into
+system memory. Local pooling fixes most of the downsides.
+
+128k is documented as the system default but setting it here prevents
+dynamic resizing.
+
+Do not override a user threshold
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ bin/vlc.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+--- a/bin/vlc.c
++++ b/bin/vlc.c
+@@ -30,6 +30,7 @@
+ #endif
+ 
+ #include <vlc/vlc.h>
++#include <malloc.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <stdbool.h>
+@@ -117,6 +118,19 @@ static void exit_timeout (int signum)
+  *****************************************************************************/
+ int main( int i_argc, const char *ppsz_argv[] )
+ {
++    /* We can end up with unfortunate memory fragmentation that ends up using
++     * a lot more memory than required when buffer allocations get partially
++     * used up. Put anything that looks like a video buffer directly into
++     * system memory. Local pooling fixes most of the downsides.
++     *
++     * 128k is documented as the system default but setting it here prevents
++     * dynamic resizing.
++     *
++     * Do not override a user threshold
++     */
++    if (!getenv("MALLOC_MMAP_THRESHOLD_"))
++        mallopt(M_MMAP_THRESHOLD, 128 * 1024);
++
+     /* The so-called POSIX-compliant MacOS X reportedly processes SIGPIPE even
+      * if it is blocked in all thread.
+      * Note: this is NOT an excuse for not protecting against SIGPIPE. If

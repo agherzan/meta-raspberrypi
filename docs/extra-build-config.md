@@ -96,7 +96,7 @@ The Raspberry Pi can be overclocked. As of now overclocking up to the "Turbo
 Mode" is officially supported by the Raspberry Pi and does not void warranty. Check
 the config.txt for a detailed description of options and modes. The following
 variables are supported in local.conf: `ARM_FREQ`, `GPU_FREQ`, `CORE_FREQ`,
-`SDRAM_FREQ` and `OVER_VOLTAGE`.
+`SDRAM_FREQ`, `OVER_VOLTAGE` and `OVER_VOLTAGE_DELTA`.
 
 Example official settings for Turbo Mode in Raspberry Pi 2:
 
@@ -421,15 +421,15 @@ So we have to explicitly enable it in local.conf.
 
     RASPBERRYPI_CAMERA_V2 = "1"
 
-This will add the device tree overlay imx219 ( Raspberry Pi Camera Module V2 sensor driver 
-) to config.txt. Also, this will enable adding Contiguous Memory Allocation value in the 
+This will add the device tree overlay imx219 ( Raspberry Pi Camera Module V2 sensor driver
+) to config.txt. Also, this will enable adding Contiguous Memory Allocation value in the
 cmdline.txt.
 
 Similarly, the Raspberry Pi Camera Module v3 also has to be explicitly enabled in local.conf.
 
     RASPBERRYPI_CAMERA_V3 = "1"
 
-This will add the device tree overlay imx708 ( Raspberry Pi Camera Module V3 sensor driver ) 
+This will add the device tree overlay imx708 ( Raspberry Pi Camera Module V3 sensor driver )
 to config.txt.
 
 See:

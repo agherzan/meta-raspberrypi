@@ -14,23 +14,15 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
+        # Tier 1: one machine per tune / kernel defconfig. All machines are
+        # signature checked by yocto-check-layer in yocto-layer.yml.
         machine:
-          - raspberrypi
-          - raspberrypi0-2w-64
-          - raspberrypi0-2w
-          - raspberrypi0
           - raspberrypi0-wifi
-          - raspberrypi2-64
-          - raspberrypi2
-          - raspberrypi3-64
-          - raspberrypi3
-          - raspberrypi4-64
-          - raspberrypi4
-          - raspberrypi5
-          - raspberrypi-cm3
-          - raspberrypi-cm
           - raspberrypi-armv7
           - raspberrypi-armv8
+          - raspberrypi3-64
+          - raspberrypi4-64
+          - raspberrypi5
         image: [rpi-test-image]
         distro: [poky]
     runs-on: [self-hosted, Linux]

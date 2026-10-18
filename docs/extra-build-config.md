@@ -82,7 +82,7 @@ By default SD card media is used as boot media.
 To switch the boot media from SD card to USB memory, the following variables are supported
 in local.conf: `CMDLINE_ROOT_PARTITION` and `BOOT_MEDIA`.
 The default value of `CMDLINE_ROOT_PARTITION` is "/dev/mmcblk0p2" to mount SD card. If you want to mount USB memory partition, set CMDLINE_ROOT_PARTITION to "/dev/sda2".
-`BOOT_MEDIA` allows  `mmc` and `usb`. The "mmc" is required to load an image from the SD card, following the u-boot specification. Similarly, if you want to load a boot image file from USB memory, set BOOT_MEDIA to "usb".
+`BOOT_MEDIA` allows  `mmc` and `usb`. When U-Boot bootflow runs the boot script, the kernel is loaded from the device and partition holding the script. `BOOT_MEDIA` (device 0, partition 1) is only used when `devtype`, `devnum` and `distro_bootpart` are not set, for example when sourcing the script manually.
 
 For example, if you want to use USB boot, please define
 the following parameters in your local.conf file.

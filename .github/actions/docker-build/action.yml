@@ -26,7 +26,7 @@ runs:
       run: |
         # Images older than max_age_days are rebuilt so that base image and
         # package updates are picked up.
-        # Keep docker-prune-images at twice this.
+        # Keep docker-cleanup at twice this.
         max_age_days=7
         tag="$(git rev-parse --short=12 HEAD:.github/workflows/docker-images)"
         image="${{ inputs.docker_image }}:$tag"

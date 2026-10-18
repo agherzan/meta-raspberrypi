@@ -22,24 +22,22 @@ jobs:
       - name: Check for Yocto relevant changes
         id: changed-files-specific
         uses: ./.github/actions/changed-files
-      - name: Build a temporary yocto-builder image
+      - name: Build the yocto-builder image
+        id: docker
         uses: ./.github/actions/docker-build
         with:
           docker_image: yocto-builder
-          id: ${{ github.event.number }}
         if: steps.changed-files-specific.outputs.any_changed == 'true'
       - name: Run yocto-check-layer
         run: |
           docker run --rm --security-opt apparmor=unconfined \
             -v "$GITHUB_WORKSPACE:/work:ro" \
             --env "BASE_REF=$GITHUB_BASE_REF" \
-            "yocto-builder-${{ github.event.number }}" \
+            "${{ steps.docker.outputs.image }}" \
             /entrypoint-yocto-check-layer.sh
         if: steps.changed-files-specific.outputs.any_changed == 'true'
-      - name: Cleanup temporary docker image
-        uses: ./.github/actions/docker-clean-image
-        with:
-          docker_image: yocto-builder-${{ github.event.number }}
+      - name: Prune old CI docker images
+        uses: ./.github/actions/docker-prune-images
         if: always()
       - name: Cleanup dangling docker images
         uses: ./.github/actions/docker-clean-dangling

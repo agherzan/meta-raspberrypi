@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: Andrei Gherzan <andrei.gherzan@huawei.com>
+#
+# SPDX-License-Identifier: MIT
+
+name: "Prune old CI docker images"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Prune old CI docker images
+      shell: bash
+      # Only images built by docker-build carry the label. Keep this at twice
+      # its max_age_days so an image a running job relies on is never pruned.
+      run: |
+        echo "Pruning CI images older than 14 days..."
+        docker image prune -af \
+          --filter label=meta-raspberrypi-ci=1 \
+          --filter until=336h

@@ -27,6 +27,7 @@ jobs:
             .github/workflows/docker-images/yocto-builder/**
             .github/workflows/docker-images/*.sh
             .github/workflows/yocto-builds.yml
+            .github/workflows/yocto-layer.yml
             classes/**
             conf/**
             dynamic-layers/**

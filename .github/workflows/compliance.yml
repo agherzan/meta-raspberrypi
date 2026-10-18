@@ -7,6 +7,10 @@ name: Compliance
 on:
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   dco:
     name: DCO
@@ -25,12 +29,13 @@ jobs:
       - name: Do DCO check
         run: |
           docker run --rm --security-opt apparmor=unconfined \
+            --label "meta-raspberrypi-ci.runner=$RUNNER_NAME" \
             --security-opt seccomp=unconfined \
             -v "$GITHUB_WORKSPACE:/work:ro" \
             --env "BASE_REF=$GITHUB_BASE_REF" \
             "${{ steps.docker.outputs.image }}"
-      - name: Prune old CI docker images
-        uses: ./.github/actions/docker-prune-images
+      - name: Cleanup CI docker containers and images
+        uses: ./.github/actions/docker-cleanup
         if: always()
       - name: Cleanup dangling docker images
         uses: ./.github/actions/docker-clean-dangling

@@ -9,6 +9,10 @@ name: Yocto Compatible
 on:
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   yocto-check-layer:
     name: Validate with yocto-check-layer
@@ -31,13 +35,14 @@ jobs:
       - name: Run yocto-check-layer
         run: |
           docker run --rm --security-opt apparmor=unconfined \
+            --label "meta-raspberrypi-ci.runner=$RUNNER_NAME" \
             -v "$GITHUB_WORKSPACE:/work:ro" \
             --env "BASE_REF=$GITHUB_BASE_REF" \
             "${{ steps.docker.outputs.image }}" \
             /entrypoint-yocto-check-layer.sh
         if: steps.changed-files-specific.outputs.any_changed == 'true'
-      - name: Prune old CI docker images
-        uses: ./.github/actions/docker-prune-images
+      - name: Cleanup CI docker containers and images
+        uses: ./.github/actions/docker-cleanup
         if: always()
       - name: Cleanup dangling docker images
         uses: ./.github/actions/docker-clean-dangling

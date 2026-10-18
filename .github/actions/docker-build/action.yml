@@ -43,5 +43,5 @@ runs:
           fi
           n=$((n+1))
         done
-        [ "$n" -lt "$tries" ]
+        [ "$n" -le "$tries" ]
         echo "Temporary image built in ${{ inputs.docker_image }}."

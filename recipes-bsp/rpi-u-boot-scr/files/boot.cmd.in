@@ -1,4 +1,17 @@
 fdt addr ${fdt_addr} && fdt get value bootargs /chosen bootargs
-fatload @@BOOT_MEDIA@@ 0:1 ${kernel_addr_r} @@KERNEL_IMAGETYPE@@
-if test ! -e @@BOOT_MEDIA@@ 0:1 uboot.env; then saveenv; fi;
+
+# Load the kernel from the bootflow device; fall back to BOOT_MEDIA 0:1.
+if test -n "${devtype}" -a -n "${devnum}" -a -n "${distro_bootpart}"; then
+    fatload ${devtype} ${devnum}:${distro_bootpart} ${kernel_addr_r} @@KERNEL_IMAGETYPE@@
+else
+    fatload @@BOOT_MEDIA@@ 0:1 ${kernel_addr_r} @@KERNEL_IMAGETYPE@@
+fi
+
+# uboot.env lives on mmc 0:1. Only create it when booted from there (not
+# on another image's SD card) and without the per-boot bootflow variables.
+if test "${devtype}" = mmc -a "${devnum}" = 0 -a "${distro_bootpart}" = 1 -a ! -e mmc 0:1 uboot.env; then
+    env delete devtype devnum distro_bootpart prefix
+    saveenv
+fi
+
 @@KERNEL_BOOTCMD@@ ${kernel_addr_r} - ${fdt_addr}

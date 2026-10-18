@@ -35,22 +35,9 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Define Yocto build files
+      - name: Check for Yocto relevant changes
         id: changed-files-specific
-        uses: tj-actions/changed-files@v24
-        with:
-          files: |
-            .github/actions/**
-            .github/workflows/docker-images/yocto-builder/**
-            .github/workflows/docker-images/*.sh
-            .github/workflows/yocto-builds.yml
-            classes/**
-            conf/**
-            dynamic-layers/**
-            files/**
-            lib/**
-            recipes-**
-            wic/**
+        uses: ./.github/actions/changed-files
       - name: Build a temporary yocto-builder image
         uses: ./.github/actions/docker-build
         with:

@@ -5,6 +5,8 @@
 FROM ubuntu:26.04
 
 ARG DEBIAN_FRONTEND="noninteractive"
+# Drop dpkg's progress output, which floods the CI logs
+RUN echo 'Dpkg::Use-Pty "0";' > /etc/apt/apt.conf.d/99-no-pty
 RUN apt-get update -qq
 RUN apt-get install -y eatmydata
 

@@ -287,6 +287,29 @@ Ref.:
 * <https://github.com/raspberrypi/firmware/issues/553>
 * <https://github.com/RPi-Distro/repo/issues/22>
 
+## Raspberry Pi Build HAT
+
+The [Build HAT](https://www.raspberrypi.com/products/build-hat/) is an add-on
+board for controlling LEGO Technic motors and SPIKE Portfolio sensors. It is
+connected to GPIO14/GPIO15 and is accessed through `/dev/serial0`, so the UART
+must be enabled and must not be used as the kernel or login console. Set the
+following:
+
+    ENABLE_UART = "1"
+    CMDLINE_SERIAL = ""
+    SERIAL_CONSOLES = ""
+
+* `ENABLE_UART` adds `enable_uart=1` to `config.txt`.
+* `CMDLINE_SERIAL` removes `console=serial0,115200` from `cmdline.txt`.
+* `SERIAL_CONSOLES` prevents a getty from being spawned on the UART.
+
+The `buildhat` Python library and its `gpiozero` dependency are provided by the
+`python3-build-hat` and `python3-gpiozero` recipes. They require the
+`meta-openembedded/meta-python` layer to be included in your `bblayers.conf`.
+To install the library in your image add the following:
+
+    IMAGE_INSTALL:append = " python3-build-hat"
+
 ## Enable USB Peripheral (Gadget) support
 
 The standard USB driver only supports host mode operations.  Users who

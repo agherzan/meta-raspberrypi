@@ -10,8 +10,7 @@ INHIBIT_DEFAULT_DEPS = "1"
 SRC_URI = "file://boot.cmd.in"
 
 BOOT_MEDIA ?= "mmc"
-RPI_SET_FDT_HIGH ?= "0"
-RPI_SET_FDT_HIGH:raspberrypi4-64 = "1"
+RPI_SET_FDT_HIGH ?= "${@oe.utils.conditional('TARGET_ARCH', 'aarch64', '1', '0', d)}"
 
 do_compile() {
     sed -e 's/@@KERNEL_IMAGETYPE@@/${KERNEL_IMAGETYPE}/' \

@@ -1,4 +1,4 @@
-From 35276c4b02b9114436108e74727d192f1e21f239 Mon Sep 17 00:00:00 2001
+From 48fe5bc09058df9c952b8487edb1c7c7fce2f006 Mon Sep 17 00:00:00 2001
 From: Vincent Davis Jr <vince@underview.tech>
 Date: Fri, 9 Dec 2022 23:31:33 -0600
 Subject: [PATCH] vo: converter_vaapi Fix EGL macro undeclared
@@ -17,7 +17,7 @@ Signed-off-by: Vincent Davis Jr <vince@underview.tech>
  1 file changed, 27 insertions(+)
 
 diff --git a/modules/video_output/opengl/converter_vaapi.c b/modules/video_output/opengl/converter_vaapi.c
-index cd842f711..59245fe4c 100644
+index 53073207e..7e82628e6 100644
 --- a/modules/video_output/opengl/converter_vaapi.c
 +++ b/modules/video_output/opengl/converter_vaapi.c
 @@ -55,6 +55,33 @@
@@ -54,6 +54,3 @@ index cd842f711..59245fe4c 100644
  struct priv
  {
      struct vlc_vaapi_instance *vainst;
--- 
-2.38.1
-

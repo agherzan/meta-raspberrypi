@@ -1,0 +1,33 @@
+From 3b56c2cb24793a714d5d26fdc3346f9d116c14e0 Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Tue, 11 Jun 2024 16:29:03 +0100
+Subject: [PATCH 08/41] vlc_fourcc: Add DRM_PRIME picture types
+
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ include/vlc_fourcc.h | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+--- a/include/vlc_fourcc.h
++++ b/include/vlc_fourcc.h
+@@ -392,6 +392,13 @@
+ #define VLC_CODEC_D3D11_OPAQUE          VLC_FOURCC('D','X','1','1') /* 4:2:0  8 bpc */
+ #define VLC_CODEC_D3D11_OPAQUE_10B      VLC_FOURCC('D','X','1','0') /* 4:2:0 10 bpc */
+ 
++/* DRM Prime */
++#define VLC_CODEC_DRM_PRIME_I420        VLC_FOURCC('D','P','V','0')
++#define VLC_CODEC_DRM_PRIME_NV12        VLC_FOURCC('D','P','N','1')
++#define VLC_CODEC_DRM_PRIME_SAND8       VLC_FOURCC('D','P','S','8')
++#define VLC_CODEC_DRM_PRIME_SAND30      VLC_FOURCC('D','P','S','3')
++#define VLC_CODEC_DRM_PRIME_RGB32       VLC_FOURCC('D','P','3','2')
++
+ /* CVPixelBuffer opaque buffer type */
+ #define VLC_CODEC_CVPX_NV12       VLC_FOURCC('C','V','P','N')
+ #define VLC_CODEC_CVPX_UYVY       VLC_FOURCC('C','V','P','Y')

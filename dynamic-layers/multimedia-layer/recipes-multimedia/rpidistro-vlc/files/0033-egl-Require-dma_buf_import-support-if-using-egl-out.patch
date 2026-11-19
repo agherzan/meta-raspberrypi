@@ -1,0 +1,44 @@
+From fd6b9b6e1a883c5088f1daa5fb7b26989a76bbde Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Wed, 12 Jun 2024 10:51:42 +0100
+Subject: [PATCH 33/41] egl: Require dma_buf_import support if using egl out
+
+If egl doesn't support dmabufs then X is faster.
+
+
+Upstream-Status: Inappropriate
+
+RPI-Distro repo forks original vlc and applies patches
+
+to enable raspiberry pi support.
+---
+
+ modules/video_output/opengl/egl.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+--- a/modules/video_output/opengl/egl.c
++++ b/modules/video_output/opengl/egl.c
+@@ -43,6 +43,8 @@
+ # include "../android/utils.h"
+ #endif
+ 
++#define REQUIRE_DMA_BUF_IMPORT 1
++
+ typedef struct vlc_gl_sys_t
+ {
+     EGLDisplay display;
+@@ -381,6 +383,14 @@ static int Open (vlc_object_t *obj, cons
+         goto error;
+     }
+ 
++#if REQUIRE_DMA_BUF_IMPORT
++    if (!CheckToken(ext, "EGL_EXT_image_dma_buf_import"))
++    {
++        msg_Dbg(obj, "No dma_buf_import - fall back to X");
++        goto error;
++    }
++#endif
++
+     const EGLint conf_attr[] = {
+         EGL_RED_SIZE, 5,
+         EGL_GREEN_SIZE, 5,

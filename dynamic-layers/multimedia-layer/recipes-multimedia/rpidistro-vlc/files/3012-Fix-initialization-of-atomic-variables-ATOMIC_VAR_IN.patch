@@ -1,0 +1,94 @@
+From bfc048168168dacb442449b5bbc579d8447c3ea1 Mon Sep 17 00:00:00 2001
+From: Gijs Peskens <gijs.peskens@munisense.com>
+Date: Tue, 27 Jan 2026 13:42:34 +0100
+Subject: [PATCH] Fix initialization of atomic variables, ATOMIC_VAR_INIT is
+ deprecated in C17, and removed in C23
+
+Upstream-Status: Inappropriate
+---
+ modules/gui/macosx/VLCVoutWindowController.m | 2 +-
+ modules/hw/mmal/mmal_cma.c                   | 2 +-
+ modules/hw/mmal/mmal_cma_drmprime.c          | 2 +-
+ modules/video_output/drmu/drmu_poll.c        | 2 +-
+ modules/video_output/drmu/pollqueue.c        | 2 +-
+ src/misc/threads.c                           | 2 +-
+ 6 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/modules/gui/macosx/VLCVoutWindowController.m b/modules/gui/macosx/VLCVoutWindowController.m
+index 5e2a756fd..c94f09c2e 100644
+--- a/modules/gui/macosx/VLCVoutWindowController.m
++++ b/modules/gui/macosx/VLCVoutWindowController.m
+@@ -39,7 +39,7 @@
+ #import "VLCPlaylist.h"
+ #import "NSScreen+VLCAdditions.h"
+ 
+-static atomic_bool b_intf_starting = ATOMIC_VAR_INIT(false);
++static atomic_bool b_intf_starting = (false);
+ 
+ static int WindowControl(vout_window_t *, int i_query, va_list);
+ 
+diff --git a/modules/hw/mmal/mmal_cma.c b/modules/hw/mmal/mmal_cma.c
+index 4dfedbc57..da32c7362 100644
+--- a/modules/hw/mmal/mmal_cma.c
++++ b/modules/hw/mmal/mmal_cma.c
+@@ -405,7 +405,7 @@ static void * cma_pool_alloc_cb(void * v, size_t size)
+         return NULL;
+ 
+     *cb = (cma_buf_t){
+-        .ref_count = ATOMIC_VAR_INIT(0),
++        .ref_count = (0),
+         .cbp = cbp,
+         .in_flight = 0,
+         .size = size,
+diff --git a/modules/hw/mmal/mmal_cma_drmprime.c b/modules/hw/mmal/mmal_cma_drmprime.c
+index d58bfdd94..f31425171 100644
+--- a/modules/hw/mmal/mmal_cma_drmprime.c
++++ b/modules/hw/mmal/mmal_cma_drmprime.c
+@@ -36,7 +36,7 @@ static void * drmprime_pool_alloc_cb(void * v, size_t size)
+ 
+     *cdb = (cma_drmprime_buf_t){
+         .cb = {
+-            .ref_count = ATOMIC_VAR_INIT(0),
++            .ref_count = (0),
+             .cbp = cbp,
+             .in_flight = 0,
+             .size = size,
+diff --git a/modules/video_output/drmu/drmu_poll.c b/modules/video_output/drmu/drmu_poll.c
+index 7f9d2f8c0..2d28e4cb0 100644
+--- a/modules/video_output/drmu/drmu_poll.c
++++ b/modules/video_output/drmu/drmu_poll.c
+@@ -334,7 +334,7 @@ drmu_queue_new(struct drmu_env_s * const du)
+ {
+     drmu_queue_t * const aq = calloc(1, sizeof(*aq));
+     pthread_condattr_t condattr;
+-    static atomic_int qcount = ATOMIC_VAR_INIT(0);
++    static atomic_int qcount = (0);
+ 
+     if (aq == NULL)
+         return NULL;
+diff --git a/modules/video_output/drmu/pollqueue.c b/modules/video_output/drmu/pollqueue.c
+index c8a4de0be..8aa906a1b 100644
+--- a/modules/video_output/drmu/pollqueue.c
++++ b/modules/video_output/drmu/pollqueue.c
+@@ -468,7 +468,7 @@ struct pollqueue * pollqueue_new(void)
+     if (!pq)
+         return NULL;
+     *pq = (struct pollqueue){
+-        .ref_count = ATOMIC_VAR_INIT(0),
++        .ref_count = (0),
+         .lock = PTHREAD_MUTEX_INITIALIZER,
+         .cond = PTHREAD_COND_INITIALIZER,
+         .head = NULL,
+diff --git a/src/misc/threads.c b/src/misc/threads.c
+index a6183cb26..377007b57 100644
+--- a/src/misc/threads.c
++++ b/src/misc/threads.c
+@@ -83,7 +83,7 @@ static void vlc_cancel_addr_finish(void *addr)
+ void (mwait)(vlc_tick_t deadline)
+ {
+     vlc_tick_t delay;
+-    atomic_int value = ATOMIC_VAR_INIT(0);
++    atomic_int value = (0);
+ 
+     vlc_cancel_addr_prepare(&value);
+ 

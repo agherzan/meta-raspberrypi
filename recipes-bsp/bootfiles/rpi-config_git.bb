@@ -188,16 +188,8 @@ do_deploy() {
 
     # U-Boot requires "enable_uart=1" for various boards to operate correctly
     # cf https://source.denx.de/u-boot/u-boot/-/blob/v2023.04/arch/arm/mach-bcm283x/Kconfig?ref_type=tags#L65
-    if [ "${RPI_USE_U_BOOT}" = "1" ] && [ "${ENABLE_UART}" != "1" ]; then
-        case "${UBOOT_MACHINE}" in
-            rpi_0_w_defconfig|rpi_3_32b_config|rpi_4_32b_config|rpi_arm64_config)
-                if [ "${ENABLE_UART}" = "0" ]; then
-                    bbfatal "Invalid configuration: RPI_USE_U_BOOT requires to enable the UART in config.txt for ${MACHINE}"
-                fi
-                echo "# U-Boot requires UART" >>$CONFIG
-                echo "enable_uart=1" >>$CONFIG
-                ;;
-        esac
+    if [ "${RPI_USE_U_BOOT}" = "1" ] && [ "${U_BOOT_REQUIRES_UART}" = "1" ] && [ "${ENABLE_UART}" != "1" ]; then
+        bbfatal "Invalid configuration: RPI_USE_U_BOOT requires to enable the UART in config.txt for ${MACHINE}"
     fi
 
     if [ "${ENABLE_UART}"  = "1" ] && [ "${MACHINE}" = "raspberrypi-cm5-io-board" ]; then

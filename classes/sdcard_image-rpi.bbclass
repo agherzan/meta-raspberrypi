@@ -21,6 +21,27 @@ inherit image_types
 # ^                        ^            ^                        ^
 # |                        |            |                        |
 # 0                      4MiB     4MiB + 48MiB       4MiB + 48Mib + SDIMG_ROOTFS
+#
+# In case of A/B symmetric setup:
+#
+# The disk layout used is:
+#
+#    0                       -> IMAGE_ROOTFS_ALIGNMENT           - reserved for other data
+#    IMAGE_ROOTFS_ALIGNEMENT -> BOOT_SPACE                       - bootloader and kernel
+#    BOOT_SPACE              -> ROOTFS_A                         - rootfs for partition A
+#    ROOTFS_A                -> ROOTFS_B                         - rootfs for partition B
+#                                                      Default Free space = 1.3x
+#                                                      Use IMAGE_OVERHEAD_FACTOR to add more space
+#                                                      <--------->
+#            4MiB              48MiB           ROOTFS_A                    ROOTFS_B
+# <-----------------------> <----------> <----------------------> <------------------>
+#  ------------------------ ------------ ------------------------ --------------------
+# | IMAGE_ROOTFS_ALIGNMENT | BOOT_SPACE | ROOTFS_PARTITION_A     | ROOTFS_PARTITION_B |
+#  ------------------------ ------------ ------------------------ --------------------
+# ^                        ^            ^                        ^                    ^
+# |                        |            |                        |                    |
+# 0                      4MiB     4MiB + 48MiB  4MiB + 48MiB + ROOTFS_A     4MiB + 48MiB + ROOTFS_A + ROOTFS_B
+
 
 # This image depends on the rootfs image
 IMAGE_TYPEDEP:rpi-sdimg = "${SDIMG_ROOTFS_TYPE}"
@@ -35,6 +56,13 @@ BOOT_SPACE ?= "49152"
 
 # Set alignment to 4MB [in KiB]
 IMAGE_ROOTFS_ALIGNMENT = "4096"
+
+# Set Rootfs partition size [in KiB] by default 4GB
+ROOTFS_PARTITION_SIZE ?= "4194304"
+
+# Variable to enable or disable A/B partiton layout for dual root filesystem setup
+# Set to 0 by default to use a single root filesystem layout
+RPI_AB_PARTITION_LAYOUT ?= "0"
 
 # Use an uncompressed ext3 by default as rootfs
 SDIMG_ROOTFS_TYPE ?= "ext3"
@@ -75,23 +103,51 @@ IMAGE_CMD:rpi-sdimg () {
     # Align partitions
     BOOT_SPACE_ALIGNED=$(expr ${BOOT_SPACE} + ${IMAGE_ROOTFS_ALIGNMENT} - 1)
     BOOT_SPACE_ALIGNED=$(expr ${BOOT_SPACE_ALIGNED} - ${BOOT_SPACE_ALIGNED} % ${IMAGE_ROOTFS_ALIGNMENT})
-    SDIMG_SIZE=$(expr ${IMAGE_ROOTFS_ALIGNMENT} + ${BOOT_SPACE_ALIGNED} + $ROOTFS_SIZE)
 
-    echo "Creating filesystem with Boot partition ${BOOT_SPACE_ALIGNED} KiB and RootFS $ROOTFS_SIZE KiB"
+    if [ "${RPI_AB_PARTITION_LAYOUT}" = "0" ]; then
+        SDIMG_SIZE=$(expr ${IMAGE_ROOTFS_ALIGNMENT} + ${BOOT_SPACE_ALIGNED} + ${ROOTFS_SIZE})
+        echo "Creating filesystem with Boot partition ${BOOT_SPACE_ALIGNED} KiB and RootFS $ROOTFS_SIZE KiB"
+    else
+        ROOTFS_SIZE_ALIGNED=$(expr ${ROOTFS_SIZE} + ${IMAGE_ROOTFS_ALIGNMENT} - 1)
+        ROOTFS_SIZE_ALIGNED=$(expr ${ROOTFS_SIZE_ALIGNED} - ${ROOTFS_SIZE_ALIGNED} % ${IMAGE_ROOTFS_ALIGNMENT})
+
+        if [ ${ROOTFS_SIZE_ALIGNED} > ${ROOTFS_PARTITION_SIZE} ]; then
+            ROOTFS_PARTITION_SIZE=${ROOTFS_SIZE_ALIGNED}
+        fi
+
+        SDIMG_SIZE=$(expr ${IMAGE_ROOTFS_ALIGNMENT} + ${BOOT_SPACE_ALIGNED} + ${ROOTFS_PARTITION_SIZE} \* 2)
+        echo "Creating filesystem with Boot partition ${BOOT_SPACE_ALIGNED} KiB and two RootFS partition with $ROOTFS_SIZE KiB each"
+    fi
 
     # Check if we are building with device tree support
     DTS="${@make_dtb_boot_files(d)}"
 
     # Initialize sdcard image file
-    dd if=/dev/zero of=${SDIMG} bs=1024 count=0 seek=${SDIMG_SIZE}
+    dd if=/dev/zero of=${SDIMG} bs=1K count=0 seek=${SDIMG_SIZE}
 
     # Create partition table
     parted -s ${SDIMG} mklabel msdos
+
     # Create boot partition and mark it as bootable
-    parted -s ${SDIMG} unit KiB mkpart primary fat32 ${IMAGE_ROOTFS_ALIGNMENT} $(expr ${BOOT_SPACE_ALIGNED} \+ ${IMAGE_ROOTFS_ALIGNMENT})
+    parted -s ${SDIMG} unit KiB mkpart primary fat32 \
+        ${IMAGE_ROOTFS_ALIGNMENT} \
+        $(expr ${BOOT_SPACE_ALIGNED} + ${IMAGE_ROOTFS_ALIGNMENT})
     parted -s ${SDIMG} set 1 boot on
+
     # Create rootfs partition to the end of disk
-    parted -s ${SDIMG} -- unit KiB mkpart primary ext2 $(expr ${BOOT_SPACE_ALIGNED} \+ ${IMAGE_ROOTFS_ALIGNMENT}) -1s
+    if [ "${RPI_AB_PARTITION_LAYOUT}" = "0" ]; then
+        parted -s ${SDIMG} -- unit KiB mkpart primary ext2 \
+            $(expr ${BOOT_SPACE_ALIGNED} + ${IMAGE_ROOTFS_ALIGNMENT}) \
+            -1s
+    else
+        parted -s ${SDIMG} -- unit KiB mkpart primary ext2 \
+            $(expr ${BOOT_SPACE_ALIGNED} + ${IMAGE_ROOTFS_ALIGNMENT}) \
+            $(expr ${BOOT_SPACE_ALIGNED} + ${IMAGE_ROOTFS_ALIGNMENT} + ${ROOTFS_PARTITION_SIZE})
+
+        parted -s ${SDIMG} -- unit KiB mkpart primary ext2 \
+            $(expr ${BOOT_SPACE_ALIGNED} + ${IMAGE_ROOTFS_ALIGNMENT} + ${ROOTFS_PARTITION_SIZE}) \
+	        -1s
+    fi
     parted ${SDIMG} print
 
     # Create a vfat image with boot files
@@ -170,13 +226,35 @@ IMAGE_CMD:rpi-sdimg () {
     fi
 
     # Burn Partitions
-    dd if=${WORKDIR}/boot.img of=${SDIMG} conv=notrunc seek=1 bs=$(expr ${IMAGE_ROOTFS_ALIGNMENT} \* 1024)
-    # If SDIMG_ROOTFS_TYPE is a .xz file use xzcat
-    if echo "${SDIMG_ROOTFS_TYPE}" | egrep -q "*\.xz"
-    then
-        xzcat ${SDIMG_ROOTFS} | dd of=${SDIMG} conv=notrunc seek=1 bs=$(expr 1024 \* ${BOOT_SPACE_ALIGNED} + ${IMAGE_ROOTFS_ALIGNMENT} \* 1024)
+    dd if=${WORKDIR}/boot.img of=${SDIMG} conv=notrunc \
+        seek=$(expr ${IMAGE_ROOTFS_ALIGNMENT}) bs=1K
+
+    if [ "${RPI_AB_PARTITION_LAYOUT}" = "0" ]; then
+        # If SDIMG_ROOTFS_TYPE is a .xz file use xzcat
+        if echo "${SDIMG_ROOTFS_TYPE}" | egrep -q "*\.xz"
+        then
+            xzcat ${SDIMG_ROOTFS} | dd of=${SDIMG} conv=notrunc \
+                seek=$(expr ${BOOT_SPACE_ALIGNED} + ${IMAGE_ROOTFS_ALIGNMENT}) bs=1K
+        else
+            dd if=${SDIMG_ROOTFS} of=${SDIMG} conv=notrunc \
+                 seek=$(expr ${BOOT_SPACE_ALIGNED} + ${IMAGE_ROOTFS_ALIGNMENT}) bs=1K
+        fi
     else
-        dd if=${SDIMG_ROOTFS} of=${SDIMG} conv=notrunc seek=1 bs=$(expr 1024 \* ${BOOT_SPACE_ALIGNED} + ${IMAGE_ROOTFS_ALIGNMENT} \* 1024)
+        # If SDIMG_ROOTFS_TYPE is a .xz file use xzcat
+        if echo "${SDIMG_ROOTFS_TYPE}" | egrep -q "*\.xz"
+        then
+            xzcat ${SDIMG_ROOTFS} | dd of=${SDIMG} conv=notrunc \
+                seek=$(expr ${BOOT_SPACE_ALIGNED} + ${IMAGE_ROOTFS_ALIGNMENT}) bs=1K
+
+	        xzcat ${SDIMG_ROOTFS} | dd of=${SDIMG} conv=notrunc \
+                seek=$(expr ${BOOT_SPACE_ALIGNED} + ${IMAGE_ROOTFS_ALIGNMENT} + ${ROOTFS_PARTITION_SIZE}) bs=1K
+	    else
+	        dd if=${SDIMG_ROOTFS} of=${SDIMG} conv=notrunc \
+                seek=$(expr ${BOOT_SPACE_ALIGNED} + ${IMAGE_ROOTFS_ALIGNMENT}) bs=1K
+
+            dd if=${SDIMG_ROOTFS} of=${SDIMG} conv=notrunc \
+            seek=$(expr ${BOOT_SPACE_ALIGNED} + ${IMAGE_ROOTFS_ALIGNMENT} + ${ROOTFS_PARTITION_SIZE}) bs=1K
+	    fi
     fi
 }
 

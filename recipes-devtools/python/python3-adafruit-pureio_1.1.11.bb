@@ -25,3 +25,4 @@ do_install_ptest:append() {
         bbwarn "The tests require I2C. Set ENABLE_I2C to \"1\" to enable it."
     fi
 }
+do_install_ptest[vardepsexclude] += "ENABLE_I2C"

@@ -18,8 +18,8 @@ LICENSE_FLAGS = "synaptics-killswitch"
 SRC_URI = "git://github.com/RPi-Distro/firmware-nonfree;branch=bookworm;protocol=https \
     file://0002-Default-all-RPi-43455-boards-to-standard-variant.patch \
 "
-SRCREV = "c9d3ae6584ab79d19a4f94ccf701e888f9f87a53"
-PV = "20240709-2~bpo12+1+rpt3"
+SRCREV = "c91cd2804cf7463aab913e7247c176049f16bbd6"
+PV = "20240709-2~bpo12+1+rpt4"
 
 INHIBIT_DEFAULT_DEPS = "1"
 
@@ -41,6 +41,7 @@ do_install() {
             brcmfmac43430b0-sdio \
             brcmfmac43436-sdio \
             brcmfmac43436s-sdio \
+            brcmfmac43439-sdio \
             brcmfmac43455-sdio \
             brcmfmac43456-sdio; do
         cp -R --no-dereference --preserve=mode,links -v debian/config/brcm80211/brcm/${fw}.* ${D}${nonarch_base_libdir}/firmware/brcm/
@@ -87,6 +88,7 @@ FILES:${PN}-bcm43436 = " \
 "
 FILES:${PN}-bcm43436s = "${nonarch_base_libdir}/firmware/brcm/brcmfmac43436s*"
 FILES:${PN}-bcm43439 = " \
+    ${nonarch_base_libdir}/firmware/brcm/brcmfmac43439* \
     ${nonarch_base_libdir}/firmware/cypress/43439A0-7.95.49.00.combined \
     ${nonarch_base_libdir}/firmware/cypress/cyfmac43439-sdio* \
 "
